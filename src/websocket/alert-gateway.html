@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Alert WebSocket</title>
+</head>
+
+<body>
+    <h1>Alert WebSocket Test</h1>
+
+    <!-- <button onclick="subscribe('asset1')">Subscribe asset-1</button> -->
+    <!-- <button onclick="subscribe('ffbacbae-6aa7-4d5e-8dbf-8da11b671e21')">Subscribe asset-1</button> -->
+    <button onclick="subscribe('d0fc3be4-951d-4bb2-8eba-b446c691c142')">Subscribe asset-1</button>
+    <button onclick="subscribe('asset2')">Subscribe asset-2</button>
+
+    <h2>Incoming Alerts</h2>
+    <div id="data"></div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:3002/alerts');
+
+        socket.addEventListener('open', () => {
+            console.log('Connected to Alert WS');
+        });
+
+        socket.addEventListener('message', (event) => {
+            console.log("message")
+            try {
+                const payload = JSON.parse(event.data);
+                console.log("Incoming Alert:", payload);
+
+                const div = document.createElement("div");
+                div.innerHTML = `
+          <strong>Event:</strong> ${payload.type}<br/>
+          <pre>${JSON.stringify(payload.data, null, 2)}</pre>
+          <hr/>
+        `;
+                document.getElementById('data').prepend(div);
+
+            } catch (err) {
+                console.error("Invalid message:", event.data);
+            }
+        });
+
+        function subscribe(orgId) {
+            if (socket.readyState !== WebSocket.OPEN) {
+                console.warn("WebSocket not connected yet");
+                return;
+            }
+
+            const payload = {
+                type: "SUBSCRIBE",
+                data: {
+                    // assetId: assetId
+                    csvOrgIDs: orgId
+                }
+            };
+
+            socket.send(JSON.stringify(payload));
+            console.log("Sent subscription:", payload);
+        }
+    </script>
+
+</body>
+
+</html>

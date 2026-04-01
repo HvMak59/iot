@@ -1,0 +1,4 @@
+id,telemetryHeaderId,assetId,deviceId,virtualDeviceId,metricMetricsattributeid,metricMeasure,metricUnit,metricFrequency,metricTxncapturetime,metricTxncaptureperiod,metricIscalculated,auditDateTimeCreatedat,auditDateTimeUpdatedat,auditDateTimeDeletedat,slaveId,verified
+2ec54274-074e-435d-a610-1b6165904a85,fefa31f0-9ba6-4220-b5e6-d14eb817778e,Lift,,Lift:vd,floor,16,,0,2026-03-24 10:15:06+05:30,2026-03-24 10:15:06+05:30,FALSE,2026-03-24 15:09:45.134197+05:30,2026-03-24 15:18:59.496575+05:30,,,
+4f8e7c89-677d-4c18-aad3-6130be2e486e,e5bbc586-2718-42a4-bb2d-9c36f59498c6,Lift,,Lift:vd,direction,up,,0,2026-03-25 10:19:06+05:30,2026-03-25 10:19:06+05:30,FALSE,2026-03-25 12:07:35.574455+05:30,2026-03-25 14:39:38.267301+05:30,,,
+7e96f9e9-42a7-4608-862b-cddaaec20280,e5bbc586-2718-42a4-bb2d-9c36f59498c6,Lift,,Lift:vd,floor,0,,0,2026-03-25 10:19:06+05:30,2026-03-25 10:19:06+05:30,FALSE,2026-03-25 12:07:35.574455+05:30,2026-03-25 14:39:38.267301+05:30,,,

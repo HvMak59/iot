@@ -1,0 +1,70 @@
+{
+  "user": {
+    "relations": [
+      "userRoles"
+    ]
+  },
+  "deviceType": {
+    "serviceName": "Device type",
+    "relations": [
+      "deviceModels",
+      "issues"
+    ]
+  },
+  "deviceManufacturer": {
+    "serviceName": "Device Manufacturer",
+    "relations": [
+      "deviceModels"
+    ]
+  },
+  "deviceModel": {
+    "serviceName": "Device Model",
+    "relations": [
+      "deviceType",
+      "deviceManufacturer",
+      "devices"
+    ]
+  },
+  "device": {
+    "serviceName": "device",
+    "relations": [
+      "deviceModel"
+    ]
+  },
+  "state": {
+    "serviceName": "State",
+    "relations": [
+      "country",
+      "districts"
+    ]
+  },
+  "district": {
+    "serviceName": "District",
+    "relations": [
+      "state"
+    ]
+  },
+  "issue": {
+    "serviceName": "Issue",
+    "relations": [
+      "deviceType",
+      "tickets"
+    ]
+  },
+  "customer": {
+    "serviceName": "Customer",
+    "relations": [
+      "tickets"
+    ]
+  },
+  "ticket": {
+    "serviceName": "Ticket",
+    "relations": [
+      "device",
+      "issue",
+      "customer",
+      "quotations",
+      "ticketMedias"
+    ]
+  }
+}
