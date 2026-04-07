@@ -58,14 +58,13 @@ export class AlertEventsListener {
         try {
             const recipient = '917698779298'; // fetch from assetid
 
-            const message = this.buildMessage(assetId, status, alerts);
+            // const message = this.buildMessage(assetId, status, alerts);
 
             await this.whatsAppService.sendTemplateMessage(  // need to test this 
                 recipient,
                 'alert_created_template',
-                [assetId, String(alerts.length), status],
+                // [assetId, String(alerts.length), status],
             );
-
         } catch (error) {
             console.log(
                 `Failed sending WhatsApp for assetId=${assetId}`,
@@ -73,6 +72,7 @@ export class AlertEventsListener {
             );
         }
     }
+
 
     private buildMessage(
         assetId: string,
@@ -92,3 +92,5 @@ export class AlertEventsListener {
         ].join('\n');
     }
 }
+
+
