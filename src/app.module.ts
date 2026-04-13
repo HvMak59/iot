@@ -378,8 +378,28 @@ export class AppModule { }
 // ttl_s - 40085
 
 
+// Key mapping 
+// pt-001 - pt-001
+// pt-100 - pt-100 
+// pt-400 - pt-400
+// pt-201 - pt-201
+// tt-100 - tt-100
+// tt-400 - tt-400
+// tt-20  - tt-20
+// Avg Voltage(LL) - avgV
+// Avg Current(A) - avgC
+// kWh - kWh 
+// Flow rate - flwrt
+// Suction Total - sctn_ttl
+// Total Hour - ttl_hr
+// Total Minute - ttl_mnt
+// Total Second - ttl_s
+
+
 // Beerens Compressor 
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026030006\")"
+
 
 // {"device_type":"invtr","device_name":"invt","device_id":"2026030006","date":"26/03/2026",
 // "time":"14:51:52","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
@@ -388,7 +408,7 @@ export class AppModule { }
 // "tt-400":0,"tt-20":0,"avgV":0,"avgC":0,"kWh":0,"flwrt":0,"sctn_ttl":0,"ttl_hr":0,
 // "ttl_mnt":0,"ttl_s":0}}
 
-
+// 9328152924
 
 // Standalone Script :
 // npx ts-node -r tsconfig-paths/register src/telemetry-payload/update_telemetry_script.ts
@@ -412,5 +432,29 @@ export class AppModule { }
 // good = beneficial,positive,
 // develop = cultivate
 
+
+
+// {"device_type":"invtr","device_name":"invt","device_id":"2026030006",
+// "date":"08/04/2026","time":"17:32:51","time_zone":"Asia/Kolkata","latitude":"0",
+// "longitude":"0","software_ver":"SM-1.03.D20_4G","signal_strength":"3","valid":true ,
+// "data":{
+//    "slave_id":"1","pt-001":178.500,"pt-100":248.500,"pt-400":666.000,"pt-201":111.900,
+//   "tt-100":269.500,"tt-400":355.600,"tt-20":470.500,"avgV":877.500,"avgC":951.700,"kWh":399.600,
+//   "flwrt":666.800,"sctn_ttl":177.900,"ttl_hr":127.500,"ttl_mnt":690.600,"ttl_s":336.000
+// }}
+
+
+// 00001 - > uint16ba , holding register 
+
+
+
+
+// I will upload my resume. Act as an Al recruiter and Job hunting machine. Analyze my 
+// resume in depth to identify the most suitable 2 year experienced or entry-level roles
+// I should target in India. Find real companies currently hiring across startups, scale-ups, 
+// MNCs, consulting firms, and both tech and non-tech sectors, and provide verified application 
+// links for each opportunity. Match every job with my profile and give a fit score out of 100. 
+// Create a prioritized job application list categorized into high-probability, 
+// medium-probability, and stretch roles. Curate list of jobs with application links atleast 20 
 
 

@@ -33,6 +33,7 @@ export class AlertEventsListener {
             AlertStatus.CLOSED,
             payload.alerts,
         );
+
         await this.sendWhatsAppForAlerts(payload.assetId, AlertStatus.CLOSED, payload.alerts);
     }
 
@@ -60,11 +61,11 @@ export class AlertEventsListener {
 
             // const message = this.buildMessage(assetId, status, alerts);
 
-            await this.whatsAppService.sendTemplateMessage(  // need to test this 
-                recipient,
-                'alert_created_template',
-                // [assetId, String(alerts.length), status],
-            );
+            // await this.whatsAppService.sendTemplateMessage(  // need to test this 
+            //     recipient,
+            //     'alert_created_template',
+            //     // [assetId, String(alerts.length), status],
+            // );
         } catch (error) {
             console.log(
                 `Failed sending WhatsApp for assetId=${assetId}`,

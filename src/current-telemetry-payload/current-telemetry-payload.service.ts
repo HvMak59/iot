@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, IsNull, Repository } from 'typeorm';
+import { Between, In, IsNull, LessThan, Repository } from 'typeorm';
 // import {
 //   findAll,
 //   deleteRec,
@@ -327,6 +327,48 @@ export class CurrentTelemetryPayloadService {
     console.log("event");
 
     return saved;
+  }
+
+
+  async findOfflineRmu() {
+    // const offlineRmu = await this.repo.find({
+    // where: {
+    //   metric: {
+    //     txnCaptureTime: LessThan(new Date(Date.now() - 20 * 60 * 1000)) // Assuming RMU is offline if no telemetry received in last 20 minutes
+    //   }
+    // }
+    // });
+
+    const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
+
+    const rows = await this.repo.find({
+      select: {
+        id: true,
+        assetId: true,
+        deviceId: true,
+        virtualDeviceId: true,
+        metric: {
+          txnCaptureTime: true,
+          metricsAttributeId: true,
+        },
+      },
+      where: {
+        metric: {
+          txnCaptureTime: LessThan(new Date(Date.now() - 20 * 60 * 1000)) // Assuming RMU is offline if no telemetry received in last 20 minutes
+        }
+      }
+    });
+
+    const latestByRmu = new Map<string, CurrentTelemetryPayload>();
+
+    for (const row of rows) {
+      const key = row.virtualDeviceId!;
+      const existing = latestByRmu.get(key);
+
+      if (!existing) {
+        latestByRmu.set(key, row);
+      }
+    }
   }
 
   async findByIds(ids: string[]) {
