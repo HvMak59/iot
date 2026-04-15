@@ -329,7 +329,6 @@ export class CurrentTelemetryPayloadService {
     return saved;
   }
 
-
   async findOfflineRmu() {
     // const offlineRmu = await this.repo.find({
     // where: {
@@ -370,6 +369,7 @@ export class CurrentTelemetryPayloadService {
       }
     }
   }
+
 
   async findByIds(ids: string[]) {
     return this.repo.find({ where: { id: In(ids) } });

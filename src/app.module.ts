@@ -458,3 +458,9 @@ export class AppModule { }
 // medium-probability, and stretch roles. Curate list of jobs with application links atleast 20 
 
 
+// Moicrosoft CMT ( Research Paper) : 
+// url : https://gcek.ac.in/SPICES2026/
+// hiten.makwana7698@gmail.com 
+// Hitu.Mak592002 
+
+
