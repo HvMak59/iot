@@ -20,6 +20,7 @@ import { OrgType } from 'src/utils/enums';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { Asset } from 'src/asset/entities/asset.entity';
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
+import { OrgUser } from 'src/org-user/entities/org-user.entity';
 
 //import {User} from './User';
 
@@ -83,8 +84,8 @@ export class Org {
   // @JoinColumn({ name: 'ownerOrgId' })
   // devices: Device[];
 
-  // @OneToMany(() => OrgUser, (orgUser) => orgUser.org)
-  // orgUsers: OrgUser[];
+  @OneToMany(() => OrgUser, (orgUser) => orgUser.org)
+  orgUsers: OrgUser[];
 
   @Column({ nullable: true })
   searchTerm?: string;

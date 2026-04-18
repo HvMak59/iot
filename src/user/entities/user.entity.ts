@@ -14,6 +14,7 @@ import { Validate } from 'class-validator';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { UserRole } from 'src/user-role/entities/user-role.entity';
+import { OrgUser } from 'src/org-user/entities/org-user.entity';
 
 @Entity()
 export class User {
@@ -42,6 +43,9 @@ export class User {
   password: string;
 
   @Column({ nullable: true })
+  phoneNumber: string;
+
+  @Column({ nullable: true })
   searchTerm: string;
 
   @BeforeInsert()
@@ -60,8 +64,8 @@ export class User {
   associatedOrgs?: Org[];
  */
 
-  // @OneToMany(() => OrgUser, (orgUser) => orgUser.user)
-  // userOrgs: OrgUser[];
+  @OneToMany(() => OrgUser, (orgUser) => orgUser.user)
+  userOrgs: OrgUser[];
 
   @OneToMany(() => UserRole, (userRole) => userRole.user, { nullable: true })
   userRoles?: UserRole[];

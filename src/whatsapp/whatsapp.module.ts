@@ -1,18 +1,15 @@
 import { Module } from '@nestjs/common';
 import { AlertGateway } from '../websocket/alert.gateway';
-import { AlertEventsListener } from './alert-event.listener';
 import { OrgModule } from 'src/org/org.module';
 import { WhatsAppService } from '../whatsapp/whatsapp.service';
 import { HttpModule } from '@nestjs/axios';
 import { WhatsAppController } from '../whatsapp/whatsapp.controller';
-import { AssetService } from 'src/asset/asset.service';
 import { AssetModule } from 'src/asset/asset.module';
-import { WhatsAppModule } from 'src/whatsapp/whatsapp.module';
 
 @Module({
-    imports: [OrgModule, HttpModule, AssetModule, WhatsAppModule],
+    imports: [AssetModule, HttpModule],
     controllers: [WhatsAppController],
-    providers: [AlertGateway, AlertEventsListener],
-    exports: [AlertGateway],
+    providers: [WhatsAppService],
+    exports: [WhatsAppService],
 })
-export class WebsocketModule { }
+export class WhatsAppModule { }

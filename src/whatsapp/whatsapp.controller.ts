@@ -15,10 +15,12 @@ export class WhatsAppController {
     @Post(`send`)
     sendWhatsAppMessage() {
         // return this.whatsAppService.sendTemplateMessage('917698779298', 'Hello from NestJS!');
-        return this.whatsAppService.sendMessage(
-            '916353921545',
-            AlertStatus.CLOSED,
-            []
-        );
+        // return this.whatsAppService.sendMessage(
+        //     '916353921545',
+        //     AlertStatus.CLOSED,
+        //     []
+        // );
+
+        return this.whatsAppService.sendMessage('', AlertStatus.CLOSED, [])
     }
 }

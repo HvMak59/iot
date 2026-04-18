@@ -33,6 +33,8 @@ import { AlertMasterIdentifierModule } from './alert-master-identifier/alert-mas
 import { MetricsAttributeAdaptorModule } from './metrics-attribute-adaptor/metrics-attribute-adaptor.module';
 import { MetricsAttributeFormulaModule } from './metrics-attribute-formula/metrics-attribute-formula.module';
 import { DeviceModelMetricsAttributeFormulaModule } from './device-model-metrics-attribute-formula/device-model-metrics-attribute-formula.module';
+import { OrgUserModule } from './org-user/org-user.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 // import { SmsModule } from './sms/sms.module';
 
 @Module({
@@ -86,13 +88,15 @@ import { DeviceModelMetricsAttributeFormulaModule } from './device-model-metrics
     VirtualDeviceModule,
     AssetModule,
     WebsocketModule,
+    WhatsAppModule,
     IotServerModule,
     AlertMasterModule,
     AlertMasterIdentifierModule,
     MetricsAttributeAdaptorModule,
     MetricsAttributeModule,
     MetricsAttributeFormulaModule,
-    DeviceModelMetricsAttributeFormulaModule
+    DeviceModelMetricsAttributeFormulaModule,
+    OrgUserModule
   ],
   // providers: [
   //   {
@@ -229,7 +233,6 @@ export class AppModule { }
 
 
 
-
 // (node:1724) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 // (Use `node --trace-deprecation ...` to show where the warning was created)
 
@@ -242,7 +245,6 @@ export class AppModule { }
 // "MP":0.1,"MF":46.0,"MR":1380,"MRH":0.5,"TMRH":0.0,"LPM":6,"TKWH":0.0,"TLKWH":0.2,"TKL":0.0,
 // "TKLH":0.3,"RUN":1,"FAULT":0,"TMP":0.0,"LAT":23.251022,"LON":72.631867,"INT":10,"SIG":45,
 // "LGT":"2026-02-16 10:15:06"}
-
 
 
 

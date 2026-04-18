@@ -3,13 +3,15 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { AlertGateway } from '../websocket/alert.gateway';
 import { AlertStatus } from 'src/utils/enums';
 import { Alert } from 'src/alert/entities/alert.entity';
-import { WhatsAppService } from './whatsapp.service';
+import { WhatsAppService } from '../whatsapp/whatsapp.service';
+import { AssetService } from 'src/asset/asset.service';
 
 @Injectable()
 export class AlertEventsListener {
     constructor(
         private readonly alertGateway: AlertGateway,
         private readonly whatsAppService: WhatsAppService,
+        private readonly assetService: AssetService,
     ) { }
 
     @OnEvent('alert.created')
@@ -48,7 +50,9 @@ export class AlertEventsListener {
             AlertStatus.INCREMENTED,
             payload.alerts,
         );
-        await this.whatsAppService.sendMessage('', AlertStatus.INCREMENTED, payload.alerts)
+        const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
+
+        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.INCREMENTED, payload.alerts)
         // await this.sendWhatsAppForAlerts(payload.assetId, AlertStatus.INCREMENTED, payload.alerts);
     }
 

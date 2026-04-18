@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { Alert } from 'src/alert/entities/alert.entity';
+import { AssetService } from 'src/asset/asset.service';
 import { AlertStatus, AlertType } from 'src/utils/enums';
 
 @Injectable()
@@ -9,7 +10,10 @@ export class WhatsAppService {
     private accessToken = 'EAF3dzlLhJ2cBRAwKy6cHNQIP2YqtgR5ujbyXe3hcAKJeqExlhgiR1ZBJmD2nOtaKVhy4eHYMjCk1bNSaaQZAqX4zoPAOWkYap77BbzsoiLDIks7yEMSxYQlQsWZAA2QTeKHGzhXFd5mZCCkFesanxFCmRuyV0TqnvAZCsIm5UxyOZBJTtqWdwAZA0XYmphwRAZDZD';
     private phoneNumberId = '1045396935323347';
 
-    constructor(private httpService: HttpService) { }
+    constructor(
+        private httpService: HttpService,
+        private assetService: AssetService,
+    ) { }
 
     private buildAlertsText(alerts: Alert[]): string {
         if (!alerts || alerts.length === 0) {
@@ -45,9 +49,12 @@ export class WhatsAppService {
         // Convert alerts array -> single string for WhatsApp template
         const alertsText = this.buildAlertsText(alerts);
 
+        const phoneNumber = await this.assetService.findPhoneNumber('asset2');
+
         const payload = {
             messaging_product: 'whatsapp',
-            to: '916353921545',
+            // to: '916353921545',
+            to: phoneNumber,
             type: 'template',
             template: {
                 name: 'alert_triggered',
@@ -73,7 +80,6 @@ export class WhatsAppService {
                 ],
             },
         };
-
 
         // for first demo msg 
         // const payload = {
