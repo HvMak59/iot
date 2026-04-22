@@ -24,8 +24,9 @@ export class AlertEventsListener {
             AlertStatus.CREATED,
             payload.alerts,
         );
-        await this.whatsAppService.sendMessage('', AlertStatus.CLOSED, payload.alerts)
-        // await this.sendWhatsAppForAlerts(payload.assetId, AlertStatus.CREATED, payload.alerts);
+        const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
+
+        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.CREATED, payload.alerts);
     }
 
     @OnEvent('alert.closed')
@@ -36,9 +37,11 @@ export class AlertEventsListener {
             AlertStatus.CLOSED,
             payload.alerts,
         );
-        await this.whatsAppService.sendMessage('', AlertStatus.CLOSED, payload.alerts)
-        // await this.sendWhatsAppForAlerts(payload.assetId, AlertStatus.CLOSED, payload.alerts);
+        const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
+
+        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.CLOSED, payload.alerts);
     }
+    // 
 
     @OnEvent('alert.incremented')
     async handleIncremented(payload: { assetId: string; alerts: Alert[] }) {
@@ -52,8 +55,7 @@ export class AlertEventsListener {
         );
         const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
 
-        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.INCREMENTED, payload.alerts)
-        // await this.sendWhatsAppForAlerts(payload.assetId, AlertStatus.INCREMENTED, payload.alerts);
+        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.INCREMENTED, payload.alerts);
     }
 
 

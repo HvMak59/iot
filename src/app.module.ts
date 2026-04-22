@@ -401,6 +401,7 @@ export class AppModule { }
 // Beerens Compressor 
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026030006\")"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 
 
 // {"device_type":"invtr","device_name":"invt","device_id":"2026030006","date":"26/03/2026",
@@ -410,7 +411,23 @@ export class AppModule { }
 // "tt-400":0,"tt-20":0,"avgV":0,"avgC":0,"kWh":0,"flwrt":0,"sctn_ttl":0,"ttl_hr":0,
 // "ttl_mnt":0,"ttl_s":0}}
 
+// Last latest 
+// {"device_type":"invtr","device_name":"invt","device_id":"2026030006","date":"18/04/2026",
+// "time":"17:45:55","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
+// "software_ver":"SM-1.03.2.D20_4G","signal_strength":"5","valid":false,"data":{"slave_id":"1",
+// "InGasPrs":0,"1StgDscPrs":0,"2StgDscPrs":0,"PrtyLnPrs":0,"1StgDscTmp":0,"2StgDscTmp":0,
+// "OilTnkTmp":0,"AvgVltLL":0,"AvgCrnt":0,"TtlKwh":0,"SctnFlwRt":0,"SctnFlwTtl":0,"TtlHr":0,
+// "TtlMin":0,"TtlSec":0,"RdyToStrt":0,"CmpOn":0,"CmpOff":0,"InGsPrsHAl":0,"InGsPrsLAl":0,
+// "InGsPrsHTrp":0,"InGsPrsLTrp":0,"1StgDscTmpHAl":0,"1StgDscTmpLAl":0,"1StgDscTmpHTrp":0,
+// "1StgDscTmpLTrp":0,"1StgDscPrsHAl":0,"1StgDscPrsLAl":0,"1StgDscPrsHTrp":0,"1StgDscPrsLTrp":0,
+// "OilTnkTmpHAl":0,"OilTnkTmpLAl":0,"OilTnkTmpHTrp":0,"OilTnkTmpLTrp":0,"GD1HAl":0,"GD1LAl":0,
+// "GD1HTrp":0,"GD1LTrp":0,"FD1HAl":0,"FD1LAl":0,"FD1HTrp":0,"FD1LTrp":0,"2StgDscTmpHAl":0,
+// "2StgDscTmpLAl":0,"2StgDscTmpHTrp":0,"2StgDscTmpLTrp":0,"2StgDscPrsHAl":0,"2StgDscPrsLAl":0,
+// "2StgDscPrsHTrp":0,"2StgDscPrsLTrp":0,"PrtyMLnPrsHAl":0,"PrtyMLnPrsLAl":0,"PrtyMLnPrsHTrp":0,
+// "PrtyMLnPrsLTrp":0}}
+
 // 9328152924
+
 
 // Standalone Script :
 // npx ts-node -r tsconfig-paths/register src/telemetry-payload/update_telemetry_script.ts
@@ -434,8 +451,8 @@ export class AppModule { }
 // good = beneficial,positive,
 // develop = cultivate
 
-
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+  
 // {"device_type":"invtr","device_name":"invt","device_id":"2026030006",
 // "date":"08/04/2026","time":"17:32:51","time_zone":"Asia/Kolkata","latitude":"0",
 // "longitude":"0","software_ver":"SM-1.03.D20_4G","signal_strength":"3","valid":true ,
@@ -449,7 +466,25 @@ export class AppModule { }
 // 00001 - > uint16ba , holding register 
 
 
+// Jyotindra 
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010008\")"
 
+// {"device_type":"invtr1","device_name":"huwai","device_id":"2026030003","date":"22/04/2026",
+// "time":"09:40:28","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
+// "software_ver":"SM-1.03.1.D20_4G","signal_strength":"3","valid":true ,"data":{"slave_id":"2",
+// "srNo":"2101076532WPR9057340","pv1":1082.800,"pc1":0.000,"pv2":1082.800,"pc2":9.850,
+// "pv3":1081.500,"pc3":10.010,"pv4":1081.500,"pc4":10.080,"pv5":1075.600,"pc5":0.000,
+// "pv6":1075.600,"pc6":0.000,"pv7":1075.600,"pc7":10.000,"pv8":1075.600,"pc8":10.140,
+// "pv9":1073.300,"pc9":9.990,"pv10":1082.600,"pc10":10.140,"pv11":1082.600,"pc11":10.020,
+// "pv12":1082.600,"pc12":9.990,"pv13":1082.600,"pc13":9.880,"pv14":1085.000,"pc14":0.000,
+// "pv15":1086.100,"pc15":0.000,"pv16":1086.100,"pc16":10.070,"pv17":1086.100,"pc17":9.920,
+// "pv18":1086.100,"pc18":9.960,"pv19":1080.400,"pc19":0.000,"pv20":1071.600,"pc20":10.170,
+// "pv21":1071.600,"pc21":0.000,"pv22":1071.600,"pc22":0.000,"pv23":1071.600,"pc23":10.030,
+// "pv24":1086.100,"pc24":0.000,"pv25":1086.900,"pc25":9.850,"pv26":1086.900,"pc26":9.980,
+// "pv27":1086.900,"pc27":9.940,"pv28":1086.900,"pc28":10.050,"gdV1":480.900,"gdV2":477.800,
+// "gdV3":482.200,"gdI1":142.322,"gdI2":142.505,"gdI3":142.254,"op":203.984,"pf":1.000,
+// "frq":50.020,"invtTmp":45.500
 
 // I will upload my resume. Act as an Al recruiter and Job hunting machine. Analyze my 
 // resume in depth to identify the most suitable 2 year experienced or entry-level roles
@@ -464,5 +499,4 @@ export class AppModule { }
 // url : https://gcek.ac.in/SPICES2026/
 // hiten.makwana7698@gmail.com 
 // Hitu.Mak592002 
-
 

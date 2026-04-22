@@ -361,12 +361,14 @@ export class CurrentTelemetryPayloadService {
     const latestByRmu = new Map<string, CurrentTelemetryPayload>();
 
     for (const row of rows) {
+      // 
       const key = row.virtualDeviceId!;
       const existing = latestByRmu.get(key);
 
       if (!existing) {
         latestByRmu.set(key, row);
       }
+      // 
     }
   }
 
