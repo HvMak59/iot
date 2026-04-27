@@ -53,6 +53,9 @@ export class AlertMasterService {
     }
   }
 
+  async findOne(searchCriteria: FindAlertMasterDto) {
+    return this.repo.findOne({ where: searchCriteria });
+  }
   // async createBulk(createAlertMasterDTOs: CreateAlertMasterDto[]) {
   //   const fnName = this.createBulk.name;
   //   const input = `Input : Create createAlertMasterDtos : ${JSON.stringify(

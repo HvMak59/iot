@@ -154,6 +154,7 @@ export class DeviceModelService {
         searchCriteria,
       )}`,
     );
+    // console.log("searchcriteria", searchCriteria);
     return searchCriteria;
   }
 }

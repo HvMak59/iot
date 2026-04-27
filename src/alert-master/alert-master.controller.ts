@@ -27,7 +27,7 @@ export class AlertMasterController {
 
   @Post()
   async create(
-    @UserId() userId: string,
+    // @UserId() userId: string,
     @Body() createAlertMasterDto: CreateAlertMasterDto,
   ) {
     const fnName = this.create.name;
@@ -41,7 +41,7 @@ export class AlertMasterController {
     //   this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
     //   throw new Error(USER_NOT_IN_REQUEST_HEADER);
     // } else {
-    createAlertMasterDto.createdBy = userId;
+    // createAlertMasterDto.createdBy = userId;
     this.logger.debug(`${fnName}: Calling create service`);
     return await this.alertMasterService.create(createAlertMasterDto);
     // }

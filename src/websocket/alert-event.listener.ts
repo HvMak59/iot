@@ -24,9 +24,12 @@ export class AlertEventsListener {
             AlertStatus.CREATED,
             payload.alerts,
         );
+
+        console.log("assetId", payload.assetId);
         const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
 
-        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.CREATED, payload.alerts);
+        // uncomment this this is correct ....commented just for test
+        // await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.CREATED, payload.alerts);
     }
 
     @OnEvent('alert.closed')
@@ -37,9 +40,12 @@ export class AlertEventsListener {
             AlertStatus.CLOSED,
             payload.alerts,
         );
+
+        console.log("assetId", payload.assetId);
         const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
 
-        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.CLOSED, payload.alerts);
+        // uncomment this this is correct ....commented just for test
+        // await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.CLOSED, payload.alerts);
     }
     // 
 
@@ -53,52 +59,12 @@ export class AlertEventsListener {
             AlertStatus.INCREMENTED,
             payload.alerts,
         );
+
+        console.log("assetId", payload.assetId);
         const phoneNumber = await this.assetService.findPhoneNumber(payload.assetId);
 
-        await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.INCREMENTED, payload.alerts);
-    }
-
-
-    private async sendWhatsAppForAlerts(
-        assetId: string,
-        status: AlertStatus,
-        alerts: Alert[],
-    ) {
-        try {
-            const recipient = '917698779298'; // fetch from assetid
-
-            // const message = this.buildMessage(assetId, status, alerts);
-
-            // await this.whatsAppService.sendTemplateMessage(  // need to test this 
-            //     recipient,
-            //     'alert_created_template',
-            //     // [assetId, String(alerts.length), status],
-            // );
-        } catch (error) {
-            console.log(
-                `Failed sending WhatsApp for assetId=${assetId}`,
-                error?.message || error,
-            );
-        }
-    }
-
-
-    private buildMessage(
-        assetId: string,
-        status: AlertStatus,
-        alerts: Alert[],
-    ) {
-        const lines = alerts.slice(0, 5).map((alert, index) => {
-            return `${index + 1}. Alert ID: ${alert.id}`;
-        });
-
-        return [
-            `*Alert Update*`,
-            `Asset ID: ${assetId}`,
-            `Status: ${status}`,
-            `Count: ${alerts.length}`,
-            ...lines,
-        ].join('\n');
+        // uncomment this this is correct ....commented just for test
+        // await this.whatsAppService.sendMessage(phoneNumber!, AlertStatus.INCREMENTED, payload.alerts);
     }
 }
 

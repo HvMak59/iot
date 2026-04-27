@@ -35,6 +35,7 @@ import { MetricsAttributeFormulaModule } from './metrics-attribute-formula/metri
 import { DeviceModelMetricsAttributeFormulaModule } from './device-model-metrics-attribute-formula/device-model-metrics-attribute-formula.module';
 import { OrgUserModule } from './org-user/org-user.module';
 import { WhatsAppModule } from './whatsapp/whatsapp.module';
+import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 // import { SmsModule } from './sms/sms.module';
 
 @Module({
@@ -96,7 +97,8 @@ import { WhatsAppModule } from './whatsapp/whatsapp.module';
     MetricsAttributeModule,
     MetricsAttributeFormulaModule,
     DeviceModelMetricsAttributeFormulaModule,
-    OrgUserModule
+    OrgUserModule,
+    CronJobsModule
   ],
   // providers: [
   //   {
@@ -124,11 +126,21 @@ export class AppModule { }
 // 
 
 // punasan :
-// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010016\")"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
 // mosquitto_sub -h hermesmqtt.com -t HermesIOT/DrRtvGrwtV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010016\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrTvaVFDV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"117125013474\")"
 
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+
+
+// corona 
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
+
+// 2025100002 - 1,2,3
+// 2025100003 - 1,2,3,4  (2025100003 ma slave id 4 not coming)
+// 2025100004 - 1,2,3    (2025100004 ma slave id 1,2 not coming)
+// 2025100005 - 5,6,7    
 
 
 // Twadartham 
@@ -499,4 +511,11 @@ export class AppModule { }
 // url : https://gcek.ac.in/SPICES2026/
 // hiten.makwana7698@gmail.com 
 // Hitu.Mak592002 
+
+
+// reena_kumawat22
+
+
+
+
 

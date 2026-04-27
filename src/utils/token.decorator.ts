@@ -12,6 +12,6 @@ export const Token = createParamDecorator(
 
         // console.log(ExtractJwt.fromAuthHeaderAsBearerToken()(request));
 
-        return getBearerToken(authHeader)
+        return getBearerToken(authHeader);
     },
 );

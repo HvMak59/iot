@@ -37,6 +37,8 @@ import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { diffToEndOfDayThreshold, KEY_SEPARATOR } from 'src/app_config/constants';
 import { convertpossibleStringTypeToInt, getTryCatchErrorStr } from 'src/utils/others';
+import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
+import { IotServerService } from 'src/iot-server/iot-server.service';
 
 @Injectable()
 export class CurrentTelemetryPayloadService {
@@ -48,6 +50,7 @@ export class CurrentTelemetryPayloadService {
     @InjectRepository(CurrentTelemetryPayload)
     private readonly repo: Repository<CurrentTelemetryPayload>,
     private eventEmitter: EventEmitter2,
+    // private iotServerService: IotServerService,
   ) { }
 
   /* async getAssetPerformanceTelemetry(assetId: string) {
@@ -329,18 +332,139 @@ export class CurrentTelemetryPayloadService {
     return saved;
   }
 
-  async findOfflineRmu() {
-    // const offlineRmu = await this.repo.find({
-    // where: {
-    //   metric: {
-    //     txnCaptureTime: LessThan(new Date(Date.now() - 20 * 60 * 1000)) // Assuming RMU is offline if no telemetry received in last 20 minutes
-    //   }
-    // }
-    // });
+  private myWorking = 1;
+  // async createOfflineRmuAlert() {
+  //   console.log("in service");
+  //   const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
 
+  //   const rows = await this.repo.find({
+  //     select: {
+  //       id: true,
+  //       assetId: true,
+  //       deviceId: true,
+  //       virtualDeviceId: true,
+  //       metric: {
+  //         txnCaptureTime: true,
+  //         metricsAttributeId: true,
+  //       },
+  //     },
+  //     // where: {
+  //     //   metric: {
+  //     //     txnCaptureTime: LessThan(new Date(Date.now() - 20 * 60 * 1000)) // Assuming RMU is offline if no telemetry received in last 20 minutes
+  //     //   }
+  //     // },
+  //   });
+  //   console.log(rows);
+
+  //   // const latestByRmu = new Map<string, CurrentTelemetryPayload>();
+
+  //   // for (const row of rows) {
+  //   //   const key = row.virtualDeviceId!;
+  //   //   const existing = latestByRmu.get(key);
+
+  //   //   if (!existing) {
+  //   //     latestByRmu.set(key, row);
+  //   //   }
+  //   // }
+
+  //   const byAsset = new Map<
+  //     string,
+  //     {
+  //       csvVirtualDeviceIDs: Set<string>;
+  //       arrivedAlerts2: InputAlert2Dto[];
+  //     }
+  //   >();
+
+  //   for (const row of rows) {
+  //     let assetGroup = byAsset.get(row.assetId!);
+  //     if (!assetGroup) {
+  //       assetGroup = {
+  //         csvVirtualDeviceIDs: new Set<string>(),
+  //         arrivedAlerts2: [],
+  //       };
+  //       byAsset.set(row.assetId!, assetGroup!);
+  //     }
+  //     assetGroup!.csvVirtualDeviceIDs.add(row.virtualDeviceId!);
+
+  //     const lastTxnTime = new Date(row.metric.txnCaptureTime);
+
+  //     if (lastTxnTime < cutoffTime) {
+  //       assetGroup.arrivedAlerts2.push(
+  //         new InputAlert2Dto({
+  //           alertId: 'RMU_OFFLINE',
+  //           assetId: row.assetId,
+  //           deviceId: row.deviceId,
+  //           virtualDeviceId: row.virtualDeviceId,
+  //           sourceAttribute: 'RMU_OFFLINE',
+  //           openDateTime: Date.now(),
+  //           metricsAttributeId: row.metric.metricsAttributeId,
+  //         } as any),
+  //       );
+  //     }
+  //   }
+
+  //   const results = [];
+
+  //   for (const [assetId, group] of byAsset.entries()) {
+  //     const result = await this.iotServerService.manageAlerts2(
+  //       'token',
+  //       assetId,
+  //       Array.from(group.csvVirtualDeviceIDs).join(','),
+  //       group.arrivedAlerts2,
+  //       Date.now(),
+  //     );
+
+  //     results.push({
+  //       assetId,
+  //       ...result,
+  //     });
+  //   }
+
+  //   return results;
+  // }
+
+  private needToCheck = 1;
+  // async findOfflineRmu() {
+  //   console.log("in service");
+  //   const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
+
+  //   const offlineRmus = await this.repo.find({
+  //     select: {
+  //       id: true,
+  //       assetId: true,
+  //       deviceId: true,
+  //       virtualDeviceId: true,
+  //       metric: {
+  //         txnCaptureTime: true,
+  //         metricsAttributeId: true,
+  //       },
+  //     },
+  //     where: {
+  //       metric: {
+  //         txnCaptureTime: LessThan(new Date(Date.now() - 20 * 60 * 1000))
+  //       }
+  //     },
+  //   });
+  //   console.log(offlineRmus);
+
+  //   const sortedRmus = new Map<string, CurrentTelemetryPayload>();
+
+  //   for (const row of offlineRmus) {
+  //     const key = row.virtualDeviceId!;
+  //     const existing = sortedRmus.get(key);
+
+  //     if (!existing) {
+  //       sortedRmus.set(key, row);
+  //     }
+  //   }
+
+  //   return sortedRmus.values();
+  // }
+
+  async findOfflineRmu() {
     const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
 
-    const rows = await this.repo.find({
+    const offlineRmus = await this.repo.find({
       select: {
         id: true,
         assetId: true,
@@ -351,26 +475,265 @@ export class CurrentTelemetryPayloadService {
           metricsAttributeId: true,
         },
       },
-      where: {
-        metric: {
-          txnCaptureTime: LessThan(new Date(Date.now() - 20 * 60 * 1000)) // Assuming RMU is offline if no telemetry received in last 20 minutes
-        }
-      }
+      relations: {
+        metric: true,
+      },
+      // where: {
+      //   metric: {
+      //     txnCaptureTime: LessThan(cutoffTime),
+      //   },
+      // },
     });
+    const uniqueByVirtualDevice = new Map<string, CurrentTelemetryPayload>();
 
-    const latestByRmu = new Map<string, CurrentTelemetryPayload>();
+    const currentTime = new Date();
 
-    for (const row of rows) {
-      // 
-      const key = row.virtualDeviceId!;
-      const existing = latestByRmu.get(key);
+    for (const row of offlineRmus) {
+      if (!row.virtualDeviceId) continue;
+      if (!uniqueByVirtualDevice.has(row.virtualDeviceId)) {
+        uniqueByVirtualDevice.set(row.virtualDeviceId, row);
+      }
+    }
+    return Array.from(uniqueByVirtualDevice.values());
+  }
+
+  // async findAllRmusForOfflineCheck() {
+  //   return this.repo.find({
+  //     select: {
+  //       id: true,
+  //       assetId: true,
+  //       deviceId: true,
+  //       virtualDeviceId: true,
+  //       metric: {
+  //         txnCaptureTime: true,
+  //         metricsAttributeId: true,
+  //       },
+  //     },
+  //     relations: {
+  //       metric: true,
+  //     },
+  //   });
+  // }
+
+  async findLatestRmuForOfflineCheck() {
+    const currTMPylds = await this.repo.find({
+      select: {
+        id: true,
+        assetId: true,
+        deviceId: true,
+        virtualDeviceId: true,
+        metric: {
+          txnCaptureTime: true,
+          metricsAttributeId: true,
+          txnCapturePeriod: true
+        },
+        device: {
+          id: true,
+          deviceModelId: true
+        }
+        // 
+      },
+      relations: ['device']
+    });
+    // 
+    const latestByVirtualDevice = new Map<string, CurrentTelemetryPayload>();
+
+    for (const currTMPyld of currTMPylds) {
+      if (!currTMPyld.virtualDeviceId) continue;
+
+      const existing = latestByVirtualDevice.get(currTMPyld.virtualDeviceId);
 
       if (!existing) {
-        latestByRmu.set(key, row);
+        latestByVirtualDevice.set(currTMPyld.virtualDeviceId, currTMPyld);
       }
-      // 
     }
+
+    return Array.from(latestByVirtualDevice.values());
   }
+
+  // async findOfflineRmu(token: string) {
+  //   const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
+
+  //   // IMPORTANT:
+  //   // We should fetch telemetry rows, then keep only the latest row per RMU.
+  //   // If possible, add order so latest comes first.
+  //   const rows = await this.repo.find({
+  //     select: {
+  //       id: true,
+  //       assetId: true,
+  //       deviceId: true,
+  //       virtualDeviceId: true,
+  //       metric: {
+  //         txnCaptureTime: true,
+  //         metricsAttributeId: true,
+  //       },
+  //     },
+  //     relations: {
+  //       metric: true,
+  //     },
+  //   });
+
+  //   const latestByRmu = new Map<string, any>();
+
+  //   for (const row of rows) {
+  //     const key = row.virtualDeviceId;
+  //     if (!key) continue;
+
+  //     const existing = latestByRmu.get(key);
+
+  //     // keep the latest telemetry row per RMU
+  //     if (
+  //       !existing ||
+  //       new Date(row.metric?.txnCaptureTime).getTime() >
+  //       new Date(existing.metric?.txnCaptureTime).getTime()
+  //     ) {
+  //       latestByRmu.set(key, row);
+  //     }
+  //   }
+
+  //   // Group by asset because manageAlerts2() accepts one assetId at a time
+  //   const byAsset = new Map<
+  //     string,
+  //     {
+  //       csvVirtualDeviceIDs: string[];
+  //       arrivedAlerts2: InputAlert2Dto[];
+  //     }
+  //   >();
+
+  //   for (const row of latestByRmu.values()) {
+  //     if (!row.assetId || !row.virtualDeviceId || !row.metric?.txnCaptureTime) {
+  //       continue;
+  //     }
+
+  //     let assetGroup = byAsset.get(row.assetId);
+  //     if (!assetGroup) {
+  //       assetGroup = {
+  //         csvVirtualDeviceIDs: [],
+  //         arrivedAlerts2: [],
+  //       };
+  //       byAsset.set(row.assetId, assetGroup);
+  //     }
+  //     assetGroup.csvVirtualDeviceIDs.push(row.virtualDeviceId);
+
+  //     const lastTxnTime = new Date(row.metric.txnCaptureTime);
+
+  //     // offline RMU
+  //     if (lastTxnTime < cutoffTime) {
+  //       assetGroup.arrivedAlerts2.push(
+  //         new InputAlert2Dto({
+  //           alertId: 'RMU_OFFLINE',
+  //           assetId: row.assetId,
+  //           deviceId: row.deviceId,
+  //           virtualDeviceId: row.virtualDeviceId,
+  //           sourceAttribute: 'RMU_OFFLINE',
+  //           openDateTime: Date.now(),
+  //           metricsAttributeId: row.metric.metricsAttributeId,
+  //         } as any),
+  //       );
+  //     }
+  //   }
+
+  //   const results = [];
+
+  //   for (const [assetId, group] of byAsset.entries()) {
+  //     const result = await this.manageAlerts2(
+  //       token,
+  //       assetId,
+  //       [...new Set(group.csvVirtualDeviceIDs)].join(','),
+  //       group.arrivedAlerts2,
+  //       Date.now(),
+  //     );
+
+  //     results.push({
+  //       assetId,
+  //       ...result,
+  //     });
+  //   }
+
+  //   return results;
+  // }
+
+  private z = 5;
+  //   async findOfflineRmu(token: string) {
+  //   const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
+
+  //   const rows = await this.repo.find({
+  //     select: {
+  //       id: true,
+  //       assetId: true,
+  //       deviceId: true,
+  //       virtualDeviceId: true,
+  //       metric: {
+  //         txnCaptureTime: true,
+  //         metricsAttributeId: true,
+  //       },
+  //     },
+  //     relations: {
+  //       metric: true,
+  //     },
+  //   });
+
+  //   const byAsset = new Map<
+  //     string,
+  //     {
+  //       csvVirtualDeviceIDs: Set<string>;
+  //       arrivedAlerts2: InputAlert2Dto[];
+  //     }
+  //   >();
+
+  //   for (const row of rows) {
+  //     if (!row.assetId || !row.virtualDeviceId || !row.metric?.txnCaptureTime) {
+  //       continue;
+  //     }
+
+  //     let group = byAsset.get(row.assetId);
+  //     if (!group) {
+  //       group = {
+  //         csvVirtualDeviceIDs: new Set<string>(),
+  //         arrivedAlerts2: [],
+  //       };
+  //       byAsset.set(row.assetId, group);
+  //     }
+
+  //     // all RMUs of this asset must be sent to manageAlerts2
+  //     group.csvVirtualDeviceIDs.add(row.virtualDeviceId);
+
+  //     // 20 minute offline check
+  //     const txnTime = new Date(row.metric.txnCaptureTime);
+  //     if (txnTime < cutoffTime) {
+  //       group.arrivedAlerts2.push(
+  //         new InputAlert2Dto({
+  //           alertId: 'RMU_OFFLINE',
+  //           assetId: row.assetId,
+  //           deviceId: row.deviceId,
+  //           virtualDeviceId: row.virtualDeviceId,
+  //           sourceAttribute: 'RMU_OFFLINE',
+  //           openDateTime: txnTime.getTime(), // or Date.now()
+  //           metricsAttributeId: row.metric.metricsAttributeId,
+  //         } as any),
+  //       );
+  //     }
+  //   }
+
+  //   const results = [];
+
+  //   for (const [assetId, group] of byAsset.entries()) {
+  //     const result = await this.manageAlerts2(
+  //       token,
+  //       assetId,
+  //       Array.from(group.csvVirtualDeviceIDs).join(','),
+  //       group.arrivedAlerts2,
+  //       Date.now(),
+  //     );
+
+  //     results.push({
+  //       assetId,
+  //       ...result,
+  //     });
+  //   }
+
+  //   return results;
+  // }
 
 
   async findByIds(ids: string[]) {

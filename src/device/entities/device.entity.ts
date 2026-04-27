@@ -138,11 +138,11 @@ export class Device {
 
   faultCount?: number; */
 
-  // @OneToMany(() => CurrentTelemetryPayload, (cTP) => cTP.device, {
-  //   nullable: true,
-  //   cascade: true,
-  // })
-  // currentTelemetryPayloads?: CurrentTelemetryPayload[];
+  @OneToMany(() => CurrentTelemetryPayload, (cTP) => cTP.device, {
+    nullable: true,
+    cascade: true,
+  })
+  currentTelemetryPayloads?: CurrentTelemetryPayload[];
 
   // @OneToMany(() => TelemetryPayload, (cTP) => cTP.device, {
   //   nullable: true,

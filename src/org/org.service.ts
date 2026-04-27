@@ -67,7 +67,7 @@ export class OrgService {
     // return findAll<Org>(this.repo, msgTemplate, relations, searchCriteria);
     return this.repo.find({
       where: searchCriteria,
-      relations: ['assets']
+      relations: ['orgUsers']
     });
   }
 

@@ -211,6 +211,7 @@ export class IotServerService {
             )}`,
           );
         }
+        //
         console.log("inputalert", inputAlert2DTOs);
         for (const inputAlertDTO of inputAlert2DTOs) {
           this.logger.debug(
@@ -245,7 +246,7 @@ export class IotServerService {
           createAlertObjs.push(createAlertObj);
         }
       }
-      console.log(createAlertObjs);
+      // console.log(createAlertObjs);
       if (!_.isEmpty(createAlertObjs)) {
         this.logger.debug(
           `${fnName} : No of create alert objects : ${createAlertObjs.length}`,
@@ -404,6 +405,7 @@ export class IotServerService {
     arrivedAlerts2: InputAlert2Dto[],
     //csvSourceAttributes?: string,
     closeDateTime?: number,
+    csvAlertIDs?: string,  // added this and if block of 430 line 
   ) {
     console.log("in managealerts2");
     const fnName = this.manageAlerts2.name;
@@ -425,6 +427,11 @@ export class IotServerService {
       assetId: assetID,
     };
 
+    if (csvAlertIDs) {
+      searchObj.alertId = In(csvAlertIDs.split(','));
+    }
+    // 
+
     /* if (csvSourceAttributes && csvSourceAttributes.length > 0) {
       searchObj.sourceAttribute = In(csvSourceAttributes.split(','));
     } else {
@@ -436,7 +443,6 @@ export class IotServerService {
       searchObj,
     );
 
-    // 
     if (_.isEmpty(arrivedAlerts2)) {
       this.logger.debug(`${fnName} : No arrived alerts`);
 
@@ -465,7 +471,7 @@ export class IotServerService {
             '') +
           KEY_SEPARATOR +
           (arrivedAlert2.sourceAttribute ?? '') +
-          /*  (arrivedAlert2.metricsAttributeId ??
+          /*  (arrivedAlert2.metricsAttributeId ?? 
             arrivedAlert2.metricsAttribute?.id ??
             '') + */
           KEY_SEPARATOR +
@@ -501,7 +507,7 @@ export class IotServerService {
           deletedCurrentOpenAlerts.push(...deletedCOAlerts);
           closedAlerts.push(...clsdAlerts);
         }
-
+        // 
         if (!_.isEmpty(toBeIncrementedCOAlerts)) {
           this.logger.debug(`${fnName} : incremented currOAlert array`);
           const incrmntdCOAlerts: CurrentOpenAlert[] =

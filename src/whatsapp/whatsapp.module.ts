@@ -5,10 +5,11 @@ import { WhatsAppService } from '../whatsapp/whatsapp.service';
 import { HttpModule } from '@nestjs/axios';
 import { WhatsAppController } from '../whatsapp/whatsapp.controller';
 import { AssetModule } from 'src/asset/asset.module';
+import { WebhookController } from './webhook.controller';
 
 @Module({
     imports: [AssetModule, HttpModule],
-    controllers: [WhatsAppController],
+    controllers: [WhatsAppController, WebhookController],
     providers: [WhatsAppService],
     exports: [WhatsAppService],
 })

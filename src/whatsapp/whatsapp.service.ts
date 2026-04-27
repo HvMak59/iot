@@ -19,34 +19,23 @@ export class WhatsAppService {
         if (!alerts || alerts.length === 0) {
             return 'No alerts';
         }
-        // 
+
         return alerts
             .map((alert, index) => {
                 const alertId = alert.alertId;
                 const sourceAttribute = alert.sourceAttribute;
                 const assetId = alert.assetId;
                 const alertMsg = alert.message;
-                // 
-                // return `${index + 1}. ${alertId} - ${sourceAttribute} (${assetId})`;
+
                 return `${index + 1}. ${alertId} - ${alertMsg}`;
             })
             .join(', ')
-            .slice(0, 1024);
     }
 
     async sendMessage(to: string, status: AlertStatus, alerts: Alert[]) {
         const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
 
-        // const payload = {
-        //     messaging_product: 'whatsapp',
-        //     to,
-        //     type: 'template',
-        //     text: {
-        //         body: message,
-        //     },
-        // };
-
-        // Convert alerts array -> single string for WhatsApp template
+        // Convert alerts array -> string because WhatsApp template requires text instead of array
         const alertsText = this.buildAlertsText(alerts);
 
         const phoneNumber = await this.assetService.findPhoneNumber('asset2');

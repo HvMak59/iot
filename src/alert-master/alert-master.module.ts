@@ -8,5 +8,6 @@ import { AlertMaster } from './entities/alert-master.entity';
   imports: [TypeOrmModule.forFeature([AlertMaster])], // Add your entities here
   controllers: [AlertMasterController],
   providers: [AlertMasterService],
+  exports: [AlertMasterService]
 })
-export class AlertMasterModule {}
+export class AlertMasterModule { }

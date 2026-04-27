@@ -41,6 +41,10 @@ export class CurrentTelemetryPayloadController {
     );
   }
 
+  @Post('offline')
+  async createOfflineRmuAlert() {
+    // this.currentTelemetryPayloadService.createOfflineRmuAlert()
+  }
   // @Get()
   // findAll(@Query() searchCriteria: FindCurrentTelemetryDto) {
   //   return this.currentTelemetryPayloadService.findAll(searchCriteria);
@@ -119,7 +123,7 @@ export class CurrentTelemetryPayloadController {
   //     updateCurrentTelemetryPayloadDto,
   //   );
   // }
-  
+
 
   // @Patch('restore/:id')
   // restore(@Param('id') id: string) {

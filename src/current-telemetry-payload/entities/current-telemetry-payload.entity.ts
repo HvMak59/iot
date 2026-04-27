@@ -20,6 +20,7 @@ import { CreateCurrentTelemetryDto } from '../dto/create-current-telemetry.dto';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsFrequency } from 'src/common';
+import { Device } from 'src/device/entities/device.entity';
 
 @Entity()
 //@Unique(['virtualDeviceId', 'metric.metricsAttributeId'])
@@ -47,6 +48,12 @@ export class CurrentTelemetryPayload {
 
   @Column()
   deviceId?: string;
+
+  @ManyToOne(() => Device, (device) => device.currentTelemetryPayloads, {
+    nullable: true,
+  })
+  device?: Device;
+
 
   /* @BeforeInsert()
   //@BeforeUpdate()

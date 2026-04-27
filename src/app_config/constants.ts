@@ -156,6 +156,8 @@ export const RMU = 'RMU';
 export const VFD = 'VFD';
 export const excludedMetaFinMetricsAttributes = ['Litre_Per_Minute'];
 export const NOT_FOUND = 'NOT_FOUND';
+export const RMU_OFFLINE = 'rmuOffline';
+export const RMU_OFFLINE_THRESHOLD = 20 * 60 * 1000;
 
 export const PASSWORD_DOES_NOT_MATCH = 'Password does not match';
 export const USER_DOES_NOT_EXIST = 'User does not exist';

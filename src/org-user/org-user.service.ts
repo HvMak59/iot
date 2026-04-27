@@ -65,7 +65,7 @@ export class OrgUserService {
 
     return this.repo.find({
       where: searchCriteria,
-      relations: []// relations
+      relations: ['user']// relations
     })
   }
 

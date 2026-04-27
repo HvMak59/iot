@@ -3,6 +3,7 @@ import { CurrentTelemetryPayloadService } from './current-telemetry-payload.serv
 import { CurrentTelemetryPayloadController } from './current-telemetry-payload.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CurrentTelemetryPayload } from './entities/current-telemetry-payload.entity';
+import { IotServerModule } from 'src/iot-server/iot-server.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CurrentTelemetryPayload])],
