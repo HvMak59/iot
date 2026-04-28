@@ -405,7 +405,7 @@ export class IotServerService {
     arrivedAlerts2: InputAlert2Dto[],
     //csvSourceAttributes?: string,
     closeDateTime?: number,
-    csvAlertIDs?: string,  // added this and if block of 430 line 
+    alertId?: string,  // added this and if block of 430 line 
   ) {
     console.log("in managealerts2");
     const fnName = this.manageAlerts2.name;
@@ -427,10 +427,9 @@ export class IotServerService {
       assetId: assetID,
     };
 
-    if (csvAlertIDs) {
-      searchObj.alertId = In(csvAlertIDs.split(','));
+    if (alertId) {
+      searchObj.alertId = alertId;
     }
-    // 
 
     /* if (csvSourceAttributes && csvSourceAttributes.length > 0) {
       searchObj.sourceAttribute = In(csvSourceAttributes.split(','));
@@ -482,7 +481,7 @@ export class IotServerService {
 
       if (!_.isEmpty(currentOpenAlerts)) {
         this.logger.debug(`${fnName} : in currentOpenAlert`);
-
+        // 
         for (const currOpenAlert of currentOpenAlerts) {
           const currentOpenAlertObj = new CurrentOpenAlert(currOpenAlert);
           const key = currentOpenAlertObj.getKey();
@@ -537,6 +536,7 @@ export class IotServerService {
         token,
         toBeCreatedAlerts,
       );
+      // 
 
       if (crtdAlerts && crtdAlerts.length > 0) {
         createdAlerts.push(...crtdAlerts);

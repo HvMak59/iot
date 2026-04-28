@@ -1,0 +1,76 @@
+CurrentTelemetryPayload.findLatestRmuForOfflineCheck() : 
+
+    async findLatestRmuForOfflineCheck() {
+        const currTMPylds = await this.repo.find({
+            select: {
+                id: true,
+                assetId: true,
+                deviceId: true,
+                virtualDeviceId: true,
+                metric: {
+                    txnCaptureTime: true,
+                    metricsAttributeId: true,
+                    txnCapturePeriod: true
+                },
+                device: {
+                    id: true,
+                    deviceModelId: true
+                }
+            },
+            relations: ['device']
+        });
+
+        const latestByVirtualDevice = new Map<string, CurrentTelemetryPayload>();
+
+        for (const currTMPyld of currTMPylds) {
+            if (!currTMPyld.virtualDeviceId) continue;
+
+            const existing = latestByVirtualDevice.get(currTMPyld.virtualDeviceId);
+
+            if (!existing) {
+                latestByVirtualDevice.set(currTMPyld.virtualDeviceId, currTMPyld);
+            }
+        }
+
+        return Array.from(latestByVirtualDevice.values());
+    }
+
+
+IotServerService.manageAlerts2() : 
+
+    async manageAlerts2(
+    token: string,
+    assetID: string,
+    csvVirtualDeviceIDs: string,
+    arrivedAlerts2: InputAlert2Dto[],
+    //csvSourceAttributes?: string,
+    closeDateTime ?: number,
+    alertId?: string,  // added this and below if block 
+    ) {
+        console.log("in managealerts2");
+        const fnName = this.manageAlerts2.name;
+
+        const createdAlerts: Alert[] = [];
+        const toBeCreatedAlerts: InputAlert2Dto[] = [];
+
+        const toBeDeletedCurrOpenAlerts: CurrentOpenAlert[] = [];
+        const deletedCurrentOpenAlerts: CurrentOpenAlert[] = [];
+
+        const closedAlerts: Alert[] = [];
+
+        const toBeIncrementedCOAlerts: CurrentOpenAlert[] = [];
+        const incrementedCurrentOpenAlerts: CurrentOpenAlert[] = [];
+        const incrementdAlerts: Alert[] = [];
+
+        const searchObj: FindCurrentOpenAlertDto = {
+            virtualDeviceId: In(csvVirtualDeviceIDs.split(',')),
+            assetId: assetID,
+        };
+
+        // just added this if block, everything as it is  
+        if (alertId) {
+            searchObj.alertId = alertId;
+        }
+
+        // rest code no-change 
+    }

@@ -36,7 +36,10 @@ import { DeviceModelMetricsAttributeFormulaModule } from './device-model-metrics
 import { OrgUserModule } from './org-user/org-user.module';
 import { WhatsAppModule } from './whatsapp/whatsapp.module';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
+import { PeriodTelemetryPayloadAuditModule } from './period-telemetry-payload-audit/period-telemetry-payload-audit.module';
 // import { SmsModule } from './sms/sms.module';
+
+
 
 @Module({
   imports: [
@@ -54,7 +57,9 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
         database: config.get('DB_NAME', 'hermes'),
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
-        synchronize: true,
+        synchronize: true, // for my db use this 
+        // synchronize: false, // to connect with sir database use these 2 
+        // migrationsRun: false   
       }),
       inject: [ConfigService],
     }),
@@ -98,7 +103,8 @@ import { CronJobsModule } from './cron-jobs/cron-jobs.module';
     MetricsAttributeFormulaModule,
     DeviceModelMetricsAttributeFormulaModule,
     OrgUserModule,
-    CronJobsModule
+    CronJobsModule,
+    PeriodTelemetryPayloadAuditModule
   ],
   // providers: [
   //   {
@@ -513,7 +519,11 @@ export class AppModule { }
 // Hitu.Mak592002 
 
 
-// reena_kumawat22
+
+
+// nishu_chaudhari_0607
+// sangita_0407_
+// 
 
 
 

@@ -39,7 +39,7 @@ export class AssetService {
         })
 
         const phoneNumber = asset?.org.orgUsers[0].user.phoneNumber;
-        // 
+
         console.log(phoneNumber);
         return phoneNumber;
     }

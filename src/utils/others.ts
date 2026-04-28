@@ -324,6 +324,44 @@ export function getBearerToken(token?: string): string {
   return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
 }
 
+export function getPeriodTimeInEpoch(
+  txnCaptureTime: number,
+  frequency: string,
+): number {
+  let txnDate = new Date(txnCaptureTime);
+  let txnCapturePeriodInEpoch: number;
+  switch (frequency) {
+    case MetricsFrequency.INSTANT.toString():
+      txnCapturePeriodInEpoch = txnDate.valueOf();
+      break;
+    /* case MetricsFrequency.WEEKLY:
+        break; */
+    case MetricsFrequency.DAILY.toString():
+      txnCapturePeriodInEpoch = new Date(
+        txnDate.getFullYear(),
+        txnDate.getMonth(),
+        txnDate.getDate(),
+      ).valueOf();
+      break;
+    case MetricsFrequency.MONTHLY.toString():
+      txnCapturePeriodInEpoch = new Date(
+        txnDate.getFullYear(),
+        txnDate.getMonth(),
+      ).valueOf();
+      break;
+    /* case MetricsFrequency.QUARTERLY:
+        break; */
+    case MetricsFrequency.YEARLY.toString():
+    case MetricsFrequency.TOTAL.toString():
+      txnCapturePeriodInEpoch = new Date(txnDate.getFullYear(), 0).valueOf();
+      break;
+    default:
+      txnCapturePeriodInEpoch = new Date(txnCaptureTime).valueOf();
+      break;
+  }
+  return txnCapturePeriodInEpoch;
+}
+
 
 // export function VirtualDeviceGroupComparator(vdg: VirtualDeviceGroup) {
 //   const vdgObj = new VirtualDeviceGroup(vdg);

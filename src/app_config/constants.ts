@@ -177,6 +177,8 @@ export const REF_INSTALLATION_DAY = 5;
 export const CreateTelemetry = 'Create.Telemetry';
 export const CreateCurrTelemetryEvent = 'Create.Current.Telemetry';
 export const CalculatedEODTelemetry = 'CalculatedEODTelemetry';
+export const SavedTelemetryPayload = 'Saved.Telemetry';
+
 
 export const SolarPlant = 'SolarPlant';
 export const SolarMotor = 'SolarMotor';

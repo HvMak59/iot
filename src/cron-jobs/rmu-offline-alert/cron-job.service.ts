@@ -16,10 +16,10 @@ export class CronJobsService {
     // */2   *   *   *   *
     // │     │   │   │   │
     // │     │   │   │   └─ Day of week
-    // │     │   │   └───── Month
-    // │     │   └───────── Day of month
-    // │     └───────────── Hour
-    // └─────────────────── Minute
+    // │     │   │   └──── Month
+    // │     │   └──────── Day of month
+    // │     └──────────── Hour
+    // └────────────────── Minute
 
     // @Cron('*/20 * * * *')  // every 20 minutes
     async createRmuOfflineAlert() {

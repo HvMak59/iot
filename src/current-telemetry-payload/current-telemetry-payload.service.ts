@@ -524,18 +524,16 @@ export class CurrentTelemetryPayloadService {
         virtualDeviceId: true,
         metric: {
           txnCaptureTime: true,
-          metricsAttributeId: true,
           txnCapturePeriod: true
         },
         device: {
           id: true,
           deviceModelId: true
         }
-        // 
       },
       relations: ['device']
     });
-    // 
+
     const latestByVirtualDevice = new Map<string, CurrentTelemetryPayload>();
 
     for (const currTMPyld of currTMPylds) {
