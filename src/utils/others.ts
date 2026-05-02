@@ -18,6 +18,7 @@ import { Asset } from 'src/asset/entities/asset.entity';
 import { Device } from 'src/device/entities/device.entity';
 import { Metric } from 'src/metrics/entities/metric.entity';
 import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-payload.entity';
+import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
 // import { MetricsFrequency } from 'common';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Metric } from 'metrics/entities/metric.entity';
@@ -154,6 +155,12 @@ export function convertInputToDate(input: string | number | Date): Date {
   } else {
     throw new Error('Input must be a string, number, or Date object');
   }
+}
+
+export function VirtualDeviceGroupComparator(vdg: VirtualDeviceGroup) {
+
+  const vdgObj = new VirtualDeviceGroup(vdg);
+  return vdgObj.id;
 }
 
 

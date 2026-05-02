@@ -37,6 +37,10 @@ import { OrgUserModule } from './org-user/org-user.module';
 import { WhatsAppModule } from './whatsapp/whatsapp.module';
 import { CronJobsModule } from './cron-jobs/cron-jobs.module';
 import { PeriodTelemetryPayloadAuditModule } from './period-telemetry-payload-audit/period-telemetry-payload-audit.module';
+import { GroupModule } from './group/group.module';
+import { MetricsAttributeAggregationModule } from './metrics-attribute-aggregation/metrics-attribute-aggregation.module';
+import { GroupMetricsAttributeAggregationModule } from './group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.module';
+import { VirtualDeviceGroupModule } from './virtual-device-group/virtual-device-group.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -57,9 +61,9 @@ import { PeriodTelemetryPayloadAuditModule } from './period-telemetry-payload-au
         database: config.get('DB_NAME', 'hermes'),
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
-        synchronize: true, // for my db use this 
-        // synchronize: false, // to connect with sir database use these 2 
-        // migrationsRun: false   
+        // synchronize: true, // for my db use this 
+        synchronize: false, // to connect with sir database use these 2 
+        migrationsRun: false   
       }),
       inject: [ConfigService],
     }),
@@ -104,7 +108,11 @@ import { PeriodTelemetryPayloadAuditModule } from './period-telemetry-payload-au
     DeviceModelMetricsAttributeFormulaModule,
     OrgUserModule,
     CronJobsModule,
-    PeriodTelemetryPayloadAuditModule
+    PeriodTelemetryPayloadAuditModule,
+    GroupModule,
+    MetricsAttributeAggregationModule,
+    GroupMetricsAttributeAggregationModule,
+    VirtualDeviceGroupModule
   ],
   // providers: [
   //   {
@@ -521,11 +529,8 @@ export class AppModule { }
 
 
 
-// nishu_chaudhari_0607
-// sangita_0407_
-// 
 
-
+// 96677 lxm  42084 
 
 
 

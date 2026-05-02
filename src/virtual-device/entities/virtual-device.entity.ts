@@ -33,6 +33,7 @@ import { Device } from 'src/device/entities/device.entity';
 import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-payload.entity';
 import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
 import { CurrentOpenAlert } from 'src/current-open-alert/entities/current-open-alert.entity';
+import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
 // import { DeviceType } from 'device-type/entities/device-t/ype.entity';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Alert } from 'alert/entities/alert.entity';
@@ -158,12 +159,12 @@ export class VirtualDevice {
     @JoinTable()
     alertsAffecting?: Alert[];
 
-    // @OneToMany(() => VirtualDeviceGroup, (vDG) => vDG.virtualDevice, {
-    //     nullable: true,
-    //     cascade: true,
-    //     orphanedRowAction: 'delete',
-    // })
-    // virtualDeviceGroups?: VirtualDeviceGroup[];
+    @OneToMany(() => VirtualDeviceGroup, (vDG) => vDG.virtualDevice, {
+        nullable: true,
+        cascade: true,
+        orphanedRowAction: 'delete',
+    })
+    virtualDeviceGroups?: VirtualDeviceGroup[];
 
     // @OneToMany(
     //     () => VirtualDeviceMetricsAttributeFormula,

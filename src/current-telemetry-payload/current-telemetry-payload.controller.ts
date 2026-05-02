@@ -31,12 +31,22 @@ export class CurrentTelemetryPayloadController {
     private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
   ) { }
 
+  // @Post()
+  // create(
+  //   // @Body() createCurrentTelemetryPayloadsDto: CreateCurrentTelemetryDto[],
+  //   @Body() createCurrentTelemetryPayloadsDto: CreateCurrentTelemetryDto[],
+  // ) {
+  //   return this.currentTelemetryPayloadService.create(
+  //     createCurrentTelemetryPayloadsDto,
+  //   );
+  // }
+
+  private a = 'sir code'
   @Post()
   create(
-    // @Body() createCurrentTelemetryPayloadsDto: CreateCurrentTelemetryDto[],
     @Body() createCurrentTelemetryPayloadsDto: CreateCurrentTelemetryDto[],
   ) {
-    return this.currentTelemetryPayloadService.create(
+    return this.currentTelemetryPayloadService.createV2(
       createCurrentTelemetryPayloadsDto,
     );
   }

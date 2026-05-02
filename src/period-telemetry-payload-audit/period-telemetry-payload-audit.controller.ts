@@ -10,13 +10,15 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { PeriodTelemetryPayloadAuditService } from './period-telemetry-payload-audit.service';
+// import { PeriodTelemetryPayloadAuditService } from './period-telemetry-payload-audit.service';
 import { CreatePeriodTelemetryPayloadAuditDto } from './dto/create-period-telemetry-payload-audit.dto';
 import { UpdatePeriodTelemetryPayloadAuditDto } from './dto/update-period-telemetry-payload-audit.dto';
 import { CreateTelemetryPayloadDto } from 'src/telemetry-payload/dto/create-telemetry-payload.dto';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { getTryCatchErrorStr } from 'src/utils/others';
 import { MetricsFrequency } from 'src/common';
+import { FindPeriodTelemetryPayloadAuditDto } from './dto/find-period-telemetry-payload-audit.dto';
+import { PeriodTelemetryPayloadAuditService } from './period-telemetry-payload-audit.service';
 // import { MetricsFrequency } from 'src/utils/enums';
 // import { winstonServerLogger } from 'app_config/serverWinston.config';
 // import { getTryCatchErrorStr } from 'utils/others';
@@ -47,6 +49,19 @@ export class PeriodTelemetryPayloadAuditController {
   ) {
     console.log("controller");
     const result = await this.periodTelemetryPayloadAuditService.aggregateDailyMaxPTPA(inputTime);
+  }
+
+  @Get()
+  async findAll(
+    // @Query() searchCriteria: FindPeriodTelemetryPayloadAuditDto,
+    @Query('assetId') assetId: string,
+    @Query('virtualDeviceId') virtualDeviceId: string,
+    @Query('metricsAttributeId') metricsAttributeId: string,
+    @Query('txnCapturePeriod') txnCapturePeriod: string,
+  ) {
+    return await this.periodTelemetryPayloadAuditService.findAll(
+      assetId, virtualDeviceId, metricsAttributeId, txnCapturePeriod
+    )
   }
 
   @Post('bulk')

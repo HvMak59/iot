@@ -224,6 +224,7 @@ export class TelemetryPayloadService {
     }
   }
 
+
   async update(
     id: string,
     updateTelemetryPayloadDto: UpdateTelemetryPayloadDto,
@@ -761,6 +762,35 @@ export class TelemetryPayloadService {
       throw new HttpException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+
+  async findTelemetryPayloadRecordSetB(recordSetA: any[]) {
+    const whereConditions = [];
+
+    for (const record of recordSetA) {
+      whereConditions.push({
+        assetId: record.assetId,
+        virtualDeviceId: record.virtualDeviceId,
+        txnCapturePeriod: record.txnCapturePeriod,
+        metric: {
+          metricsAttributeId: record.metric?.metricsAttributeId,
+          txnCapturePeriod: record.metric?.txnCapturePeriod
+        },
+      });
+    }
+
+    if (!whereConditions.length) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: whereConditions,
+      relations: {
+        metric: true,
+      },
+    });
+  }
+
 
   //   restore(id: string) {
   //     const msgTemplate = 'Restore ' + this.serviceName;

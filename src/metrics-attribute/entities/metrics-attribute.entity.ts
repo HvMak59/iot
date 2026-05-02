@@ -20,6 +20,7 @@ import { DeviceTypeMetricsAttribute } from 'src/Asset Current Performance Source
 import { getTryCatchErrorStr } from 'src/utils/others';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsAttributeFormula } from 'src/metrics-attribute-formula/entities/metrics-attribute-formula.entity';
+import { MetricsAttributeAggregation } from 'src/metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';
 // import { DeviceModelAttribute } from '../../device-model-attribute/entities/device-model-attribute.entity';
 // import { MetricsAttributeFormula } from '../../metrics-attribute-formula/entities/metrics-attribute-formula.entity';
 // import { MetricsAttributeAggregation } from '../../metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';
@@ -84,15 +85,15 @@ export class MetricsAttribute {
   //   }
   // }
 
-  // @OneToMany(
-  //   () => MetricsAttributeAggregation,
-  //   (groupMetricsAttribute) => groupMetricsAttribute.metricsAttribute,
-  //   {
-  //     nullable: true,
-  //     cascade: true,
-  //   },
-  // )
-  // groupMetricsAttributes?: MetricsAttributeAggregation[];
+  @OneToMany(
+    () => MetricsAttributeAggregation,
+    (groupMetricsAttribute) => groupMetricsAttribute.metricsAttribute,
+    {
+      nullable: true,
+      cascade: true,
+    },
+  )
+  groupMetricsAttributes?: MetricsAttributeAggregation[];
 
   @Column({ nullable: true })
   description: string;
