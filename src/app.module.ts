@@ -137,9 +137,9 @@ export class AppModule { }
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P 4iHuC+=NL6R*t7=YU6Ew
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026010016 -u hermes -P 4iHuC+=NL6R*t7=YU6Ew
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026010016 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq 'select(.deviceId == "2026010016")'
-// 
 
-// punasan :
+
+// punasan:
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
 // mosquitto_sub -h hermesmqtt.com -t HermesIOT/DrRtvGrwtV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010016\")"
@@ -251,7 +251,7 @@ export class AppModule { }
 
 // License : 3185254025
 // GJ02 /0023994/2025
-
+// GJ02 /0005273/2026  - new 
 // New License : 764000026
 
 // cg (crompton grave) drive - check rmu with this drive 
@@ -429,6 +429,8 @@ export class AppModule { }
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026030006\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 
+// for publish : 
+// mosquitto_pub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" -m '{"device_type":"invtr"}'
 
 // {"device_type":"invtr","device_name":"invt","device_id":"2026030006","date":"26/03/2026",
 // "time":"14:51:52","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",

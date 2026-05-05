@@ -764,20 +764,42 @@ export class TelemetryPayloadService {
   }
 
 
-  async findTelemetryPayloadRecordSetB(recordSetA: any[]) {
-    const whereConditions = [];
+  // async findTelemetryPayloadRecordSetB(recordSetA: any[]) {
+  //   const whereConditions = [];
 
-    for (const record of recordSetA) {
-      whereConditions.push({
-        assetId: record.assetId,
-        virtualDeviceId: record.virtualDeviceId,
-        txnCapturePeriod: record.txnCapturePeriod,
-        metric: {
-          metricsAttributeId: record.metric?.metricsAttributeId,
-          txnCapturePeriod: record.metric?.txnCapturePeriod
-        },
-      });
-    }
+  //   for (const record of recordSetA) {
+  //     whereConditions.push({
+  //       assetId: record.assetId,
+  //       virtualDeviceId: record.virtualDeviceId,
+  //       metric: {
+  //         metricsAttributeId: record.metric?.metricsAttributeId,
+  //         txnCapturePeriod: record.metric?.txnCapturePeriod
+  //       },
+  //     });
+  //   }
+
+  //   if (!whereConditions.length) {
+  //     return [];
+  //   }
+
+  //   return this.repo.find({
+  //     where: whereConditions,
+  //     relations: {
+  //       metric: true,
+  //     },
+  //   });
+  // }
+
+  async findTelemetryPayloadRecordSetB(recordSetA: any[]) {
+    const whereConditions = recordSetA.map((record) => ({
+      assetId: record.assetId,
+      virtualDeviceId: record.virtualDeviceId,
+      metric: {
+        metricsAttributeId: record.metric?.metricsAttributeId,
+        txnCapturePeriod: record.metric?.txnCapturePeriod,
+        frequency: record.metric?.frequency,
+      },
+    }));
 
     if (!whereConditions.length) {
       return [];
@@ -785,9 +807,6 @@ export class TelemetryPayloadService {
 
     return this.repo.find({
       where: whereConditions,
-      relations: {
-        metric: true,
-      },
     });
   }
 

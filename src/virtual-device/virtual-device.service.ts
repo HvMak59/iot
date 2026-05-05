@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 // import { winstonServerLogger } from 'app_config/serverWinston.config';
-import { In, Repository } from 'typeorm';
+import { In, Repository, TreeRepository } from 'typeorm';
 // import {
 //   deleteRec,
 //   findAll,
@@ -36,6 +36,9 @@ import { Response } from 'express';
 import { Relations } from 'src/utils/enums';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggregation/metrics-attribute-aggregation.service';
+import { VirtualDeviceGroupService } from 'src/virtual-device-group/virtual-device-group.service';
+import { GroupMetricsAttributeAggregationService } from 'src/group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.service';
 // import { DeviceService } from 'src/device/device.service';
 // import { Device } from 'src/device/entities/device.entity';
 // import { DeviceModel } from 'src/device-model/entities/device-model.entity';
@@ -78,9 +81,13 @@ export class VirtualDeviceService {
     // private readonly repo: Repository<VirtualDevice>,
     // @InjectRepository(VirtualDeviceGroup)
     // private readonly vdgRepo: Repository<VirtualDeviceGroup>,
-    @InjectRepository(VirtualDevice) private readonly repo: Repository<VirtualDevice>,
+    // @InjectRepository(VirtualDevice) private readonly repo: Repository<VirtualDevice>,
+    @InjectRepository(VirtualDevice) private readonly treeRepo: TreeRepository<VirtualDevice>,
     private readonly deviceService: DeviceService,
     private readonly httpService: HttpService,
+    private readonly metricsAttributeAggregationService: MetricsAttributeAggregationService,
+    private readonly virtualDeviceGroupService: VirtualDeviceGroupService,
+    private readonly groupMetricsAttributeAggregationService: GroupMetricsAttributeAggregationService,
   ) {
     this.schema = process.env['SCHEMA'];
     this.appServer = process.env['APP_SERVER'];
@@ -494,12 +501,94 @@ export class VirtualDeviceService {
   // virtual-device.service.ts
 
   async findOne(options: any) {
-    return this.repo.findOne(options);
+    // return this.repo.findOne(options);
   }
 
   async find(options: any) {
-    return this.repo.find(options);
+    return this.treeRepo.find(options);
   }
 
+
+  async findRecordSetC(recordSetA: any[]) {
+    const recordSetC = [];
+
+    const uniqueItems = _.uniqBy(
+      recordSetA.map((record) => ({
+        assetId: record.assetId,
+        virtualDeviceId: record.virtualDeviceId,
+      })),
+      (item) => item.assetId + KEY_SEPARATOR + item.virtualDeviceId,
+    );
+
+    if (!uniqueItems.length) {
+      return [];
+    }
+
+    const virtualDeviceIds = uniqueItems.map((item) => item.virtualDeviceId);
+
+    // 1. Fetch all virtual devices
+    const virtualDevices = await this.treeRepo.find({
+      where: {
+        id: In(virtualDeviceIds),
+      },
+      relations: {
+        parent: true,
+      },
+    });
+
+    // 2. Fetch VD -> Group mapping
+    const virtualDeviceGroups = await this.virtualDeviceGroupService.find({
+      virtualDeviceId: In(virtualDeviceIds),
+    });
+
+    const groupIds = _.uniq(
+      virtualDeviceGroups.map((vdGroup) => vdGroup.groupId),
+    );
+
+    // 3. Fetch Group -> MetricsAttributeAggregation mapping
+    const groupMetricsAggRecords =
+      await this.groupMetricsAttributeAggregationService.findAll({
+        groupId: In(groupIds),
+      });
+
+    // 4. Group VD groups by VD id
+    const vdGroupMap = _.groupBy(
+      virtualDeviceGroups,
+      (vdGroup) => vdGroup.virtualDeviceId,
+    );
+
+    // 5. Group metrics aggregation records by group id
+    const groupMetricsAggMap = _.groupBy(
+      groupMetricsAggRecords,
+      (record) => record.groupId,
+    );
+
+    for (const virtualDevice of virtualDevices) {
+      const descendants = await this.treeRepo.findDescendants(virtualDevice);
+
+      const childrenVDIDs = descendants
+        .filter((vd: VirtualDevice) => vd.id !== virtualDevice.id)
+        .map((vd: VirtualDevice) => vd.id);
+
+      const vdGroups = vdGroupMap[virtualDevice.id] ?? [];
+
+      for (const vdGroup of vdGroups) {
+        const metricsAggregationRecords =
+          groupMetricsAggMap[vdGroup.groupId] ?? [];
+
+        recordSetC.push({
+          assetId: virtualDevice.assetId,
+          virtualDeviceId: virtualDevice.id,
+          parentVirtualDeviceId:
+            virtualDevice.parentId ?? virtualDevice.parent?.id ?? null,
+          childrenVDIDs,
+          groupId: vdGroup.groupId,
+          metricsAggregationRecords,
+        });
+      }
+    }
+    return recordSetC;
+  }
 }
+
 

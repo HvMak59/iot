@@ -28,6 +28,7 @@ import { GroupService } from 'src/group/group.service';
 import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggregation/metrics-attribute-aggregation.service';
 import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
 
+
 @Injectable()
 export class PeriodTelemetryPayloadAuditService {
   private readonly logger = winstonServerLogger(
@@ -307,9 +308,6 @@ export class PeriodTelemetryPayloadAuditService {
     }
   }
 
-
-  // From here real code 
-
   async aggregateDailyMaxPTPA(processingDateInEpoch: string) {
     const fnName = this.aggregateDailyMaxPTPA.name;
 
@@ -436,7 +434,6 @@ export class PeriodTelemetryPayloadAuditService {
     }
   }
 
-
   async findAll(
     // searchCriteria: FindPeriodTelemetryPayloadAuditDto
     asseId: string, virtualDeviceId: string, metricsAttributeId: string, txnCapturePeriod: string
@@ -487,8 +484,7 @@ export class PeriodTelemetryPayloadAuditService {
 
 
 
-  // New service  
-
+  // New service  - working for max measure 
   async processMaxTelemetryAggregation(
     inputDate: string,
     metricsFrequency: string,
@@ -508,22 +504,33 @@ export class PeriodTelemetryPayloadAuditService {
         recordSetA,
       );
 
+    const corrected = 4;
     // Record Set C 
-    const recordSetC =
-      await this.findRecordSetC(recordSetB);
+    // const recordSetC =
+    //   // await this.findRecordSetC(recordSetB);
+    //   await this.virtualDeviceService.findRecordSetC(recordSetA);
 
-    // Record Set D
+    // // Record Set D
+    // const recordSetD =
+    //   await this.findMaxTelemetryValueRecordSetD(
+    //     recordSetC,
+    //   );
+
+    // const recordSetE =
+    //   await this.prepareRecordSetE(
+    //     recordSetB,
+    //     recordSetD,
+    //   );
+
+
+    const recordSetC =
+      await this.virtualDeviceService.findRecordSetC(recordSetB);
+
     const recordSetD =
-      //  
-      await this.findMaxTelemetryValueRecordSetD(
-        recordSetC,
-      );
+      await this.findMaxTelemetryValueRecordSetD(recordSetB);
 
     const recordSetE =
-      await this.prepareRecordSetE(
-        recordSetB,
-        recordSetD,
-      );
+      await this.prepareRecordSetE(recordSetB, recordSetD);
 
     // const recordSetF =
     //   await this.prepareRecordSetF(
@@ -538,6 +545,55 @@ export class PeriodTelemetryPayloadAuditService {
       recordSetE
     };
   }
+
+  private myOldWorking = 5;
+  // async findPeriodTelemetryRecordSetA(
+  //   inputDate: string,
+  //   metricsFrequency: string,
+  //   isCalculationForced: boolean,
+  // ) {
+  //   const whereCondition: any = {
+  //     createdOn: inputDate,
+  //     frequency: metricsFrequency,
+  //   };
+
+  //   if (isCalculationForced == false) {
+  //     whereCondition.txnCapturePeriod = LessThan(inputDate);
+  //   }
+
+  //   const records = await this.repo.find({
+  //     where: whereCondition,
+  //     relations: {
+  //       metric: true,
+  //     },
+  //     select: {
+  //       assetId: true,
+  //       virtualDeviceId: true,
+  //       metric: {
+  //         metricsAttributeId: true,
+  //         txnCapturePeriod: true,
+  //         txnCaptureTime: true
+  //       },
+  //     },
+  //   });
+
+  //   const groupedMap = new Map<string, any>();
+
+  //   for (const record of records) {
+  //     // const key =
+  //     //   record.assetId + KEY_SEPARATOR +
+  //     //   record.virtualDeviceId + KEY_SEPARATOR +
+  //     //   record.metric.metricsAttributeId + KEY_SEPARATOR +
+  //     //   record.metric.txnCapturePeriod
+
+  //     const key = this.getTelemetryKey(record);
+
+  //     if (!groupedMap.has(key)) {
+  //       groupedMap.set(key, record);
+  //     }
+  //   }
+  //   return Array.from(groupedMap.values());
+  // }
 
   async findPeriodTelemetryRecordSetA(
     inputDate: string,
@@ -555,37 +611,23 @@ export class PeriodTelemetryPayloadAuditService {
 
     const records = await this.repo.find({
       where: whereCondition,
-      relations: {
-        metric: true,
-      },
-      // 
       select: {
         assetId: true,
         virtualDeviceId: true,
         metric: {
           metricsAttributeId: true,
           txnCapturePeriod: true,
-          txnCaptureTime: true
+          txnCaptureTime: true,
+          frequency: true
         },
       },
     });
-    //                                                                                                                                                                                                      
-    const groupedMap = new Map<string, any>();
 
-    for (const record of records) {
-      const key =
-        record.assetId + KEY_SEPARATOR +
-        record.virtualDeviceId + KEY_SEPARATOR +
-        record.metric?.metricsAttributeId + KEY_SEPARATOR +
-        record.metric?.txnCapturePeriod
+    const groupedRecords = _.groupBy(records, (record) =>
+      record.getTelemetryKey(),
+    );
 
-      if (!groupedMap.has(key)) {
-        groupedMap.set(key, record);
-      }
-    }
-    // 
-    // GasCompressorForBG_Alerts 
-    return Array.from(groupedMap.values());
+    return Object.values(groupedRecords).map((group) => group[0]);
   }
 
   // async findRecordSetC(recordSetB: any[]) {
@@ -648,75 +690,110 @@ export class PeriodTelemetryPayloadAuditService {
   //   return recordSetC;
   // }
 
-  async findRecordSetC(recordSetB: any[]) {
-    const recordSetC = [];
 
-    const uniqueAssetVDMap = new Map<string, any>();
+  private thisWasLast = 5;
+  // async findRecordSetC(recordSetB: any[]) {
+  //   const recordSetC = [];
 
-    for (const record of recordSetB) {
-      const key = record.assetId + KEY_SEPARATOR + record.virtualDeviceId;
+  //   const uniqueAssetVDMap = new Map<string, any>();
 
-      if (!uniqueAssetVDMap.has(key)) {
-        uniqueAssetVDMap.set(key, {
-          assetId: record.assetId,
-          virtualDeviceId: record.virtualDeviceId,
-        });
-      }
-    }
+  //   for (const record of recordSetB) {
+  //     const key = record.assetId + KEY_SEPARATOR + record.virtualDeviceId;
 
-    for (const item of uniqueAssetVDMap.values()) {
-      const virtualDevice = await this.virtualDeviceService.findOne({
-        where: {
-          assetId: item.assetId,
-          id: item.virtualDeviceId,
-        },
-      });
+  //     if (!uniqueAssetVDMap.has(key)) {
+  //       uniqueAssetVDMap.set(key, {
+  //         assetId: record.assetId,
+  //         virtualDeviceId: record.virtualDeviceId,
+  //       });
+  //     }
+  //   }
 
-      if (!virtualDevice) continue;
+  //   for (const item of uniqueAssetVDMap.values()) {
+  //     const virtualDevice = await this.virtualDeviceService.findOne({
+  //       where: {
+  //         assetId: item.assetId,
+  //         id: item.virtualDeviceId,
+  //       },
+  //     });
 
-      const childrenVDs = await this.virtualDeviceService.find({
-        where: {
-          assetId: item.assetId,
-          parentId: item.virtualDeviceId,
-        },
-      });
+  //     if (!virtualDevice) continue;
 
-      const group = await this.groupService.findOne({
-        where: {
-          assetId: item.assetId,
-          virtualDeviceId: item.virtualDeviceId,
-        },
-      });
+  //     const childrenVDs = await this.virtualDeviceService.find({
+  //       where: {
+  //         assetId: item.assetId,
+  //         parentId: item.virtualDeviceId,
+  //       },
+  //     });
 
-      const metricsAggregationRecords =
-        await this.metricsAttributeAggregationService.find({
-          where: {
-            groupId: group?.id,
-          },
-        });
+  //     const group = await this.groupService.findOne({
+  //       where: {
+  //         assetId: item.assetId,
+  //         virtualDeviceId: item.virtualDeviceId,
+  //       },
+  //     });
+  //     //  
+  //     const metricsAggregationRecords =
+  //       await this.metricsAttributeAggregationService.find({
+  //         where: {
+  //           groupId: group?.id,
+  //         },
+  //       });
 
-      recordSetC.push({
-        assetId: item.assetId,
-        virtualDeviceId: virtualDevice.id,
-        parentVirtualDeviceId: virtualDevice.parentId,
-        childrenVDIDs: childrenVDs.map((child) => child.id),
-        groupId: group?.id,
-        metricsAggregationRecords,
-      });
-    }
+  //     recordSetC.push({
+  //       assetId: item.assetId,
+  //       virtualDeviceId: virtualDevice.id,
+  //       parentVirtualDeviceId: virtualDevice.parentId,
+  //       childrenVDIDs: childrenVDs.map((child) => child.id),
+  //       groupId: group?.id,
+  //       metricsAggregationRecords,
+  //     });
+  //   }
 
-    return recordSetC;
-  }
+  //   return recordSetC;
+  // }
+
+  private correctOld = 4;
+  // async findMaxTelemetryValueRecordSetD(recordSetB: any[]) {
+  //   const maxMap = new Map<string, any>();
+
+  //   for (const record of recordSetB) {
+  //     // const key =
+  //     //   record.assetId + KEY_SEPARATOR +
+  //     //   record.virtualDeviceId + KEY_SEPARATOR +
+  //     //   record.metric.metricsAttributeId + KEY_SEPARATOR +
+  //     //   record.metric.txnCapturePeriod
+  //     // 
+
+  //     const key = this.getTelemetryKey(record);
+
+  //     const existingRecord = maxMap.get(key);
+
+  //     if (!existingRecord) {
+  //       maxMap.set(key, record);
+  //       continue;
+  //     }
+
+  //     const existingValue = Number(existingRecord.metric.measure ?? 0);
+  //     const currentValue = Number(record.metric.measure ?? 0);
+
+  //     if (currentValue > existingValue) {
+  //       maxMap.set(key, record.metric.measure);
+  //     }
+  //   }
+
+  //   return Array.from(maxMap.values());
+  // }
 
   async findMaxTelemetryValueRecordSetD(recordSetB: any[]) {
     const maxMap = new Map<string, any>();
 
     for (const record of recordSetB) {
-      const key =
-        record.assetId + KEY_SEPARATOR +
-        record.virtualDeviceId + KEY_SEPARATOR +
-        record.metric?.metricsAttributeId + KEY_SEPARATOR +
-        record.txnCapturePeriod
+      const measure = Number(record.metric?.measure);
+
+      if (Number.isNaN(measure)) continue;
+
+      // const key = this.getTelemetryKey(record);
+      const key = record.getTelemetryKey();;
 
       const existingRecord = maxMap.get(key);
 
@@ -725,37 +802,80 @@ export class PeriodTelemetryPayloadAuditService {
         continue;
       }
 
-      const existingValue = Number(existingRecord.metric?.value ?? 0);
-      const currentValue = Number(record.metric?.value ?? 0);
+      const existingValue = Number(existingRecord.metric?.measure ?? 0);
 
-      if (currentValue > existingValue) {
-        maxMap.set(key, record.metric.measure);
+      if (measure > existingValue) {
+        maxMap.set(key, record);
       }
     }
-
     return Array.from(maxMap.values());
   }
 
+  private correctOldd = 5;
+  // async prepareRecordSetE(
+  //   recordSetB: any[],
+  //   recordSetD: any[]
+  // ) {
+  //   const recordSetEMap = new Map<string, any>();
+
+  //   for (const recordB of recordSetB) {
+  //     const key = this.getTelemetryKey(recordB);
+
+  //     const recordD = recordSetD.find(
+  //       (item) => this.getTelemetryKey(item) === key,
+  //     );
+
+  //     if (!recordD) {
+  //       recordSetEMap.set(key, recordB);
+  //       continue;
+  //     }
+
+  //     const recordBValue = Number(recordB.metric?.metricsValue ?? 0);
+  //     const recordDValue = Number(recordD.metric?.metricsValue ?? 0);
+
+  //     if (recordDValue > recordBValue) {
+  //       recordSetEMap.set(key, recordD);
+  //     } else {
+  //       recordSetEMap.set(key, recordB);
+  //     }
+  //   }
+
+  //   for (const recordD of recordSetD) {
+  //     const key = this.getTelemetryKey(recordD);
+
+  //     if (!recordSetEMap.has(key)) {
+  //       recordSetEMap.set(key, recordD);
+  //     }
+  //   }
+
+  //   return Array.from(recordSetEMap.values());
+  // }
+
   async prepareRecordSetE(
     recordSetB: any[],
-    recordSetD: any[]
+    recordSetD: any[],
   ) {
+    const recordSetDMap = new Map<string, any>();
+
+    for (const recordD of recordSetD) {
+      const key = this.getTelemetryKey(recordD);
+      recordSetDMap.set(key, recordD);
+    }
+
     const recordSetEMap = new Map<string, any>();
 
     for (const recordB of recordSetB) {
       const key = this.getTelemetryKey(recordB);
 
-      const recordD = recordSetD.find(
-        (item) => this.getTelemetryKey(item) === key,
-      );
+      const recordD = recordSetDMap.get(key);
 
       if (!recordD) {
         recordSetEMap.set(key, recordB);
         continue;
       }
 
-      const recordBValue = Number(recordB.metric?.metricsValue ?? 0);
-      const recordDValue = Number(recordD.metric?.metricsValue ?? 0);
+      const recordBValue = Number(recordB.metric?.measure ?? 0);
+      const recordDValue = Number(recordD.metric?.measure ?? 0);
 
       if (recordDValue > recordBValue) {
         recordSetEMap.set(key, recordD);
@@ -829,8 +949,8 @@ export class PeriodTelemetryPayloadAuditService {
     const key =
       record.assetId + KEY_SEPARATOR +
       record.virtualDeviceId + KEY_SEPARATOR +
-      record.metric?.metricsAttributeId + KEY_SEPARATOR +
-      record.txnCapturePeriod
+      record.metric.metricsAttributeId + KEY_SEPARATOR +
+      record.metric.txnCapturePeriod
 
     return key;
   }
@@ -898,6 +1018,4 @@ export class PeriodTelemetryPayloadAuditService {
   //   return groupedMap;
   // }
 }
-
-
 

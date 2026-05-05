@@ -8,6 +8,6 @@ import { VirtualDeviceGroup } from './entities/virtual-device-group.entity';
   imports: [TypeOrmModule.forFeature([VirtualDeviceGroup])],
   controllers: [VirtualDeviceGroupController],
   providers: [VirtualDeviceGroupService],
-  exports: [TypeOrmModule.forFeature([VirtualDeviceGroup])],
+  exports: [TypeOrmModule.forFeature([VirtualDeviceGroup]), VirtualDeviceGroupService],
 })
-export class VirtualDeviceGroupModule {}
+export class VirtualDeviceGroupModule { }

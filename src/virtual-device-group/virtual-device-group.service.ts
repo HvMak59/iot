@@ -55,6 +55,10 @@ export class VirtualDeviceGroupService {
   //   return this.repo;
   // } */
 
+  async find(options?: FindVirtualDeviceGroupDto) {
+    // return this.repo.find(options);
+    return this.repo.find({ where: options })
+  }
   // findOne(
   //   searchCriteria: FindVirtualDeviceGroupDto,
   //   relationsRequired: boolean = false,

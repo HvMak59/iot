@@ -8,5 +8,6 @@ import { GroupMetricsAttributeAggregation } from './entities/group-metrics-attri
   imports: [TypeOrmModule.forFeature([GroupMetricsAttributeAggregation])],
   controllers: [GroupMetricsAttributeAggregationController],
   providers: [GroupMetricsAttributeAggregationService],
+  exports: [GroupMetricsAttributeAggregationService],
 })
-export class GroupMetricsAttributeAggregationModule {}
+export class GroupMetricsAttributeAggregationModule { }
