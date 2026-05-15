@@ -9,6 +9,7 @@ import _ from 'lodash';
 // import { Metric } from '../src/metrics/entities/metric.entity';
 // import { TelemetryPayload } from '../src/telemetry-payload/entities/telemetry-payload.entity';
 // import { MetricsFrequency } from './enums';
+import { createHash } from 'crypto';
 
 import { Request } from 'express';
 import { ExtractJwt } from 'passport-jwt';
@@ -161,8 +162,49 @@ export function VirtualDeviceGroupComparator(vdg: VirtualDeviceGroup) {
 
   const vdgObj = new VirtualDeviceGroup(vdg);
   return vdgObj.id;
+
+}
+export function getSHAPwd(pwd: string) {
+  const fnName = getSHAPwd.name;
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(pwd);
+  const result = createHash('sha256').update(bytes).digest('hex');
+  return result;
 }
 
+export async function getAuthToken(
+  baseUrl: string,
+  systemUser: string | undefined,
+  systemPassword: string,
+) {
+  const shaPwd = getSHAPwd(systemPassword!);
+  const loginURL = new URL('auth/login', baseUrl);
+  const requestBody = {
+    username: systemUser,
+    password: shaPwd,
+  };
+  const jsonBody = JSON.stringify(requestBody);
+  const response = await fetch(loginURL, {
+    method: 'POST',
+    headers: {
+      //Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: jsonBody,
+  });
+
+  const token = await response.text();
+  return token;
+  //console.log(`Token : ${token}`);
+}
+
+export function getBaseURL(
+  scheme: string | undefined,
+  appServer: string | undefined,
+  appPort: string | undefined,
+) {
+  return `${scheme}://${appServer}:${appPort}`;
+}
 
 export function throwErrIfNoData<T>(resp: Array<T>, errMsg: string) {
   if (_.isNil(resp.length)) {

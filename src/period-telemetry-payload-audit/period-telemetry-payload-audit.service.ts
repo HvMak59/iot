@@ -12,6 +12,7 @@ import { MetricsFrequency } from 'src/common';
 import {
   convertInputToDate,
   convertpossibleStringTypeToInt,
+  getPeriodTime,
   getPeriodTimeInEpoch,
   getTryCatchErrorStr,
 } from 'src/utils/others';
@@ -27,6 +28,8 @@ import { VirtualDeviceGroupService } from 'src/virtual-device-group/virtual-devi
 import { GroupService } from 'src/group/group.service';
 import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggregation/metrics-attribute-aggregation.service';
 import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
+import { audit } from 'rxjs';
+import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-payload.entity';
 
 
 @Injectable()
@@ -486,14 +489,14 @@ export class PeriodTelemetryPayloadAuditService {
 
   // New service  - working for max measure 
   async processMaxTelemetryAggregation(
-    inputDate: string,
-    metricsFrequency: string,
+    inputTime: string,
+    metricsFrequency: MetricsFrequency,
     isCalculationForced: boolean
   ) {
     // Record Set A
     const recordSetA =
       await this.findPeriodTelemetryRecordSetA(
-        inputDate,
+        inputTime,
         metricsFrequency,
         isCalculationForced,
       );
@@ -522,12 +525,11 @@ export class PeriodTelemetryPayloadAuditService {
     //     recordSetD,
     //   );
 
-
     const recordSetC =
-      await this.virtualDeviceService.findRecordSetC(recordSetB);
+      await this.virtualDeviceService.findRecordSetC(recordSetA);
 
     const recordSetD =
-      await this.findMaxTelemetryValueRecordSetD(recordSetB);
+      await this.findMaxTelemetryValueRecordSetD(recordSetA);
 
     const recordSetE =
       await this.prepareRecordSetE(recordSetB, recordSetD);
@@ -596,25 +598,43 @@ export class PeriodTelemetryPayloadAuditService {
   // }
 
   async findPeriodTelemetryRecordSetA(
-    inputDate: string,
-    metricsFrequency: string,
+    inputTimeInEpoch: string,
+    metricsFrequency: MetricsFrequency,
     isCalculationForced: boolean,
   ) {
-    const whereCondition: any = {
-      createdOn: inputDate,
-      frequency: metricsFrequency,
+    const inputDate = convertInputToDate(inputTimeInEpoch);
+    // const periodTimeInEpoch = getPeriodTimeInEpoch(
+    //   convertpossibleStringTypeToInt(inputTimeInEpoch), //processingDateInEpoch,
+    //   metricsFrequency.toString(),
+    // );
+    // const periodDate: Date = new Date(periodTimeInEpoch);
+
+    const whereCondition: FindPeriodTelemetryPayloadAuditDto = {
+      metric: {
+        frequency: metricsFrequency,
+      },
+      auditDateTime: {
+        createdAt: MoreThanOrEqual(inputDate),
+      },
     };
 
-    if (!isCalculationForced) {
-      whereCondition.txnCapturePeriod = LessThan(inputDate);
+    if (isCalculationForced == false) {
+      whereCondition.metric = {
+        frequency: metricsFrequency,
+        txnCapturePeriod: LessThan(
+          inputDate
+        ),
+      };
     }
 
+    // console.log("where condition", whereCondition);
     const records = await this.repo.find({
       where: whereCondition,
       select: {
         assetId: true,
         virtualDeviceId: true,
         metric: {
+          measure: true,
           metricsAttributeId: true,
           txnCapturePeriod: true,
           txnCaptureTime: true,
@@ -623,7 +643,7 @@ export class PeriodTelemetryPayloadAuditService {
       },
     });
 
-    const groupedRecords = _.groupBy(records, (record) =>
+    const groupedRecords = _.groupBy(records, (record: PeriodTelemetryPayloadAudit) =>
       record.getTelemetryKey(),
     );
 
@@ -784,10 +804,10 @@ export class PeriodTelemetryPayloadAuditService {
   //   return Array.from(maxMap.values());
   // }
 
-  async findMaxTelemetryValueRecordSetD(recordSetB: any[]) {
+  async findMaxTelemetryValueRecordSetD(recordSetA: PeriodTelemetryPayloadAudit[]) {
     const maxMap = new Map<string, any>();
 
-    for (const record of recordSetB) {
+    for (const record of recordSetA) {
       const measure = Number(record.metric?.measure);
 
       if (Number.isNaN(measure)) continue;
@@ -810,6 +830,7 @@ export class PeriodTelemetryPayloadAuditService {
     }
     return Array.from(maxMap.values());
   }
+
 
   private correctOldd = 5;
   // async prepareRecordSetE(
@@ -852,30 +873,33 @@ export class PeriodTelemetryPayloadAuditService {
   // }
 
   async prepareRecordSetE(
-    recordSetB: any[],
-    recordSetD: any[],
+    recordSetB: TelemetryPayload[],
+    recordSetD: PeriodTelemetryPayloadAudit[],
   ) {
     const recordSetDMap = new Map<string, any>();
 
     for (const recordD of recordSetD) {
-      const key = this.getTelemetryKey(recordD);
+      // const key = this.getTelemetryKey(recordD);
+      const key = recordD.getTelemetryKey();;
       recordSetDMap.set(key, recordD);
     }
 
     const recordSetEMap = new Map<string, any>();
 
     for (const recordB of recordSetB) {
-      const key = this.getTelemetryKey(recordB);
+      // const key = this.getTelemetryKey(recordB);
+      const key = recordB.getTelemetryKey();
 
       const recordD = recordSetDMap.get(key);
 
       if (!recordD) {
         recordSetEMap.set(key, recordB);
+
         continue;
       }
 
-      const recordBValue = Number(recordB.metric?.measure ?? 0);
-      const recordDValue = Number(recordD.metric?.measure ?? 0);
+      const recordBValue = Number(recordB.metric?.measure);
+      const recordDValue = Number(recordD.metric?.measure);
 
       if (recordDValue > recordBValue) {
         recordSetEMap.set(key, recordD);
@@ -885,7 +909,8 @@ export class PeriodTelemetryPayloadAuditService {
     }
 
     for (const recordD of recordSetD) {
-      const key = this.getTelemetryKey(recordD);
+      // const key = this.getTelemetryKey(recordD);
+      const key = recordD.getTelemetryKey();
 
       if (!recordSetEMap.has(key)) {
         recordSetEMap.set(key, recordD);
@@ -896,6 +921,85 @@ export class PeriodTelemetryPayloadAuditService {
   }
 
 
+  //   async prepareRecordSetE(
+  //   recordSetB: any[],
+  //   recordSetD: any[],
+  // ) {
+  //   const recordSetDMap =
+  //     new Map<string, any>();
+
+  //   for (const recordD of recordSetD) {
+  //     recordSetDMap.set(
+  //       recordD.getTelemetryKey(),
+  //       recordD,
+  //     );
+  //   }
+
+  //   const recordSetEMap =
+  //     new Map<string, any>();
+
+  //   for (const recordB of recordSetB) {
+  //     const key =
+  //       recordB.getTelemetryKey();
+
+  //     const recordD =
+  //       recordSetDMap.get(key);
+
+  //     /**
+  //      * D not present
+  //      */
+  //     if (!recordD) {
+  //       recordSetEMap.set(
+  //         key,
+  //         recordB,
+  //       );
+
+  //       continue;
+  //     }
+
+  //     const recordBValue = Number(
+  //       recordB.metric?.measure,
+  //     );
+
+  //     const recordDValue = Number(
+  //       recordD.metric?.measure,
+  //     );
+
+  //     /**
+  //      * store max
+  //      */
+  //     recordSetEMap.set(
+  //       key,
+  //       recordDValue > recordBValue
+  //         ? recordD
+  //         : recordB,
+  //     );
+  //   }
+
+  //   /**
+  //    * Add remaining D records
+  //    * that were not in B
+  //    */
+  //   for (const recordD of recordSetD) {
+  //     const key =
+  //       recordD.getTelemetryKey();
+
+  //     if (
+  //       !recordSetEMap.has(key)
+  //     ) {
+  //       recordSetEMap.set(
+  //         key,
+  //         recordD,
+  //       );
+  //     }
+  //   }
+
+  //   return [
+  //     ...recordSetEMap.values(),
+  //   ];
+  // }
+
+  private correctOlddd = 5;
   // async prepareRecordSetF(
   //   recordSetB: any[],
   //   recordSetD: any[]
@@ -945,16 +1049,26 @@ export class PeriodTelemetryPayloadAuditService {
   //   return Array.from(recordSetFMap.values());
   // }
 
-  private getTelemetryKey(record: any) {
-    const key =
-      record.assetId + KEY_SEPARATOR +
-      record.virtualDeviceId + KEY_SEPARATOR +
-      record.metric.metricsAttributeId + KEY_SEPARATOR +
-      record.metric.txnCapturePeriod
 
-    return key;
-  }
 
+  private key = 4;
+  // private getTelemetryKey(record: any) {
+  //   const key =
+  //     record.assetId +
+  //     KEY_SEPARATOR +
+  //     record.virtualDeviceId +
+  //     KEY_SEPARATOR +
+  //     record.metric?.metricsAttributeId +
+  //     KEY_SEPARATOR +
+  //     record.metric.frequency +
+  //     KEY_SEPARATOR +
+  //     record.metric?.txnCapturePeriod
+
+  //   return key;
+  // }
+
+
+  private idk = 4;
   // async findPeriodTelemetryPayloads(
   //   inputDate: string,
   //   metricsFrequency: string,

@@ -4,6 +4,10 @@ import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { IotServerService } from 'src/iot-server/iot-server.service';
 import { RMU_OFFLINE, RMU_OFFLINE_THRESHOLD } from 'src/app_config/constants';
 import { Cron } from '@nestjs/schedule';
+import { PeriodTelemetryPayloadAuditService } from 'src/period-telemetry-payload-audit/period-telemetry-payload-audit.service';
+import { TelemetryPayloadService } from 'src/telemetry-payload/telemetry-payload.service';
+import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
+import { MetricsFrequency } from 'src/common';
 
 @Injectable()
 export class CronJobsService {
@@ -82,5 +86,49 @@ export class CronJobsService {
         }
 
         return results;
+    }
+
+    // @Cron('0 0 * * *')  // every day at midnight
+    // async processMaxTelemetryAggregation(
+    // inputDate: string,
+    // metricsFrequency: string,
+    // isCalculationForced: boolean
+    // ) {
+    //     const periodTMPyld =
+    //         await this.periodTelemetryPayloadAuditService.findPeriodTelemetryRecordSetA(
+    //             inputDate,
+    //             metricsFrequency,
+    //             isCalculationForced,
+    //         );
+
+    //     const telemetryPyld =
+    //         await this.telemetryPayloadService.findTelemetryPayloadRecordSetB(
+    //             periodTMPyld,
+    //         );
+
+    //     const recordSetC =
+    //         await this.virtualDeviceService.findRecordSetC(periodTMPyld);
+
+    //     const maxMetrics =
+    //         await this.periodTelemetryPayloadAuditService.findMaxTelemetryValueRecordSetD(periodTMPyld);
+
+    //     const recordSetE =
+    //         await this.periodTelemetryPayloadAuditService.prepareRecordSetE(telemetryPyld, maxMetrics);
+
+    //     return {
+    //         periodTMPyld,
+    //         telemetryPyld,
+    //         maxMetrics,
+    //         recordSetE
+    //     };
+    // }
+
+    @Cron('0 0 * * *')  // every day at midnight
+    async processMaxTelemetryAggregation(
+        inputDate: string,
+        metricsFrequency: MetricsFrequency,
+        isCalculationForced: boolean
+    ) {
+        return await this.iotServerService.processMaxTelemetryAggregation(inputDate, metricsFrequency, isCalculationForced);
     }
 }

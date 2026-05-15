@@ -41,6 +41,7 @@ import { GroupModule } from './group/group.module';
 import { MetricsAttributeAggregationModule } from './metrics-attribute-aggregation/metrics-attribute-aggregation.module';
 import { GroupMetricsAttributeAggregationModule } from './group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.module';
 import { VirtualDeviceGroupModule } from './virtual-device-group/virtual-device-group.module';
+import { FcmModule } from './fcm/fcm.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -63,7 +64,8 @@ import { VirtualDeviceGroupModule } from './virtual-device-group/virtual-device-
         // synchronize: config.get('NODE_ENV') !== 'production',
         // synchronize: true, // for my db use this 
         synchronize: false, // to connect with sir database use these 2 
-        migrationsRun: false   
+        migrationsRun: false,
+        // logging: true
       }),
       inject: [ConfigService],
     }),
@@ -112,7 +114,8 @@ import { VirtualDeviceGroupModule } from './virtual-device-group/virtual-device-
     GroupModule,
     MetricsAttributeAggregationModule,
     GroupMetricsAttributeAggregationModule,
-    VirtualDeviceGroupModule
+    VirtualDeviceGroupModule,
+    FcmModule
   ],
   // providers: [
   //   {
@@ -142,10 +145,22 @@ export class AppModule { }
 // punasan:
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025100002\")"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2025050010\")"
 // mosquitto_sub -h hermesmqtt.com -t HermesIOT/DrRtvGrwtV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010016\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrTvaVFDV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"117125013474\")"
 
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+
+
+
+
+
+
+
+// {"device_type":"invtr1","device_name":"huwai","device_id":"2025050010","date":"07/05/2026","time":"10:12:31","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0","software_ver":"SM-1.03.D20_4G","signal_strength":"4","valid":true,"data":{"slave_id":"7","srNo":"2101076532WPQ4014326","pv1":1129.000,"pc1":16.960,"pv2":1129.000,"pc2":16.950,"pv3":1129.000,"pc3":0.000,"pv4":1137.900,"pc4":0.000,"pv5":1119.400,"pc5":17.140,"pv6":1119.400,"pc6":0.000,"pv7":1119.400,"pc7":17.390,"pv8":1119.400,"pc8":0.000,"pv9":1113.400,"pc9":0.000,"pv10":1121.600,"pc10":17.440,"pv11":1121.600,"pc11":0.000,"pv12":1121.600,"pc12":17.140,"pv13":1121.600,"pc13":0.000,"pv14":1129.700,"pc14":0.000,"pv15":1118.300,"pc15":17.710,"pv16":1118.300,"pc16":17.450,"pv17":1118.300,"pc17":0.000,"pv18":1118.300,"pc18":0.000,"pv19":1127.700,"pc19":17.620,"pv20":1122.500,"pc20":0.000,"pv21":1122.500,"pc21":8.530,"pv22":1122.500,"pc22":0.000,"pv23":1122.500,"pc23":0.000,"pv24":1120.600,"pc24":8.940,"pv25":1123.200,"pc25":0.000,"pv26":1123.200,"pc26":0.000,"pv27":1123.200,"pc27":0.000,"pv28":1123.200,"pc28":0.000,"gdV1":478.500,"gdV2":476.900,"gdV3":481.700,"gdI1":134.009,"gdI2":133.900,"gdI3":134.574,"op":192.405,"pf":1.000,"frq":49.980,"invtTmp":55.000,"state":512,"al1":0,"al2":0,"al3":0,"al4":0,"al5":0,"ttlE":503566.729,"yE":204651.305,"mE":9747.970,"tdyE":353.690}}
+// problem = 1,2,5 inv 
+
+
 
 
 // corona 
@@ -533,6 +548,91 @@ export class AppModule { }
 
 
 // 96677 lxm  42084 
+//  9278664414
 
+
+// Payal madm car service 
+
+
+// A single continuous 15-second cinematic long shot inside a sterile, dimly lit public restroom. White subway tiles, large wall mirror, white ceramic sink, flickering fluorescent overhead lights, wet reflective floor.[0:00–0:02] Medium shot. A sophisticated man in a tailored matte black suit and navy silk tie washes his hands at the sink, calm and composed, eyes locked on his reflection in the mirror.[0:02–0:04] In the mirror’s reflection, a broad-shouldered assassin in a dark charcoal tactical suit bursts from a stall and locks a chokehold around the hero from behind. Camera subtly pushes in. Both men slam into the tiled wall. Strained expressions, desperate struggle.[0:04–0:06] The hero drives his elbow back hard, breaks free, spins and seizes the assassin — camera pans fluidly — executing a powerful judo shoulder throw that launches the attacker into a metal stall door with crushing impact. Debris and shadows scatter under flickering lights.[0:06–0:09] Camera drops low, tracks laterally through the brawl — rapid punches, parries, blocks — the hero slips a strike and counters with a devastating blow. Realistic motion blur, gritty handheld energy, sharp focus on determined eyes and gritted teeth.[0:09–0:11] Camera swings wide then CRASHES close — the hero seizes the assassin’s head and drives it into the mirror with full force. Ultra slow-motion: thousands of glass shards explode toward the lens, a massive spiderweb crack blooms across the mirror surface. High contrast, visceral impact, dramatic light burst.[0:11–0:13] Slow camera pull-back. The hero stands tall over the unconscious assassin on the wet restroom floor. He coolly adjusts his silk tie, straightens his blazer. His fractured reflection multiplied across broken mirror shards. Cool-toned cinematic grade.[0:13–0:15] Extreme close-up profile. The hero produces a white handkerchief, wipes a single drop of blood from his lip, takes one final look at his distorted cracked reflection — then walks out of frame. Camera lingers on the shattered mirror. Fade to black.Style: Photorealistic, 4K cinematic, John Wick-inspired gritty elegance, cool blue-grey color grade, shallow depth of field, motivated practical lighting from flickering fluorescents, continuous fluid camera movement throughout, realistic motion blur, high contrast, visceral action choreography, dramatic reflections, handheld cinematic intensity.
+
+
+
+
+// SELECT *
+// FROM period_telemetry_payload_audit
+// WHERE "metricFrequency" = '1'
+//   AND "metricTxncaptureperiod" < CURRENT_DATE
+//   AND DATE("auditDateTimeCreatedat") = CURRENT_DATE;
+
+
+// SELECT *
+// FROM period_telemetry_payload_audit
+// WHERE "metricFrequency" = '1'
+//   AND "metricTxncaptureperiod" < DATE '2026-04-27'
+//   AND DATE("auditDateTimeCreatedat") = DATE '2026-04-27';
+
+
+
+// SELECT *
+// FROM telemetry_payload
+// WHERE "metricFrequency" = '1'
+//   AND "metricTxncaptureperiod" < DATE '2026-05-07'
+//   AND DATE("auditDateTimeCreatedat") = DATE '2026-05-07'
+//   AND "virtualDeviceId" = 'Super Specialist Technocrats LLP:SST Inverters'
+
+
+
+
+
+// VFD onboarding 
+// org->asset->device-> asset..virtualdevice-create-rmu1,vfd1 -> 
+
+// create org 
+// create asset 
+
+// balkrishna : balkrishna123 // user level issue
+// 
+
+// asset : JaiPrakashKeshri, ManojKumarSingh, ShaileshKushwaha
+// balkrishna : user issue 
+// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55587
+// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55577
+// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:2026030147
+// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55587
+// device : Hermes Technologies:HT SPC 3020-1-6:Z2604Y55577
+// device : Hermes Technologies:HT SPC 3020-1-6:2026030147
+// user : balkrishna
+
+//  Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55577
+//  Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55587
+
+// Correct Id-pass :
+// raaju : raaju123
+// jaiprakash: jaiprakash123 
+// balkrishna: balkrishna123  // needs sir's deletion 
+// manojsingh : manojsingh123
+
+
+
+// Raju Gupta : 
+//   userid: raaju
+//   pasword : raaju123 
+
+// JaiPrakash Keshri :
+//   userid: jaiprakash
+//   pasword : jaiprakash123
+
+// Manoj Kumar Singh :
+//   userid: manojsingh
+//   pasword : manojsingh123
+
+// Balkrishna Kushwaha :
+//   userid: balkrishna
+//   pasword : balkrishna123  
+
+// Shailesh Kushwaha :
+//   userid: shaileshkushwaha  
+//   pasword : shailesh123
 
 

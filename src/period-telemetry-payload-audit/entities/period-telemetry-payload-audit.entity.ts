@@ -60,6 +60,8 @@ export class PeriodTelemetryPayloadAudit {
       KEY_SEPARATOR +
       this.metric?.metricsAttributeId +
       KEY_SEPARATOR +
+      this.metric.frequency +
+      KEY_SEPARATOR +
       this.metric?.txnCapturePeriod
     );
   }

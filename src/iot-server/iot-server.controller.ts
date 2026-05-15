@@ -30,6 +30,7 @@ import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { Token } from 'src/utils/token.decorator';
+import { MetricsFrequency } from 'src/common';
 
 @Controller('iot-server')
 export class IotServerController {
@@ -39,6 +40,18 @@ export class IotServerController {
   @Get('asset-current-performance-telemetry')
   getAssetCurrentPerformanceTelemetry(@Query('assetId') assetId: string) {
     // return this.iotServerService.getAssetCurrentPerformanceTelemetry(assetId);
+  }
+
+  @Post('max-telemetry-aggregation')
+  async processMaxTelemetryAggregation(
+    @Query('inputDate') inputDate: string,
+    @Query('metricsFrequency') metricsFrequency: MetricsFrequency,
+    @Query('isCalculationForced') isCalculationForced: boolean,
+  ) {
+    const fnName = this.processMaxTelemetryAggregation.name;
+    const input = `Input : inputTime=${inputDate}, metricsFrequency=${metricsFrequency}, isCalculationForced=${isCalculationForced}`;
+    this.logger.debug(`${fnName} : ${input}`);
+    return await this.iotServerService.processMaxTelemetryAggregation(inputDate, metricsFrequency, isCalculationForced);
   }
 
   @Get('asset-performance-telemetry')

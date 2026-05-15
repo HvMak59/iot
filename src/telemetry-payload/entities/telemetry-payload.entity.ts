@@ -102,4 +102,18 @@ export class TelemetryPayload {
     const metricDt = new Date(this.metric.txnCaptureTime);
     return this.getAttributeKey() + KEY_SEPARATOR + metricDt.getHours() + KEY_SEPARATOR + (metricDt.getMinutes() / 10).toFixed(0);
   }
+
+  getTelemetryKey() {
+    return (
+      this.assetId +
+      KEY_SEPARATOR +
+      this.virtualDeviceId +
+      KEY_SEPARATOR +
+      this.metric?.metricsAttributeId +
+      KEY_SEPARATOR +
+      this.metric.frequency +
+      KEY_SEPARATOR +
+      this.metric?.txnCapturePeriod
+    );
+  }
 }

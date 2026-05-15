@@ -97,7 +97,7 @@ export class GroupMetricsAttributeAggregationService {
       let relations = relationsRequired ? this.relations : [];
       const result = await this.repo.find({
         where: searchCriteria,
-        relations: relations,
+        relations: ["metricsAttributeAggregation"],
       });
       this.logger.debug(
         `${msgTemplate} : Output : Resulting all Groups- MetricsAttributeAggregation : ${JSON.stringify(

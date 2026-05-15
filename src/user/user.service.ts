@@ -439,4 +439,22 @@ import { firstValueFrom } from 'rxjs';
 //   }
 // }
 
-export class UserService { }
+export class UserService {
+
+    constructor(
+        @InjectRepository(User) private readonly repo: Repository<User>,
+    ) { }
+
+    findOneWithPassword(searchUser: FindUserDto) {
+        return this.repo.findOne({
+            where: searchUser,
+            select: {
+                id: true,
+                name: true,
+                password: true,
+                userRoles: true
+            },
+            relations: ['userRoles']
+        });
+    }
+}

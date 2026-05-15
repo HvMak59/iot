@@ -39,6 +39,7 @@ import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggregation/metrics-attribute-aggregation.service';
 import { VirtualDeviceGroupService } from 'src/virtual-device-group/virtual-device-group.service';
 import { GroupMetricsAttributeAggregationService } from 'src/group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.service';
+import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/entities/period-telemetry-payload-audit.entity';
 // import { DeviceService } from 'src/device/device.service';
 // import { Device } from 'src/device/entities/device.entity';
 // import { DeviceModel } from 'src/device-model/entities/device-model.entity';
@@ -82,7 +83,7 @@ export class VirtualDeviceService {
     // @InjectRepository(VirtualDeviceGroup)
     // private readonly vdgRepo: Repository<VirtualDeviceGroup>,
     // @InjectRepository(VirtualDevice) private readonly repo: Repository<VirtualDevice>,
-    @InjectRepository(VirtualDevice) private readonly treeRepo: TreeRepository<VirtualDevice>,
+    @InjectRepository(VirtualDevice) private readonly repo: TreeRepository<VirtualDevice>,
     private readonly deviceService: DeviceService,
     private readonly httpService: HttpService,
     private readonly metricsAttributeAggregationService: MetricsAttributeAggregationService,
@@ -505,90 +506,516 @@ export class VirtualDeviceService {
   }
 
   async find(options: any) {
-    return this.treeRepo.find(options);
+    return this.repo.find(options);
   }
 
+  private working = 4;
+  // async findRecordSetC(recordSetA: any[]) {
+  //   const recordSetC = [];
 
-  async findRecordSetC(recordSetA: any[]) {
-    const recordSetC = [];
+  //   const uniqueItems = _.uniqBy(
+  //     recordSetA.map((record) => ({
+  //       assetId: record.assetId,
+  //       virtualDeviceId: record.virtualDeviceId,
+  //     })),
+  //     (item) => item.assetId + KEY_SEPARATOR + item.virtualDeviceId,
+  //   );
 
-    const uniqueItems = _.uniqBy(
-      recordSetA.map((record) => ({
-        assetId: record.assetId,
-        virtualDeviceId: record.virtualDeviceId,
-      })),
-      (item) => item.assetId + KEY_SEPARATOR + item.virtualDeviceId,
+  //   if (uniqueItems.length == 0) {
+  //     return [];
+  //   }
+
+  //   const virtualDeviceIds = uniqueItems.map((item) => item.virtualDeviceId);
+
+  //   // 1. Fetch all virtual devices
+  //   const virtualDevices = await this.repo.find({
+  //     where: {
+  //       id: In(virtualDeviceIds),
+  //     },
+  //     relations: {
+  //       parent: true,
+  //     },
+  //   });
+
+  //   // 2. Fetch VD -> Group mapping
+  //   const virtualDeviceGroups = await this.virtualDeviceGroupService.find({
+  //     virtualDeviceId: In(virtualDeviceIds),
+  //   });
+
+  //   const groupIds = _.uniq(
+  //     virtualDeviceGroups.map((vdGroup) => vdGroup.groupId),
+  //   );
+
+  //   // 3. Fetch Group -> MetricsAttributeAggregation mapping
+  //   const groupMetricsAggRecords =
+  //     await this.groupMetricsAttributeAggregationService.findAll({
+  //       groupId: In(groupIds),
+  //     });
+
+  //   // 4. Group VD groups by VD id
+  //   const vdGroupMap = _.groupBy(
+  //     virtualDeviceGroups,
+  //     (vdGroup) => vdGroup.virtualDeviceId,
+  //   );
+
+  //   // 5. Group metrics aggregation records by group id
+  //   const groupMetricsAggMap = _.groupBy(
+  //     groupMetricsAggRecords,
+  //     (record) => record.groupId,
+  //   );
+
+  //   for (const virtualDevice of virtualDevices) {
+  //     const descendants = await this.repo.findDescendants(virtualDevice);
+
+  //     const childrenVDIDs = descendants
+  //       .filter((vd: VirtualDevice) => vd.id !== virtualDevice.id)
+  //       .map((vd: VirtualDevice) => vd.id);
+
+  //     const vdGroups = vdGroupMap[virtualDevice.id] ?? [];
+
+  //     for (const vdGroup of vdGroups) {
+  //       const metricsAggregationRecords =
+  //         groupMetricsAggMap[vdGroup.groupId] ?? [];
+
+  //       recordSetC.push({
+  //         assetId: virtualDevice.assetId,
+  //         virtualDeviceId: virtualDevice.id,
+  //         parentVirtualDeviceId:
+  //           virtualDevice.parentId ?? virtualDevice.parent?.id ?? null,
+  //         childrenVDIDs,
+  //         groupId: vdGroup.groupId,
+  //         metricsAggregationRecords,
+  //       });
+  //     }
+  //   }
+  //   return recordSetC;
+  // }
+
+  private may15LastWorking = 4;
+  // async findRecordSetC(recordSetA: PeriodTelemetryPayloadAudit[]) {
+  //   const uniqueItems = _.uniqBy(
+  //     recordSetA.map((record) => ({
+  //       assetId: record.assetId,
+  //       virtualDeviceId:
+  //         record.virtualDeviceId,
+  //     })),
+  //     (item) =>
+  //       item.assetId +
+  //       KEY_SEPARATOR +
+  //       item.virtualDeviceId,
+  //   );
+
+  //   if (uniqueItems.length === 0) {
+  //     return [];
+  //   }
+
+  //   const virtualDeviceIds = uniqueItems.map(
+  //     (item) => item.virtualDeviceId,
+  //   );
+
+  //   // Fetch required virtual devices
+  //   const virtualDevices =
+  //     await this.repo.find({
+  //       where: {
+  //         id: In(virtualDeviceIds),
+  //       },
+  //       select: {
+  //         id: true,
+  //         assetId: true,
+  //         parentId: true,
+  //       },
+  //       relations: {
+  //         virtualDeviceGroups: true,
+  //       },
+  //     });
+
+  //   // Fetch VD Groups
+  //   // const virtualDeviceGroups =
+  //   //   await this.virtualDeviceGroupService.find({
+  //   //     virtualDeviceId: In(
+  //   //       virtualDeviceIds,
+  //   //     ),
+  //   //   });
+
+  //   // const groupIds = _.uniq(
+  //   //   virtualDeviceGroups.map(
+  //   //     (record) => record.groupId,
+  //   //   ),
+  //   // );
+
+  //   const groupIds = _.uniq(
+  //     virtualDevices.flatMap(
+  //       (vd) =>
+  //         vd.virtualDeviceGroups?.map(
+  //           (group) => group.groupId,
+  //         ) ?? [],
+  //     ),
+  //   );
+
+  //   // Fetch Metrics Aggregations
+  //   const metricsAggregationRecords =
+  //     await this.groupMetricsAttributeAggregationService.findAll(
+  //       {
+  //         groupId: In(groupIds),
+  //       },
+  //     );
+
+  //   // // Maps 
+  //   // const vdGroupMap = _.groupBy(
+  //   //   virtualDeviceGroups,
+  //   //   (record) => record.virtualDeviceId,
+  //   // );
+
+  //   // const metricsAggMap = _.groupBy(
+  //   //   metricsAggregationRecords,
+  //   //   (record) => record.groupId,
+  //   // );
+
+  //   // Metrics Aggregation Map
+
+  //   const metricsAggMap = _.groupBy(
+  //     metricsAggregationRecords,
+  //     (record) => record.groupId,
+  //   );
+
+  //   // Prepare Record Set C
+  //   const recordSetC = [];
+
+  //   for (const vd of virtualDevices) {
+  //     const children =
+  //       await this.repo.findDescendants(
+  //         vd,
+  //       );
+
+  //     const childrenVDIDs = children
+  //       .filter(
+  //         (child) => child.id !== vd.id,
+  //       )
+  //       .map((child) => child.id);
+
+  //     const vdGroups = vd.virtualDeviceGroups ?? [];
+
+  //     for (const vdGroup of vdGroups) {
+  //       recordSetC.push({
+  //         assetId: vd.assetId,
+
+  //         virtualDeviceId: vd.id,
+
+  //         parentVirtualDeviceId: vd.parentId ?? null,
+
+  //         childrenVDIDs,
+
+  //         groupId: vdGroup.groupId,
+
+  //         metricsAggregationRecords:
+  //           metricsAggMap[
+  //           vdGroup.groupId
+  //           ] ?? [],
+  //       });
+  //     }
+  //   }
+
+  //   return recordSetC;
+  // }
+
+
+  async findRecordSetC(
+    recordSetA: PeriodTelemetryPayloadAudit[],
+  ) {
+    const uniqueVDIds = _.uniq(
+      recordSetA.map(
+        (record) => record.virtualDeviceId,
+      ),
     );
 
-    if (!uniqueItems.length) {
+    if (!uniqueVDIds.length) {
       return [];
     }
 
-    const virtualDeviceIds = uniqueItems.map((item) => item.virtualDeviceId);
-
-    // 1. Fetch all virtual devices
-    const virtualDevices = await this.treeRepo.find({
+    const childVDs = await this.repo.find({
       where: {
-        id: In(virtualDeviceIds),
+        id: In(uniqueVDIds),
       },
-      relations: {
-        parent: true,
+      select: {
+        id: true,
+        assetId: true,
+        parentId: true,
       },
     });
 
-    // 2. Fetch VD -> Group mapping
-    const virtualDeviceGroups = await this.virtualDeviceGroupService.find({
-      virtualDeviceId: In(virtualDeviceIds),
+    const parentVDIds = _.uniq(
+      childVDs
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    if (!parentVDIds.length) {
+
+      this.logger.debug(
+        'No parent VDs found for given child VDs',
+      );
+
+      return [];
+    }
+
+    const parentVDs = await this.repo.find({
+      where: {
+        id: In(parentVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+        parentId: true,
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: true,
+      },
     });
 
     const groupIds = _.uniq(
-      virtualDeviceGroups.map((vdGroup) => vdGroup.groupId),
+      parentVDs.flatMap(
+        (parentVD) =>
+          parentVD.virtualDeviceGroups?.map(
+            (group) => group.groupId,
+          ) ?? [],
+      ),
     );
 
-    // 3. Fetch Group -> MetricsAttributeAggregation mapping
-    const groupMetricsAggRecords =
-      await this.groupMetricsAttributeAggregationService.findAll({
-        groupId: In(groupIds),
-      });
+    if (!groupIds.length) {
 
-    // 4. Group VD groups by VD id
-    const vdGroupMap = _.groupBy(
-      virtualDeviceGroups,
-      (vdGroup) => vdGroup.virtualDeviceId,
-    );
+      this.logger.debug(
+        'No groups found for parent VDs',
+      );
 
-    // 5. Group metrics aggregation records by group id
-    const groupMetricsAggMap = _.groupBy(
-      groupMetricsAggRecords,
+      return [];
+    }
+
+    /**
+     * Fetch Group -> Aggregation mappings
+     * WITH actual MetricsAttributeAggregation relation
+     */
+    const groupMetricsAggregationRecords =
+      await this.groupMetricsAttributeAggregationService.findAll(
+        {
+          groupId: In(groupIds),
+        },
+      );
+
+    /**
+     * Convert:
+     * GroupMetricsAttributeAggregation[]
+     * =>
+     * MetricsAttributeAggregation[]
+     */
+    const metricsAggMap = _.groupBy(
+      groupMetricsAggregationRecords.map(
+        (record) => ({
+          groupId: record.groupId,
+          metricsAttributeAggregation: record.metricsAttributeAggregation,
+        }),
+      ),
       (record) => record.groupId,
     );
 
-    for (const virtualDevice of virtualDevices) {
-      const descendants = await this.treeRepo.findDescendants(virtualDevice);
+    const recordSetC = [];
 
-      const childrenVDIDs = descendants
-        .filter((vd: VirtualDevice) => vd.id !== virtualDevice.id)
-        .map((vd: VirtualDevice) => vd.id);
+    for (const parentVD of parentVDs) {
+      // Direct children under parent
+      const childrenVDIDs =
+        parentVD.children?.map(
+          (child) => child.id,
+        ) ?? [];
 
-      const vdGroups = vdGroupMap[virtualDevice.id] ?? [];
+      const vdGroups =
+        parentVD.virtualDeviceGroups ?? [];
 
       for (const vdGroup of vdGroups) {
         const metricsAggregationRecords =
-          groupMetricsAggMap[vdGroup.groupId] ?? [];
+          (
+            metricsAggMap[
+            vdGroup.groupId
+            ] ?? []
+          ).map(
+            (record) =>
+              record.metricsAttributeAggregation,
+          );
 
         recordSetC.push({
-          assetId: virtualDevice.assetId,
-          virtualDeviceId: virtualDevice.id,
-          parentVirtualDeviceId:
-            virtualDevice.parentId ?? virtualDevice.parent?.id ?? null,
+          assetId: parentVD.assetId,
+          virtualDeviceId: parentVD.id,
+          parentVirtualDeviceId: parentVD.parentId ?? null,
           childrenVDIDs,
           groupId: vdGroup.groupId,
           metricsAggregationRecords,
         });
       }
     }
+
     return recordSetC;
   }
+
+  // async findRecordSetC(
+  //   recordSetA: PeriodTelemetryPayloadAudit[],
+  // ) {
+
+  //   const uniqueItems = _.uniqBy(
+  //     recordSetA.map((record) => ({
+  //       assetId: record.assetId,
+  //       virtualDeviceId:
+  //         record.virtualDeviceId,
+  //     })),
+  //     (item) =>
+  //       item.assetId +
+  //       KEY_SEPARATOR +
+  //       item.virtualDeviceId,
+  //   );
+
+  //   if (!uniqueItems.length) {
+  //     return [];
+  //   }
+
+  //   const virtualDeviceIds = uniqueItems.map(
+  //     (item) => item.virtualDeviceId,
+  //   );
+
+  //   /**
+  //    * Fetch child VDs
+  //    */
+  //   const virtualDevices =
+  //     await this.repo.find({
+  //       where: {
+  //         id: In(virtualDeviceIds),
+  //       },
+  //       select: {
+  //         id: true,
+  //         assetId: true,
+  //         parentId: true,
+  //       },
+  //     });
+
+  //   /**
+  //    * Parent VD IDs
+  //    */
+  //   const parentVDIds = _.uniq(
+  //     virtualDevices
+  //       .map((vd) => vd.parentId)
+  //       .filter(Boolean),
+  //   );
+
+  //   if (parentVDIds.length == 0) {
+  //     this.logger.debug('No parent VDs found for the given child VDs');
+  //     return [];
+  //   }
+
+  //   const parentVirtualDevices =
+  //     await this.repo.find({
+  //       where: {
+  //         id: In(parentVDIds),
+  //       },
+  //       select: {
+  //         id: true,
+  //         assetId: true,
+  //         parentId: true,
+  //       },
+  //       relations: {
+  //         virtualDeviceGroups: true,
+  //         children: true,
+  //       },
+  //     });
+
+  //   /**
+  //    * Fetch all group IDs
+  //    */
+  //   const groupIds = _.uniq(
+  //     parentVirtualDevices.flatMap(
+  //       (parentVD) =>
+  //         parentVD.virtualDeviceGroups?.map(
+  //           (group) => group.groupId,
+  //         ) ?? [],
+  //     ),
+  //   );
+
+  //   /**
+  //    * Fetch metrics aggregation configs
+  //    */
+  //   const metricsAggregationRecords =
+  //     await this.groupMetricsAttributeAggregationService.findAll(
+  //       {
+  //         groupId: In(groupIds),
+  //       },
+  //     );
+
+  //   /**
+  //    * Group aggregation configs by groupId
+  //    */
+  //   const metricsAggMap = _.groupBy(
+  //     metricsAggregationRecords,
+  //     (record) => record.groupId,
+  //   );
+
+  //   /**
+  //    * Prepare Record Set C
+  //    */
+  //   const recordSetC = [];
+
+  //   for (const parentVD of parentVirtualDevices) {
+
+  //     /**
+  //      * All child VD IDs under parent
+  //      */
+  //     const childrenVDIDs =
+  //       parentVD.children?.map(
+  //         (child) => child.id,
+  //       ) ?? [];
+
+  //     /**
+  //      * Parent groups
+  //      */
+  //     const vdGroups =
+  //       parentVD.virtualDeviceGroups ?? [];
+
+  //     for (const vdGroup of vdGroups) {
+
+  //       recordSetC.push({
+
+  //         assetId: parentVD.assetId,
+
+  //         /**
+  //          * Aggregation target VD
+  //          */
+  //         virtualDeviceId:
+  //           parentVD.id,
+
+  //         /**
+  //          * Parent of aggregation node
+  //          */
+  //         parentVirtualDeviceId:
+  //           parentVD.parentId ?? null,
+
+  //         /**
+  //          * Child VDs participating
+  //          */
+  //         childrenVDIDs,
+
+  //         /**
+  //          * Aggregation group
+  //          */
+  //         groupId: vdGroup.groupId,
+
+  //         /**
+  //          * Aggregation configs
+  //          */
+  //         metricsAggregationRecords:
+  //           metricsAggMap[
+  //           vdGroup.groupId
+  //           ] ?? [],
+  //       });
+  //     }
+  //   }
+
+  //   return recordSetC;
+  // }
 }
 
 

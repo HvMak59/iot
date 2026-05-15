@@ -35,6 +35,7 @@ import { convertpossibleStringTypeToInt, getTryCatchErrorStr, hasPeriodTelemetry
 import _ from 'lodash';
 import { KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
 import { on } from 'events';
+import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/entities/period-telemetry-payload-audit.entity';
 
 @Injectable()
 export class TelemetryPayloadService {
@@ -790,7 +791,8 @@ export class TelemetryPayloadService {
   //   });
   // }
 
-  async findTelemetryPayloadRecordSetB(recordSetA: any[]) {
+  async findTelemetryPayloadRecordSetB(recordSetA: PeriodTelemetryPayloadAudit[]) {
+    console.log('in B');
     const whereConditions = recordSetA.map((record) => ({
       assetId: record.assetId,
       virtualDeviceId: record.virtualDeviceId,
@@ -801,7 +803,7 @@ export class TelemetryPayloadService {
       },
     }));
 
-    if (!whereConditions.length) {
+    if (whereConditions.length == 0) {
       return [];
     }
 

@@ -39,6 +39,10 @@ import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-paylo
 import { FindTelemetryPayloadForAPeriod } from 'src/telemetry-payload/dto/find-telemetry-payload-for-a-period.dto';
 import { CurrentTelemetryPayloadService } from 'src/current-telemetry-payload/current-telemetry-payload.service';
 import { TelemetryPayloadService } from 'src/telemetry-payload/telemetry-payload.service';
+import { PeriodTelemetryPayloadAuditService } from 'src/period-telemetry-payload-audit/period-telemetry-payload-audit.service';
+import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
+import { MetricsFrequency } from 'src/common';
+import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/entities/period-telemetry-payload-audit.entity';
 // import { CurrentOpenAlertService } from 'current-open-alert/current-open-alert.service';
 // import { DEVICE_MODEL_WITH_ALERTS_URL, KEY_SEPARATOR } from 'src/app_config/constants';
 // import { AlertService } from 'alert/alert.service';
@@ -77,6 +81,9 @@ export class IotServerService {
     // private readonly deviceModelAlertService: DeviceModelAlertService,
     // private readonly todayTelemetryPayloadService: TodayTelemetryPayloadService,
     private readonly eventEmitter: EventEmitter2,
+
+    private readonly periodTelemetryPayloadAuditService: PeriodTelemetryPayloadAuditService,
+    private readonly virtualDeviceService: VirtualDeviceService,
   ) {
     this.schema = process.env['SCHEMA'];
     this.appServer = process.env['APP_SERVER'];
@@ -397,6 +404,265 @@ export class IotServerService {
   //     incrementedAlerts: incrementdAlerts,
   //   };
   // }
+
+
+  async processMaxTelemetryAggregation(
+    inputDate: string,
+    metricsFrequency: MetricsFrequency,
+    isCalculationForced: boolean
+  ) {
+    console.log("in processMaxTelemetryAggregation service");
+    const periodTMPyld =
+      await this.periodTelemetryPayloadAuditService.findPeriodTelemetryRecordSetA(
+        inputDate,
+        metricsFrequency,
+        isCalculationForced,
+      );
+
+    // console.log("periodTMPyld", periodTMPyld);  
+    const telemetryPyld =
+      await this.telemetryPayloadService.findTelemetryPayloadRecordSetB(
+        periodTMPyld,
+      );
+
+    const recordSetC = await this.virtualDeviceService.findRecordSetC(periodTMPyld);
+
+    const periodTMWthMaxMeasure = await this.findMaxTelemetryValueRecordSetD(periodTMPyld);
+    // await this.periodTelemetryPayloadAuditService.findMaxTelemetryValueRecordSetD(periodTMPyld);
+    // console.log("SetD", periodTMWthMaxMeasure);
+
+    const maxMeasureMtrcs = await this.prepareRecordSetE(telemetryPyld, periodTMWthMaxMeasure);
+    // await this.periodTelemetryPayloadAuditService.prepareRecordSetE(telemetryPyld, periodTMWthMaxMeasure);
+    console.log("SetE", maxMeasureMtrcs);
+
+    const recordSetF = await this.prepareRecordSetF(maxMeasureMtrcs, recordSetC);
+    // console.log("recordSetF", recordSetF);
+
+    const recordSetG = await this.prepareRecordSetG(recordSetF);
+
+    // console.log("maxMeasureMtrcs", maxMeasureMtrcs);
+    // console.log(recordSetG);
+
+    return {
+      periodTMPyld,
+      telemetryPyld,
+      periodTMWthMaxMeasure,
+      maxMeasureMtrcs
+    };
+  }
+
+  async findMaxTelemetryValueRecordSetD(recordSetA: PeriodTelemetryPayloadAudit[]) {
+    const maxMap = new Map<string, any>();
+
+    for (const record of recordSetA) {
+      const measure = Number(record.metric?.measure);
+
+      if (Number.isNaN(measure)) continue;
+
+      // const key = this.getTelemetryKey(record);
+      const key = record.getTelemetryKey();;
+
+      const existingRecord = maxMap.get(key);
+
+      if (!existingRecord) {
+        maxMap.set(key, record);
+        continue;
+      }
+
+      const existingValue = Number(existingRecord.metric?.measure ?? 0);
+
+      if (measure > existingValue) {
+        maxMap.set(key, record);
+      }
+    }
+    return Array.from(maxMap.values());
+  }
+
+  async prepareRecordSetE(
+    recordSetB: TelemetryPayload[],
+    recordSetD: PeriodTelemetryPayloadAudit[],
+  ) {
+    const recordSetDMap = new Map<string, any>();
+
+    for (const recordD of recordSetD) {
+      // const key = this.getTelemetryKey(recordD);
+      const key = recordD.getTelemetryKey();;
+      recordSetDMap.set(key, recordD);
+    }
+
+    const recordSetEMap = new Map<string, any>();
+
+    for (const recordB of recordSetB) {
+      // const key = this.getTelemetryKey(recordB);
+      const key = recordB.getTelemetryKey();
+
+      const recordD = recordSetDMap.get(key);
+
+      if (!recordD) {
+        recordSetEMap.set(key, recordB);
+
+        continue;
+      }
+
+      const recordBValue = Number(recordB.metric?.measure);
+      const recordDValue = Number(recordD.metric?.measure);
+
+      if (recordDValue > recordBValue) {
+        recordSetEMap.set(key, recordD);
+      } else {
+        recordSetEMap.set(key, recordB);
+      }
+    }
+
+    for (const recordD of recordSetD) {
+      // const key = this.getTelemetryKey(recordD);
+      const key = recordD.getTelemetryKey();
+
+      if (!recordSetEMap.has(key)) {
+        recordSetEMap.set(key, recordD);
+      }
+    }
+
+    return Array.from(recordSetEMap.values());
+  }
+
+  async prepareRecordSetF(
+    recordSetE: any[],
+    recordSetC: any[],
+  ) {
+    const recordSetF: any[] = [];
+
+    const recordSetEMap = _.groupBy(
+      recordSetE,
+      (record) => record.virtualDeviceId,
+    );
+
+    // console.log("recordSetEMap", recordSetEMap);
+    // console.log("recordSetC", recordSetC[0].metricsAggregationRecords);
+
+    for (const recordC of recordSetC) {
+      const {
+        assetId,
+        virtualDeviceId: parentVDId,
+        parentVirtualDeviceId,
+        childrenVDIDs,
+        groupId,
+        metricsAggregationRecords,
+      } = recordC;
+
+      // console.log(
+      //   assetId,
+      // virtualDeviceId,
+      // parentVirtualDeviceId,
+      //   childrenVDIDs,
+      //   groupId,
+      //   metricsAggregationRecords
+      // )
+
+      for (const childVDId of childrenVDIDs) {
+        const childTelemetryRecords = recordSetEMap[childVDId] ?? [];
+
+        for (const aggregationRecord of metricsAggregationRecords) {
+          const {
+            metricsAttributeId,
+            aggregation,
+            aggStrategy,
+          } = aggregationRecord;
+
+          const matchingTelemetry =
+            childTelemetryRecords.filter(
+              (telemetry) =>
+                telemetry.metric?.metricsAttributeId ===
+                metricsAttributeId,
+            );
+
+          for (const telemetry of matchingTelemetry) {
+            recordSetF.push({
+              assetId,
+              parentVirtualDeviceId: parentVDId,
+              childVirtualDeviceId: childVDId,
+              virtualDeviceId: telemetry.virtualDeviceId,
+              groupId,
+              aggregation,
+              aggStrategy,
+              metric: telemetry.metric,
+              telemetryPayloadId: telemetry.id,
+              telemetryRecord: telemetry,
+            });
+          }
+        }
+      }
+    }
+    return recordSetF;
+  }
+
+  async prepareRecordSetG(
+    recordSetF: any[],
+  ) {
+    const groupedRecords = _.groupBy(
+      recordSetF,
+      (record) =>
+        [
+          record.parentVirtualDeviceId,
+          record.metric?.metricsAttributeId,
+          record.aggregation,
+          record.aggStrategy,
+        ].join(KEY_SEPARATOR),
+    );
+
+    const recordSetG: any[] = [];
+
+    for (const groupRecords of Object.values(groupedRecords)) {
+      if (groupRecords.length == 0) {
+        this.logger.error(
+          `Empty group found during aggregation processing.`,
+        );
+        continue;
+      }
+
+      const firstRecord = groupRecords[0];
+
+      const {
+        assetId,
+        parentVirtualDeviceId,
+        aggregation,
+        aggStrategy,
+        metric,
+      } = firstRecord;
+
+      const measures = groupRecords.map(
+        (record) => Number(record.metric?.measure),
+      );
+
+      let aggregatedValue = 0;
+
+      switch (aggregation) {
+        case 'sum':
+          aggregatedValue = _.sum(measures);
+          break;
+
+        case 'avg':
+          aggregatedValue = measures.length > 0 ? _.sum(measures) / measures.length : 0;
+          break;
+
+        default:
+          aggregatedValue = 0;
+      }
+
+      recordSetG.push({
+        assetId,
+        virtualDeviceId: parentVirtualDeviceId,
+        aggregation,
+        aggStrategy,
+        metric: {
+          ...metric,
+          measure: aggregatedValue.toString(),
+        },
+        childTelemetryRecords: groupRecords,
+      });
+    }
+    return recordSetG;
+  }
 
   async manageAlerts2(
     token: string,

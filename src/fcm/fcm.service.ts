@@ -1,0 +1,126 @@
+import {
+    Injectable,
+    Logger,
+} from '@nestjs/common';
+
+@Injectable()
+export class FcmService {
+    private readonly logger = new Logger(
+        FcmService.name,
+    );
+
+    private readonly tokenToOrgMap = new Map<string, string>();
+
+    private readonly orgToTokensMap = new Map<string, Set<string>>();
+
+    async register(orgId: string, fcmToken: string,) {
+        if (!orgId) {
+            throw new Error(
+                'orgId is required',
+            );
+        }
+
+        if (!fcmToken) {
+            throw new Error(
+                'fcmToken is required',
+            );
+        }
+
+        // Cleanup old registration first
+        // Prevent duplicate/stale mappings
+        // this.disconnect(fcmToken);
+
+        if (this.tokenToOrgMap.has(fcmToken,)
+        ) {
+            return;
+        }
+
+        // token -> org
+        this.tokenToOrgMap.set(
+            fcmToken,
+            orgId,
+        );
+
+        // org -> tokens
+        if (
+            !this.orgToTokensMap.has(orgId)
+        ) {
+            this.orgToTokensMap.set(
+                orgId,
+                new Set<string>(),
+            );
+        }
+
+        this.orgToTokensMap
+            .get(orgId)
+            ?.add(fcmToken);
+
+        this.logger.log(
+            `FCM token registered | orgId=${orgId}`,
+        );
+    }
+
+
+    disconnect(fcmToken: string): void {
+        if (!fcmToken) {
+            throw new Error(
+                'fcmToken is required',
+            );
+        }
+
+        const orgId =
+            this.tokenToOrgMap.get(
+                fcmToken,
+            );
+
+        if (!orgId) {
+            return;
+        }
+
+        this.tokenToOrgMap.delete(
+            fcmToken,
+        );
+
+        const tokenSet =
+            this.orgToTokensMap.get(
+                orgId,
+            );
+
+        if (tokenSet) {
+            tokenSet.delete(
+                fcmToken,
+            );
+
+            if (tokenSet.size === 0) {
+                this.orgToTokensMap.delete(
+                    orgId,
+                );
+            }
+        }
+
+        this.logger.log(
+            `FCM token disconnected | orgId=${orgId}`,
+        );
+    }
+
+    getTokensByOrgId(orgId: string) {
+        return Array.from(
+            this.orgToTokensMap.get(
+                orgId,
+            ) || [],
+        );
+    }
+
+    getOrgIdByToken(fcmToken: string) {
+        return this.tokenToOrgMap.get(
+            fcmToken,
+        );
+    }
+
+
+    hasToken(fcmToken: string) {
+        return this.tokenToOrgMap.has(
+            fcmToken,
+        );
+    }
+}
