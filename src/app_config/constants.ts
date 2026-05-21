@@ -152,6 +152,7 @@ export const DB_DUPLICATE_RECORD = 23505;
 export const DUPLICATE_RECORD = 'Duplicate record';
 export const NO_RECORD = 'No record';
 export const KEY_SEPARATOR = ':';
+export const SEPARATOR = '--';  // ignored (:)because id conflict , ignored (-) becuase date conflict
 export const RMU = 'RMU';
 export const VFD = 'VFD';
 export const excludedMetaFinMetricsAttributes = ['Litre_Per_Minute'];

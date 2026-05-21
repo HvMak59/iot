@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { TelemetryPayloadsRepo } from './telemetry-payload_repo.entity';
 // import { VirtualDevice } from 'virtual-device/entities/virtual-device.entity';
-import { KEY_SEPARATOR } from 'src/app_config/constants';
+import { KEY_SEPARATOR, SEPARATOR } from 'src/app_config/constants';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { Metric } from 'src/metrics/entities/metric.entity';
@@ -106,14 +106,24 @@ export class TelemetryPayload {
   getTelemetryKey() {
     return (
       this.assetId +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.virtualDeviceId +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.metric?.metricsAttributeId +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.metric.frequency +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.metric?.txnCapturePeriod
     );
   }
+
+  // getTelemetryKey() {
+  //   return JSON.stringify({
+  //     assetId: this.assetId,
+  //     virtualDeviceId: this.virtualDeviceId,
+  //     metricsAttributeId: this.metric?.metricsAttributeId,
+  //     frequency: this.metric?.frequency,
+  //     txnCapturePeriod: this.metric?.txnCapturePeriod,
+  //   });
+  // }
 }

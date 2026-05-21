@@ -636,3 +636,20 @@ export class AppModule { }
 //   pasword : shailesh123
 
 
+// Summarize this entire project context for continuing in a new chat.
+// Include:
+// - architecture
+// - decisions
+// - bugs fixed
+// - pending tasks
+// - important code
+
+
+// Post tracking number : EG962447172IN
+
+
+
+
+
+
+

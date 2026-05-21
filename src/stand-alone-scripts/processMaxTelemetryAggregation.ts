@@ -101,7 +101,7 @@ async function aggregatePeriodicTelemetry() {
 
     const response =
         await processMaxTelemetryAggregation(
-            '1778818448039',
+            '1779353961482',
             1,
             false,
             baseUrl,

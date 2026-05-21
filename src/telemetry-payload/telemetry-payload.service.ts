@@ -33,9 +33,10 @@ import { FindMetricDto } from 'src/metrics/dto/find-metric.dto';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { convertpossibleStringTypeToInt, getTryCatchErrorStr, hasPeriodTelemetryIncreased } from 'src/utils/others';
 import _ from 'lodash';
-import { KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
+import { KEY_SEPARATOR, NO_RECORD, SEPARATOR } from 'src/app_config/constants';
 import { on } from 'events';
 import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/entities/period-telemetry-payload-audit.entity';
+import { MetricsFrequency } from 'src/common';
 
 @Injectable()
 export class TelemetryPayloadService {
@@ -791,19 +792,53 @@ export class TelemetryPayloadService {
   //   });
   // }
 
-  async findTelemetryPayloadRecordSetB(recordSetA: PeriodTelemetryPayloadAudit[]) {
-    console.log('in B');
-    const whereConditions = recordSetA.map((record) => ({
-      assetId: record.assetId,
-      virtualDeviceId: record.virtualDeviceId,
-      metric: {
-        metricsAttributeId: record.metric?.metricsAttributeId,
-        txnCapturePeriod: record.metric?.txnCapturePeriod,
-        frequency: record.metric?.frequency,
-      },
-    }));
+  parseTelemetryKey(key: string) {
+
+    const [
+      assetId,
+      virtualDeviceId,
+      metricsAttributeId,
+      frequency,
+      txnCapturePeriod,
+    ] = key.split(KEY_SEPARATOR);
+
+    return {
+      assetId,
+      virtualDeviceId,
+      metricsAttributeId,
+      frequency,
+      txnCapturePeriod,
+    };
+  }
+
+  async findTelemetryPayloads(
+    periodTMPylds: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+
+    const whereConditions = Object.keys(periodTMPylds).map((key) => {
+      const [
+        assetId,
+        virtualDeviceId,
+        metricsAttributeId,
+        frequency,
+        txnCapturePeriod,
+      ] = key.split(SEPARATOR);
+
+      return {
+        assetId,
+        virtualDeviceId,
+        metric: {
+          metricsAttributeId,
+          txnCapturePeriod: new Date(
+            txnCapturePeriod,
+          ),
+          frequency: frequency as unknown as MetricsFrequency,
+        },
+      };
+    });
 
     if (whereConditions.length == 0) {
+      this.logger.debug(`Empty record array for a key in periodTMPyld, skipping...`);
       return [];
     }
 
@@ -813,6 +848,31 @@ export class TelemetryPayloadService {
   }
 
 
+
+
+
+  // async findTelemetryPayloadRecordSetB(recordSetA: PeriodTelemetryPayloadAudit[]) {
+  //   console.log('in B');
+  //   const whereConditions = recordSetA.map((record) => ({
+  //     assetId: record.assetId,
+  //     virtualDeviceId: record.virtualDeviceId,
+  //     metric: {
+  //       metricsAttributeId: record.metric?.metricsAttributeId,
+  //       txnCapturePeriod: record.metric?.txnCapturePeriod,
+  //       frequency: record.metric?.frequency,
+  //     },
+  //   }));
+
+  //   if (whereConditions.length == 0) {
+  //     return [];
+  //   }
+
+  //   return this.repo.find({
+  //     where: whereConditions,
+  //   });
+  // }
+
+  private f = 5;
   //   restore(id: string) {
   //     const msgTemplate = 'Restore ' + this.serviceName;
   //     return restore<TelemetryPayload>(this.repo, id, msgTemplate);

@@ -488,65 +488,65 @@ export class PeriodTelemetryPayloadAuditService {
 
 
   // New service  - working for max measure 
-  async processMaxTelemetryAggregation(
-    inputTime: string,
-    metricsFrequency: MetricsFrequency,
-    isCalculationForced: boolean
-  ) {
-    // Record Set A
-    const recordSetA =
-      await this.findPeriodTelemetryRecordSetA(
-        inputTime,
-        metricsFrequency,
-        isCalculationForced,
-      );
+  // async processMaxTelemetryAggregation(
+  //   inputTime: string,
+  //   metricsFrequency: MetricsFrequency,
+  //   isCalculationForced: boolean
+  // ) {
+  //   // Record Set A
+  //   const recordSetA =
+  //     await this.findPeriodTelemetryRecordSetA(
+  //       inputTime,
+  //       metricsFrequency,
+  //       isCalculationForced,
+  //     );
 
-    // Record Set B
-    const recordSetB =
-      await this.telemetryPayloadService.findTelemetryPayloadRecordSetB(
-        recordSetA,
-      );
+  //   // Record Set B
+  //   const recordSetB =
+  //     await this.telemetryPayloadService.findTelemetryPayloadRecordSetB(
+  //       recordSetA,
+  //     );
 
-    const corrected = 4;
-    // Record Set C 
-    // const recordSetC =
-    //   // await this.findRecordSetC(recordSetB);
-    //   await this.virtualDeviceService.findRecordSetC(recordSetA);
+  //   const corrected = 4;
+  //   // Record Set C 
+  //   // const recordSetC =
+  //   //   // await this.findRecordSetC(recordSetB);
+  //   //   await this.virtualDeviceService.findRecordSetC(recordSetA);
 
-    // // Record Set D
-    // const recordSetD =
-    //   await this.findMaxTelemetryValueRecordSetD(
-    //     recordSetC,
-    //   );
+  //   // // Record Set D
+  //   // const recordSetD =
+  //   //   await this.findMaxTelemetryValueRecordSetD(
+  //   //     recordSetC,
+  //   //   );
 
-    // const recordSetE =
-    //   await this.prepareRecordSetE(
-    //     recordSetB,
-    //     recordSetD,
-    //   );
+  //   // const recordSetE =
+  //   //   await this.prepareRecordSetE(
+  //   //     recordSetB,
+  //   //     recordSetD,
+  //   //   );
 
-    const recordSetC =
-      await this.virtualDeviceService.findRecordSetC(recordSetA);
+  //   const recordSetC =
+  //     await this.virtualDeviceService.findRecordSetC(recordSetA);
 
-    const recordSetD =
-      await this.findMaxTelemetryValueRecordSetD(recordSetA);
+  //   const recordSetD =
+  //     await this.findMaxTelemetryValueRecordSetD(recordSetA);
 
-    const recordSetE =
-      await this.prepareRecordSetE(recordSetB, recordSetD);
+  //   const recordSetE =
+  //     await this.prepareRecordSetE(recordSetB, recordSetD);
 
-    // const recordSetF =
-    //   await this.prepareRecordSetF(
-    //     recordSetE,
-    //     recordSetC,
-    //   );
+  //   // const recordSetF =
+  //   //   await this.prepareRecordSetF(
+  //   //     recordSetE,
+  //   //     recordSetC,
+  //   //   );
 
-    return {
-      recordSetA,
-      recordSetB,
-      recordSetD,
-      recordSetE
-    };
-  }
+  //   return {
+  //     recordSetA,
+  //     recordSetB,
+  //     recordSetD,
+  //     recordSetE
+  //   };
+  // }
 
   private myOldWorking = 5;
   // async findPeriodTelemetryRecordSetA(
@@ -597,17 +597,13 @@ export class PeriodTelemetryPayloadAuditService {
   //   return Array.from(groupedMap.values());
   // }
 
-  async findPeriodTelemetryRecordSetA(
+
+  async findPeriodTelemetryPayloads(
     inputTimeInEpoch: string,
     metricsFrequency: MetricsFrequency,
     isCalculationForced: boolean,
   ) {
     const inputDate = convertInputToDate(inputTimeInEpoch);
-    // const periodTimeInEpoch = getPeriodTimeInEpoch(
-    //   convertpossibleStringTypeToInt(inputTimeInEpoch), //processingDateInEpoch,
-    //   metricsFrequency.toString(),
-    // );
-    // const periodDate: Date = new Date(periodTimeInEpoch);
 
     const whereCondition: FindPeriodTelemetryPayloadAuditDto = {
       metric: {
@@ -619,6 +615,7 @@ export class PeriodTelemetryPayloadAuditService {
     };
 
     if (isCalculationForced == false) {
+      this.logger.debug('IsCalculationForced = false');
       whereCondition.metric = {
         frequency: metricsFrequency,
         txnCapturePeriod: LessThan(
@@ -627,7 +624,6 @@ export class PeriodTelemetryPayloadAuditService {
       };
     }
 
-    // console.log("where condition", whereCondition);
     const records = await this.repo.find({
       where: whereCondition,
       select: {
@@ -643,11 +639,9 @@ export class PeriodTelemetryPayloadAuditService {
       },
     });
 
-    const groupedRecords = _.groupBy(records, (record: PeriodTelemetryPayloadAudit) =>
-      record.getTelemetryKey(),
-    );
+    const groupedRecords = _.groupBy(records, (record) => record.getTelemetryKey());
 
-    return Object.values(groupedRecords).map((group) => group[0]);
+    return groupedRecords;
   }
 
   // async findRecordSetC(recordSetB: any[]) {
@@ -1133,3 +1127,469 @@ export class PeriodTelemetryPayloadAuditService {
   // }
 }
 
+
+
+
+
+
+// "recordSetG": [
+//     {
+//       "assetId": "Super Specialist Technocrats LLP",
+//       "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//       "aggregation": "sum",
+//       "aggStrategy": "last",
+//       "metric": {
+//         "metricsAttributeId": "Daily_Energy",
+//         "measure": "16400.93",
+//         "unit": "kWh",
+//         "frequency": 1,
+//         "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//         "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//         "isCalculated": false,
+//         "txnCaptureTimeInEpoch": 1778864684000,
+//         "txnCapturePeriodInEpoch": 1778783400000
+//       },
+//       "childTelemetryRecords": [
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv1",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv1",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1740.64",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864684000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "351c6eee-3a69-4c04-b5d0-3ddbecaecabe",
+//           "telemetryRecord": {
+//             "id": "351c6eee-3a69-4c04-b5d0-3ddbecaecabe",
+//             "telemetryHeaderId": "91a29a6c-0c89-4e9e-90f6-a32516a799ea",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "2",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv1",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1740.64",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864684000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783811377,
+//               "updatedAt": 1778864812754,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv2",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv2",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1737.32",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864684000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "b55f1c21-9342-4ef8-ae01-1341971f0c02",
+//           "telemetryRecord": {
+//             "id": "b55f1c21-9342-4ef8-ae01-1341971f0c02",
+//             "telemetryHeaderId": "8fec10d9-ffbd-49b6-a02e-41840058450b",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "4",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv2",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1737.32",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864684000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783917008,
+//               "updatedAt": 1778864918114,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv3",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv3",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1612.06",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:09:44.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864984000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "f5fb3860-6b29-4a01-8d10-fc422f572a9b",
+//           "telemetryRecord": {
+//             "id": "f5fb3860-6b29-4a01-8d10-fc422f572a9b",
+//             "telemetryHeaderId": "45f64f6a-dab7-4bb5-9d96-d263d587dac2",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "1",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv3",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1612.06",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:09:44.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864984000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783758604,
+//               "updatedAt": 1778865059808,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv4",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv4",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1720.37",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864709000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "78251afc-c770-4ae8-b603-05eb091a8c9d",
+//           "telemetryRecord": {
+//             "id": "78251afc-c770-4ae8-b603-05eb091a8c9d",
+//             "telemetryHeaderId": "5d0065a6-a4e6-431c-83aa-5a5654118bfa",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "3",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv4",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1720.37",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864709000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783560157,
+//               "updatedAt": 1778864859857,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv5",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv5",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1663.94",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864709000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "8b9a5f0c-60fe-4d70-81e5-fa07368747b6",
+//           "telemetryRecord": {
+//             "id": "8b9a5f0c-60fe-4d70-81e5-fa07368747b6",
+//             "telemetryHeaderId": "ea106176-ad34-4be0-9814-e6142993d535",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "5",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv5",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1663.94",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864709000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783665496,
+//               "updatedAt": 1778864965313,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv6",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv6",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1012.14",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864709000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "7feefe00-65e1-4af9-9d8f-7fb19dc382ca",
+//           "telemetryRecord": {
+//             "id": "7feefe00-65e1-4af9-9d8f-7fb19dc382ca",
+//             "telemetryHeaderId": "7cc5d528-678e-401c-b083-88e993397e73",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "4",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv6",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1012.14",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864709000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783612808,
+//               "updatedAt": 1778864912517,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv7",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv7",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1722.96",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:00:12.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864412000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "2af54c2a-9390-4067-9171-dc0495758d0d",
+//           "telemetryRecord": {
+//             "id": "2af54c2a-9390-4067-9171-dc0495758d0d",
+//             "telemetryHeaderId": "59e7148e-0d3b-4c10-89c5-5c304d3f19ec",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "1",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv7",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1722.96",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:00:12.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864412000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783454663,
+//               "updatedAt": 1778864457110,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv8",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv8",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1727.33",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864709000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "e9feccaa-436e-4f36-a8ab-3983bf9e3e02",
+//           "telemetryRecord": {
+//             "id": "e9feccaa-436e-4f36-a8ab-3983bf9e3e02",
+//             "telemetryHeaderId": "afd26bd6-2757-4802-a562-b41991f17d5d",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "2",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv8",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1727.33",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:05:09.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864709000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783507322,
+//               "updatedAt": 1778864807287,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv9",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv9",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1732.91",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864684000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "67e15b98-5b51-4262-a306-6aa3b11261b5",
+//           "telemetryRecord": {
+//             "id": "67e15b98-5b51-4262-a306-6aa3b11261b5",
+//             "telemetryHeaderId": "4f50314e-d299-4d27-81b2-e60dc6c70099",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "3",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv9",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1732.91",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864684000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783864233,
+//               "updatedAt": 1778864865447,
+//               "deletedAt": null
+//             }
+//           }
+//         },
+//         {
+//           "assetId": "Super Specialist Technocrats LLP",
+//           "parentVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
+//           "childVirtualDeviceId": "Super Specialist Technocrats LLP:SST Inv10",
+//           "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv10",
+//           "groupId": "Inverters",
+//           "aggregation": "sum",
+//           "aggStrategy": "last",
+//           "metric": {
+//             "metricsAttributeId": "Daily_Energy",
+//             "measure": "1731.26",
+//             "unit": "kWh",
+//             "frequency": 1,
+//             "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//             "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//             "isCalculated": false,
+//             "txnCaptureTimeInEpoch": 1778864684000,
+//             "txnCapturePeriodInEpoch": 1778783400000
+//           },
+//           "telemetryPayloadId": "6f0fcf77-58db-4d9b-90d0-29f56de00e70",
+//           "telemetryRecord": {
+//             "id": "6f0fcf77-58db-4d9b-90d0-29f56de00e70",
+//             "telemetryHeaderId": "47b8eb63-260b-4e4f-bf4c-c44ae094baa6",
+//             "assetId": "Super Specialist Technocrats LLP",
+//             "slaveId": "5",
+//             "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inv10",
+//             "metric": {
+//               "metricsAttributeId": "Daily_Energy",
+//               "measure": "1731.26",
+//               "unit": "kWh",
+//               "frequency": 1,
+//               "txnCaptureTime": "2026-05-15T17:04:44.000Z",
+//               "txnCapturePeriod": "2026-05-14T18:30:00.000Z",
+//               "isCalculated": false,
+//               "txnCaptureTimeInEpoch": 1778864684000,
+//               "txnCapturePeriodInEpoch": 1778783400000
+//             },
+//             "auditDateTime": {
+//               "createdAt": 1778783969772,
+//               "updatedAt": 1778864970700,
+//               "deletedAt": null
+//             }
+//           }
+//         }
+//       ]
+//     }
+//   ]

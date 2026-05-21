@@ -1,4 +1,4 @@
-import { KEY_SEPARATOR } from 'src/app_config/constants';
+import { KEY_SEPARATOR, SEPARATOR } from 'src/app_config/constants';
 import { Asset } from 'src/asset/entities/asset.entity';
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { Device } from 'src/device/entities/device.entity';
@@ -55,13 +55,13 @@ export class PeriodTelemetryPayloadAudit {
   getTelemetryKey() {
     return (
       this.assetId +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.virtualDeviceId +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.metric?.metricsAttributeId +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.metric.frequency +
-      KEY_SEPARATOR +
+      SEPARATOR +
       this.metric?.txnCapturePeriod
     );
   }

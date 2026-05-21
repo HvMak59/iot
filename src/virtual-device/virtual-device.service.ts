@@ -719,6 +719,7 @@ export class VirtualDeviceService {
   // }
 
 
+  private sirShownCorrect = 5;
   async findRecordSetC(
     recordSetA: PeriodTelemetryPayloadAudit[],
   ) {
@@ -765,7 +766,7 @@ export class VirtualDeviceService {
       select: {
         id: true,
         assetId: true,
-        parentId: true,
+        // parentId: true,
       },
       relations: {
         children: true,
@@ -844,7 +845,7 @@ export class VirtualDeviceService {
         recordSetC.push({
           assetId: parentVD.assetId,
           virtualDeviceId: parentVD.id,
-          parentVirtualDeviceId: parentVD.parentId ?? null,
+          // parentVirtualDeviceId: parentVD.parentId ?? null,
           childrenVDIDs,
           groupId: vdGroup.groupId,
           metricsAggregationRecords,
@@ -853,6 +854,209 @@ export class VirtualDeviceService {
     }
 
     return recordSetC;
+  }
+
+
+  async findParentVirtualDevicess(
+    recordSetA: PeriodTelemetryPayloadAudit[],
+  ) {
+    const uniqueVDIds = _.uniq(
+      recordSetA.map(
+        (record) => record.virtualDeviceId,
+      ),
+    );
+
+    if (!uniqueVDIds.length) {
+      return [];
+    }
+
+    const childVDs = await this.repo.find({
+      where: {
+        id: In(uniqueVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+        parentId: true,
+      },
+    });
+
+    const parentVDIds = _.uniq(
+      childVDs
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    if (!parentVDIds.length) {
+
+      this.logger.debug(
+        'No parent VDs found for given child VDs',
+      );
+
+      return [];
+    }
+
+    const parentVDs = await this.repo.find({
+      where: {
+        id: In(parentVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+      },
+      relations: {
+        children: true,
+        // virtualDeviceGroups: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    });
+
+    return parentVDs;
+  }
+
+
+  async findParentVirtualDevicesCorrect(
+    recordSetA: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+    const flattenedRecords = Object.values(recordSetA).flat();
+
+    const uniqueVDIds = _.uniq(
+      flattenedRecords.map(
+        (record) => record.virtualDeviceId,
+      ),
+    );
+
+    if (!uniqueVDIds.length) {
+      return [];
+    }
+
+    const virtualDevices = await this.repo.find({
+      where: {
+        id: In(uniqueVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+        parentId: true,
+      },
+    });
+
+    const parentVDIds = _.uniq(
+      virtualDevices
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    if (parentVDIds.length == 0) {
+      this.logger.debug(
+        'No parent VDs found for given child VDs',
+      );
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        id: In(parentVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    });
+  }
+
+
+  async findParentVirtualDevices(
+    periodTMPylds: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+    const flattenedRecords = Object.values(periodTMPylds).flat();
+
+    const uniqueVDIds = _.uniq(
+      flattenedRecords.map(
+        (record) => record.virtualDeviceId,
+      ),
+    );
+
+    if (uniqueVDIds.length == 0) {
+      this.logger.debug(
+        'No virtual device IDs found in recordSetA',
+      );
+      return [];
+    }
+
+    const virtualDevices = await this.repo.find({
+      where: {
+        id: In(uniqueVDIds),
+      },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+
+    const parentVDIds = _.uniq(
+      virtualDevices
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    if (parentVDIds.length == 0) {
+      this.logger.debug(`No parent virtual devices`);
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        id: In(parentVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+        children: {
+          id: true,
+        },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    });
   }
 
   // async findRecordSetC(
