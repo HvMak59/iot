@@ -10,53 +10,34 @@ export class FcmService {
     );
 
     private readonly tokenToOrgMap = new Map<string, string>();
-
     private readonly orgToTokensMap = new Map<string, Set<string>>();
 
-    async register(orgId: string, fcmToken: string,) {
+    async register(orgId: string, fcmToken: string) {
         if (!orgId) {
-            throw new Error(
-                'orgId is required',
-            );
+            throw new Error('orgId is required');
         }
 
         if (!fcmToken) {
-            throw new Error(
-                'fcmToken is required',
-            );
+            throw new Error('fcmToken is required',);
         }
 
-        // Cleanup old registration first
-        // Prevent duplicate/stale mappings
-        // this.disconnect(fcmToken);
-
-        if (this.tokenToOrgMap.has(fcmToken,)
-        ) {
+        if (this.tokenToOrgMap.has(fcmToken)) {
+            this.logger.error("Already having token");
             return;
         }
 
         // token -> org
-        this.tokenToOrgMap.set(
-            fcmToken,
-            orgId,
-        );
+        this.tokenToOrgMap.set(fcmToken, orgId,);
 
         // org -> tokens
-        if (
-            !this.orgToTokensMap.has(orgId)
-        ) {
-            this.orgToTokensMap.set(
-                orgId,
-                new Set<string>(),
-            );
+        if (this.orgToTokensMap.has(orgId) == false) {
+            this.orgToTokensMap.set(orgId, new Set<string>());
         }
 
-        this.orgToTokensMap
-            .get(orgId)
-            ?.add(fcmToken);
+        this.orgToTokensMap.get(orgId)?.add(fcmToken);
 
         this.logger.log(
-            `FCM token registered | orgId=${orgId}`,
+            `FCM token registered to orgId=${orgId}`,
         );
     }
 
@@ -68,33 +49,22 @@ export class FcmService {
             );
         }
 
-        const orgId =
-            this.tokenToOrgMap.get(
-                fcmToken,
-            );
+        const orgId = this.tokenToOrgMap.get(fcmToken);
 
         if (!orgId) {
+            this.logger.error('No Org found for token');
             return;
         }
 
-        this.tokenToOrgMap.delete(
-            fcmToken,
-        );
+        this.tokenToOrgMap.delete(fcmToken);
 
-        const tokenSet =
-            this.orgToTokensMap.get(
-                orgId,
-            );
+        const tokenSet = this.orgToTokensMap.get(orgId);
 
         if (tokenSet) {
-            tokenSet.delete(
-                fcmToken,
-            );
+            tokenSet.delete(fcmToken);
 
             if (tokenSet.size === 0) {
-                this.orgToTokensMap.delete(
-                    orgId,
-                );
+                this.orgToTokensMap.delete(orgId);
             }
         }
 
@@ -103,24 +73,24 @@ export class FcmService {
         );
     }
 
-    getTokensByOrgId(orgId: string) {
-        return Array.from(
-            this.orgToTokensMap.get(
-                orgId,
-            ) || [],
-        );
-    }
+    // getTokensByOrgId(orgId: string) {
+    //     return Array.from(
+    //         this.orgToTokensMap.get(
+    //             orgId,
+    //         ) || [],
+    //     );
+    // }
 
-    getOrgIdByToken(fcmToken: string) {
-        return this.tokenToOrgMap.get(
-            fcmToken,
-        );
-    }
+    // getOrgIdByToken(fcmToken: string) {
+    //     return this.tokenToOrgMap.get(
+    //         fcmToken,
+    //     );
+    // }
 
 
-    hasToken(fcmToken: string) {
-        return this.tokenToOrgMap.has(
-            fcmToken,
-        );
-    }
+    // hasToken(fcmToken: string) {
+    //     return this.tokenToOrgMap.has(
+    //         fcmToken,
+    //     );
+    // }
 }

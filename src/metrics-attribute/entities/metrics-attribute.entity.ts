@@ -13,7 +13,7 @@ import {
 import {
   CalcFrequency,
   MathOperator,
-  MetricsFrequency,
+  // MetricsFrequency,
   MetricType,
 } from 'src/utils/enums';
 import { DeviceTypeMetricsAttribute } from 'src/Asset Current Performance Source/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
@@ -21,6 +21,7 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsAttributeFormula } from 'src/metrics-attribute-formula/entities/metrics-attribute-formula.entity';
 import { MetricsAttributeAggregation } from 'src/metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';
+import { MetricsFrequency } from 'src/common';
 // import { DeviceModelAttribute } from '../../device-model-attribute/entities/device-model-attribute.entity';
 // import { MetricsAttributeFormula } from '../../metrics-attribute-formula/entities/metrics-attribute-formula.entity';
 // import { MetricsAttributeAggregation } from '../../metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';

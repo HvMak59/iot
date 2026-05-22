@@ -187,20 +187,20 @@ export class MetricsAttributeService {
     return metricsAttributes;
   }
 
-  metricsToBeCalculated() {
-    return this.repo.find(
-      {
-        where: {
-          metricType: MetricType.calculated,
-          paramMetricsAttributeId: Not(IsNull()),
-          mathOperator: Not(IsNull()),
-          frequency: Not(MetricsFrequency.INSTANT),
-        },
-        relations: {
-          // assetCurrentPerformanceSources: true
-        }
-      })
-  }
+  // metricsToBeCalculated() {
+  //   return this.repo.find(
+  //     {
+  //       where: {
+  //         metricType: MetricType.calculated,
+  //         paramMetricsAttributeId: Not(IsNull()),
+  //         mathOperator: Not(IsNull()),
+  //         frequency: Not(MetricsFrequency.INSTANT),
+  //       },
+  //       relations: {
+  //         // assetCurrentPerformanceSources: true
+  //       }
+  //     })
+  // }
 
   async delete(id: string) {
     const fnName = this.delete.name;

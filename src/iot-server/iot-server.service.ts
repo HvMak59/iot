@@ -465,101 +465,207 @@ export class IotServerService {
 
     const parentVDs = await this.virtualDeviceService.findParentVirtualDevices(periodTMPylds);
 
-    const periodTMWthMaxMeasure = await this.findMaxPeriodTelemetryPayloadValue(parentVDs, periodTMPylds);
+    const periodTMWthMaxMeasure = await this.findMaxPeriodTelemetryPayloadValue(periodTMPylds);
 
-    const maxMeasureMtrcs = await this.findMaxTelmetryPayload(telemetryPylds, periodTMWthMaxMeasure);
+    const maxMeasureMtrcsMap = await this.findMaxTelmetryPayload(telemetryPylds, periodTMWthMaxMeasure);
 
-    const aggregationInputRecords = await this.recordsForAggregation(periodTMWthMaxMeasure, maxMeasureMtrcs);
+    const aggregationInputRecords = await this.recordsForAggregation(parentVDs, maxMeasureMtrcsMap);
 
     const aggregatedParentTelemetryPayloads = await this.aggregatedRecords(aggregationInputRecords);
 
     return {
+      // maxMeasureMtrcsMap,
       // aggregationInputRecords,
       aggregatedParentTelemetryPayloads
     };
   }
 
-  async findMaxPeriodTelemetryPayloadValueWorking(
-    parentVDs: VirtualDevice[],
-    periodTMPyld: Record<string, PeriodTelemetryPayloadAudit[]>,
+  async findMaxPeriodTelemetryPayloadValue(
+    periodTMPylds: Record<string, PeriodTelemetryPayloadAudit[]>,
   ) {
-    const result: ParentAggregationResult[] = [];
+    const result = Object.values(periodTMPylds)
+      .map((records) =>
+        _.maxBy(
+          records,
+          (record) => Number(record.metric?.measure ?? 0),
+        ),
+      )
+      .filter(
+        (record): record is PeriodTelemetryPayloadAudit => Boolean(record),
+      );
 
-    const allRecords = Object.values(periodTMPyld).flat();
+    return result;
+  }
 
-    const telemetryGroups = _.groupBy(
-      allRecords,
-      (record) =>
-        [
-          record.assetId,
-          record.metric?.metricsAttributeId,
-          record.metric?.frequency,
-          record.metric?.txnCapturePeriod,
-        ].join(SEPARATOR),
-    );
+  async findMaxTelmetryPayload(
+    telemetryPylds: TelemetryPayload[],
+    periodTMPylds: PeriodTelemetryPayloadAudit[]
+  ) {
+    const periodTeleMPyldsMap = new Map<string, PeriodTelemetryPayloadAudit>();
+
+    for (const periodTeleMPyld of periodTMPylds) {
+      const key = periodTeleMPyld.getTelemetryKey();
+      periodTeleMPyldsMap.set(key, periodTeleMPyld);
+    }
+
+    const maxMeasureMtrcsMap = new Map<string, TelemetryPayload | PeriodTelemetryPayloadAudit>();
+
+    for (const telemetryPyld of telemetryPylds) {
+      const key = telemetryPyld.getTelemetryKey();
+      const periodTeleMPyld = periodTeleMPyldsMap.get(key);
+
+      if (!periodTeleMPyld) {
+        maxMeasureMtrcsMap.set(key, telemetryPyld);
+      }
+      else {
+        const teleMPValue = Number(telemetryPyld.metric?.measure ?? 0);
+        const periodTeleMPValue = Number(periodTeleMPyld.metric?.measure ?? 0);
+
+        if (periodTeleMPValue > teleMPValue) {
+          this.logger.debug(
+            `PeriodTelemetryPayload value ${periodTeleMPValue} is greater than TelemetryPayload value ${teleMPValue}`,
+          );
+          maxMeasureMtrcsMap.set(key, periodTeleMPyld);
+        } else {
+          this.logger.debug(
+            `TelemetryPayload value ${teleMPValue} is greater than or equal to PeriodTelemetryPayload value ${periodTeleMPValue}`,
+          );
+          maxMeasureMtrcsMap.set(key, telemetryPyld);
+        }
+      }
+    }
+
+    for (const periodTeleMPyld of periodTMPylds) {
+      const key = periodTeleMPyld.getTelemetryKey();
+
+      if (maxMeasureMtrcsMap.has(key) == false) {
+        maxMeasureMtrcsMap.set(key, periodTeleMPyld);
+      }
+    }
+
+    return Array.from(maxMeasureMtrcsMap.values());
+  }
+
+  async recordsForAggregation(
+    parentVDs: VirtualDevice[],
+    maxMeasureMtrcs: (TelemetryPayload | PeriodTelemetryPayloadAudit)[]
+  ) {
+    const result = [];
 
     for (const parentVD of parentVDs) {
+
+      const childVDs = parentVD.children ?? [];
+
+      if (childVDs.length === 0) {
+        this.logger.debug('There is not any children for parentId:', parentVD.id);
+        continue;
+      }
+
+      const metricToAggKeyMap =
+        new Map<string, Map<string, (TelemetryPayload | PeriodTelemetryPayloadAudit)[]>>();
+      // metric -> (freq:period -> records)
+
+
+      for (const child of childVDs) {
+
+        for (const record of maxMeasureMtrcs) {
+
+          if (record.assetId !== parentVD.assetId || record.virtualDeviceId !== child.id) {
+            this.logger.debug("Not matching payload");
+            continue;
+          }
+
+          const metricId = record.metric.metricsAttributeId;
+          const aggregationKey = record.metric.frequency + KEY_SEPARATOR + record.metric?.txnCapturePeriod;
+
+          if (metricToAggKeyMap.has(metricId) == false) {
+            metricToAggKeyMap.set(metricId, new Map());
+          }
+
+          const aggKeyMap = metricToAggKeyMap.get(metricId)!;
+          const existing = aggKeyMap.get(aggregationKey);
+
+          if (existing) {
+            existing.push(record);
+          } else {
+            aggKeyMap.set(aggregationKey, [record]);
+          }
+        }
+      }
+
+      // for (const child of childVDs) {
+      //   const keyPrefix = parentVD.assetId + KEY_SEPARATOR + child.id + KEY_SEPARATOR;
+
+      //   // for (const lookupKey of Object.keys(aggregationLookupMap)) {
+      //   for (const [lookupKey, payloads] of Object.entries(aggregationLookupMap)) {
+
+      //     if (lookupKey.startsWith(keyPrefix) == false) {
+      //       this.logger.debug("Lookeup key is not matching");
+      //       continue;
+      //     }
+      //     // original key = asset:vd:metric
+      //     // keyprefix = asset:vd:
+      //     // metricid = metric
+      //     const metricId = lookupKey.slice(keyPrefix.length);
+
+      //     if (metricToAggKeyMap.has(metricId) == false) {
+      //       metricToAggKeyMap.set(metricId, new Map());
+      //     }
+
+      //     const aggKeyMap = metricToAggKeyMap.get(metricId)!;
+
+      //     const records = payloads;
+
+      //     // freq:period
+      //     for (const record of records) {
+      //       const aggregationKey =
+      //         record.metric.frequency +
+      //         KEY_SEPARATOR +
+      //         record.metric?.txnCapturePeriod;
+
+      //       const existing = aggKeyMap.get(aggregationKey);
+      //       if (existing) {
+      //         existing.push(record);
+      //       } else {
+      //         // metric -> (freq:period -> records)
+      //         aggKeyMap.set(aggregationKey, [record]);
+      //       }
+      //     }
+      //   }
+      // }
 
       for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
 
         const group = vdGroup.group;
-        const aggregations = group?.groupMetricsAttributeAggregations ?? [];
 
-        for (const groupAgg of aggregations) {
+        for (const groupAgg of group?.groupMetricsAttributeAggregations ?? []) {
 
           const metricsAgg = groupAgg.metricsAttributeAggregation;
           const configuredMetricId = metricsAgg.metricsAttributeId;
+          const aggregation = metricsAgg.aggregation;
 
+          const aggKeyMap = metricToAggKeyMap.get(configuredMetricId);
 
-          for (const telemetryRecords of Object.values(telemetryGroups)) {
+          if (!aggKeyMap || aggKeyMap.size === 0) {
+            this.logger.debug(`No mathcing record for: ${configuredMetricId}`);
+            continue;
+          }
 
-            if (telemetryRecords.length == 0) {
-              this.logger.debug('No telemetry records found');
-              continue;
-            }
+          for (const telemetryRecords of aggKeyMap.values()) {
+
+            if (!telemetryRecords.length) continue;
 
             const firstRecord = telemetryRecords[0];
 
-            const metricId = firstRecord.metric?.metricsAttributeId;
-            const frequency = firstRecord.metric?.frequency;
-            const txnCapturePeriod = firstRecord.metric?.txnCapturePeriod;
-
-            if (configuredMetricId !== metricId) {
-              continue;
-            }
-
-            const childWiseMaxRecords = this.findMaxRecordsPerChildVD(
-              parentVD,
-              metricId!,
-              frequency!,
-              txnCapturePeriod!,
-              telemetryRecords,
-            );
-
-            if (childWiseMaxRecords.length == 0) {
-              this.logger.debug("There is not any matching records for: ", parentVD);
-              continue;
-            }
-
-            const parentMaxRecord = _.maxBy(
-              childWiseMaxRecords,
-              (record) => Number(record!.metric?.measure ?? 0),
-            );
-
-            if (!parentMaxRecord) {
-              continue;
-            }
-
             result.push({
               assetId: parentVD.assetId,
               virtualDeviceId: parentVD.id,
               groupId: vdGroup.groupId,
-              metricId,
-              frequency,
-              txnCapturePeriod,
-              aggregation: metricsAgg.aggregation,
-              childWiseMaxRecords,
-              parentMaxRecord,
+              metricId: configuredMetricId,
+              frequency: firstRecord.metric.frequency,
+              txnCapturePeriod: firstRecord.metric?.txnCapturePeriod,
+              aggregation,
+              telemetryRecords,
             });
           }
         }
@@ -568,115 +674,71 @@ export class IotServerService {
     return result;
   }
 
-  async findMaxPeriodTelemetryPayloadValue(
-    parentVDs: VirtualDevice[],
-    periodTMPyld: Record<string, PeriodTelemetryPayloadAudit[]>,
+  async aggregatedRecords(
+    aggregationInputRecords: any[],
   ) {
 
-    const result: ParentAggregationResult[] = [];
+    const result: CreateTelemetryPayloadDto[] = [];
 
-    const allRecords = Object.values(periodTMPyld).flat();
+    for (const record of aggregationInputRecords) {
+      const values =
+        record.telemetryRecords.map(
+          (r: any) => Number(r.metric?.measure ?? 0),
+        );
 
-    const telemetryGroups = _.groupBy(
-      allRecords,
-      (record) =>
-        [
-          record.metric?.metricsAttributeId,
-          record.metric?.frequency,
-          record.metric?.txnCapturePeriod,
-        ].join(SEPARATOR),
-    );
-
-    for (const parentVD of parentVDs) {
-
-      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
-
-        const group = vdGroup.group;
-        const aggregations = group?.groupMetricsAttributeAggregations ?? [];
-
-        for (const groupAgg of aggregations) {
-
-          const metricsAgg = groupAgg.metricsAttributeAggregation;
-          const configuredMetricId = metricsAgg.metricsAttributeId;
-
-          for (const [groupKey, telemetryRecords] of Object.entries(telemetryGroups)) {
-
-            if (
-              !groupKey.startsWith(
-                configuredMetricId + SEPARATOR,
-              )
-            ) {
-              continue;
-            }
-
-            if (!telemetryRecords.length) {
-              continue;
-            }
-            // still this is  wrong 
-            const firstRecord =
-              telemetryRecords[0];
-
-            const metricId =
-              firstRecord.metric?.metricsAttributeId;
-
-            const frequency =
-              firstRecord.metric?.frequency;
-
-            const txnCapturePeriod =
-              firstRecord.metric?.txnCapturePeriod;
-
-            /**
-             * Find max record per child VD
-             */
-            const childWiseMaxRecords =
-              this.findMaxRecordsPerChildVD(
-                parentVD,
-                metricId!,
-                frequency!,
-                txnCapturePeriod!,
-                telemetryRecords,
-              );
-
-            if (!childWiseMaxRecords.length) {
-
-              this.logger.debug(
-                `No matching child records found for parentVD: ${parentVD.id}`,
-              );
-
-              continue;
-            }
-
-            /**
-             * Find parent max record
-             */
-            const parentMaxRecord = _.maxBy(
-              childWiseMaxRecords,
-              (record) =>
-                Number(record?.metric?.measure ?? 0),
-            );
-
-            if (!parentMaxRecord) {
-              continue;
-            }
-
-            result.push({
-              assetId: parentVD.assetId,
-              virtualDeviceId: parentVD.id,
-              groupId: vdGroup.groupId,
-              metricId,
-              frequency,
-              txnCapturePeriod,
-              aggregation: metricsAgg.aggregation,
-              childWiseMaxRecords,
-              parentMaxRecord,
-            });
-          }
-        }
+      if (values.length == 0) {
+        continue;
       }
-    }
+      // this.logger.debug("values", values);
+      this.logger.debug(`values for ${record.virtualDeviceId}: asset ${record.assetId}`, values);
 
+      let aggregatedValue = 0;
+
+      this.logger.debug("aggregation strategy", record.aggregation);
+
+      switch (record.aggregation) {
+        case 'sum':
+          aggregatedValue = _.sum(values);
+          break;
+
+        case 'avg':
+          aggregatedValue = _.sum(values) / values.length;
+          break;
+
+        default:
+          break;
+      }
+
+      aggregatedValue = Number(
+        aggregatedValue.toFixed(2),
+      );
+
+      result.push({
+        assetId: record.assetId,
+        virtualDeviceId: record.virtualDeviceId,
+        metric: {
+          metricsAttributeId: record.metricId,
+          frequency: record.frequency,
+          txnCapturePeriod: record.txnCapturePeriod,
+          txnCaptureTime: new Date(),
+          measure: String(aggregatedValue),
+        },
+      } as CreateTelemetryPayloadDto);
+    }
     return result;
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   // async findMaxTelmetryPayload(
@@ -739,7 +801,607 @@ export class IotServerService {
   //   return Array.from(maxMeasureMtrcsMap.values());
   // }
 
-  async findMaxTelmetryPayload(
+
+  //   async findMaxTelmetryPayload(
+  //   telemetryPylds: TelemetryPayload[],
+  //   periodTMPylds: PeriodTelemetryPayloadAudit[],
+  // ) {
+
+  //   const periodTeleMPyldsMap =
+  //     new Map<string, PeriodTelemetryPayloadAudit>();
+
+  //   for (const periodTeleMPyld of periodTMPylds) {
+
+  //     const key =
+  //       periodTeleMPyld.getTelemetryKey();
+
+  //     periodTeleMPyldsMap.set(
+  //       key,
+  //       periodTeleMPyld,
+  //     );
+  //   }
+
+  //   const maxMeasureMtrcsMap =
+  //     new Map<
+  //       string,
+  //       TelemetryPayload |
+  //       PeriodTelemetryPayloadAudit
+  //     >();
+
+  //   for (const telemetryPyld of telemetryPylds) {
+
+  //     const key =
+  //       telemetryPyld.getTelemetryKey();
+
+  //     const periodTeleMPyld =
+  //       periodTeleMPyldsMap.get(key);
+
+  //     if (!periodTeleMPyld) {
+
+  //       maxMeasureMtrcsMap.set(
+  //         key,
+  //         telemetryPyld,
+  //       );
+
+  //       continue;
+  //     }
+
+  //     const teleMPValue =
+  //       Number(
+  //         telemetryPyld.metric?.measure ?? 0,
+  //       );
+
+  //     const periodTeleMPValue =
+  //       Number(
+  //         periodTeleMPyld.metric?.measure ?? 0,
+  //       );
+
+  //     maxMeasureMtrcsMap.set(
+  //       key,
+  //       periodTeleMPValue > teleMPValue
+  //         ? periodTeleMPyld
+  //         : telemetryPyld,
+  //     );
+  //   }
+
+  //   /**
+  //    * include remaining period records
+  //    */
+  //   for (const periodTeleMPyld of periodTMPylds) {
+
+  //     const key =
+  //       periodTeleMPyld.getTelemetryKey();
+
+  //     if (!maxMeasureMtrcsMap.has(key)) {
+
+  //       maxMeasureMtrcsMap.set(
+  //         key,
+  //         periodTeleMPyld,
+  //       );
+  //     }
+  //   }
+
+  //   return maxMeasureMtrcsMap;
+  // }
+
+  async findMaxPeriodTelemetryPayloadValuez(
+    parentVDs: VirtualDevice[],
+    periodTMPyld: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+    const result: ParentAggregationResult[] = [];
+
+    for (const parentVD of parentVDs) {
+      const childVDs = parentVD.children ?? [];
+      if (!childVDs.length) continue;
+
+      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
+        const group = vdGroup.group;
+
+        for (const groupAgg of group?.groupMetricsAttributeAggregations ?? []) {
+
+          const metricsAgg = groupAgg.metricsAttributeAggregation;
+          const configuredMetricId = metricsAgg.metricsAttributeId;
+          const frequency = metricsAgg.metricsAttribute.frequency;
+
+          for (const child of childVDs) {
+            for (const [key, records] of Object.entries(periodTMPyld)) {
+
+              if (!records?.length) continue;
+
+              const first = records[0];
+              const metric = first.metric;
+
+              if (
+                first.assetId !== child.assetId ||
+                first.virtualDeviceId !== child.id ||
+                metric?.metricsAttributeId !== configuredMetricId ||
+                metric?.frequency !== frequency
+              ) {
+                continue;
+              }
+
+              const txnCapturePeriod = metric?.txnCapturePeriod;
+
+              const childWiseMaxRecords = this.findMaxRecordsPerChildVD(
+                parentVD,
+                configuredMetricId,
+                frequency,
+                txnCapturePeriod!,
+                records,
+              );
+
+              if (!childWiseMaxRecords.length) continue;
+
+              const parentMaxRecord = _.maxBy(
+                childWiseMaxRecords,
+                (r) => Number(r?.metric?.measure ?? 0),
+              );
+
+              if (!parentMaxRecord) continue;
+
+              result.push({
+                assetId: parentVD.assetId,
+                virtualDeviceId: parentVD.id,
+                groupId: vdGroup.groupId,
+                metricId: configuredMetricId,
+                frequency,
+                txnCapturePeriod,
+                aggregation: metricsAgg.aggregation,
+                childWiseMaxRecords,
+                parentMaxRecord,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async findMaxPeriodTelemetryPayloadValueWorking(
+    parentVDs: VirtualDevice[],
+    periodTMPyld: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+    const result: ParentAggregationResult[] = [];
+
+    const allRecords = Object.values(periodTMPyld).flat();
+
+    const telemetryGroups = _.groupBy(
+      allRecords,
+      (record) =>
+        [
+          record.assetId,
+          record.metric?.metricsAttributeId,
+          record.metric?.frequency,
+          record.metric?.txnCapturePeriod,
+        ].join(SEPARATOR),
+    );
+
+    for (const parentVD of parentVDs) {
+
+      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
+
+        const group = vdGroup.group;
+        const aggregations = group?.groupMetricsAttributeAggregations ?? [];
+
+        for (const groupAgg of aggregations) {
+
+          const metricsAgg = groupAgg.metricsAttributeAggregation;
+          const configuredMetricId = metricsAgg.metricsAttributeId;
+
+          for (const telemetryRecords of Object.values(telemetryGroups)) {
+
+            if (telemetryRecords.length == 0) {
+              this.logger.debug('No telemetry records found');
+              continue;
+            }
+
+            const firstRecord = telemetryRecords[0];
+
+            const metricId = firstRecord.metric?.metricsAttributeId;
+            const frequency = firstRecord.metric?.frequency;
+            const txnCapturePeriod = firstRecord.metric?.txnCapturePeriod;
+
+            if (configuredMetricId !== metricId) {
+              continue;
+            }
+
+            const childWiseMaxRecords = this.findMaxRecordsPerChildVD(
+              parentVD,
+              metricId!,
+              frequency!,
+              txnCapturePeriod!,
+              telemetryRecords,
+            );
+
+            if (childWiseMaxRecords.length == 0) {
+              this.logger.debug("There is not any matching records for: ", parentVD);
+              continue;
+            }
+
+            const parentMaxRecord = _.maxBy(
+              childWiseMaxRecords,
+              (record) => Number(record!.metric?.measure ?? 0),
+            );
+
+            if (!parentMaxRecord) {
+              continue;
+            }
+
+            result.push({
+              assetId: parentVD.assetId,
+              virtualDeviceId: parentVD.id,
+              groupId: vdGroup.groupId,
+              metricId,
+              frequency,
+              txnCapturePeriod,
+              aggregation: metricsAgg.aggregation,
+              childWiseMaxRecords,
+              parentMaxRecord,
+            });
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  async recordsForAggregationcld(
+    parentVDs: VirtualDevice[],
+    maxMeasureMtrcs: (TelemetryPayload | PeriodTelemetryPayloadAudit)[]
+  ) {
+    const result = [];
+
+    const aggregationLookupMap = _.groupBy(
+      maxMeasureMtrcs,
+      (record) =>
+        record.assetId +
+        KEY_SEPARATOR +
+        record.virtualDeviceId +
+        KEY_SEPARATOR +
+        record.metric?.metricsAttributeId,
+    );
+
+    for (const parentVD of parentVDs) {
+
+      const childVDs = parentVD.children ?? [];
+
+      if (childVDs.length === 0) {
+        this.logger.debug('There is not any children for parentId:', parentVD.id);
+        continue;
+      }
+
+      const metricToAggKeyMap =
+        new Map<string, Map<string, (TelemetryPayload | PeriodTelemetryPayloadAudit)[]>>();
+
+      for (const child of childVDs) {
+
+        for (const lookupKey of Object.keys(aggregationLookupMap)) {
+          const [assetId, virtualDeviceId, metricId] = lookupKey.split(KEY_SEPARATOR);
+
+          if (assetId !== parentVD.assetId || virtualDeviceId !== child.id) {
+            this.logger.debug('Not matching');
+            continue;
+          }
+
+          if (metricToAggKeyMap.has(metricId) == false) {
+            metricToAggKeyMap.set(metricId, new Map());
+          }
+
+          const aggKeyMap = metricToAggKeyMap.get(metricId)!;
+          const records = aggregationLookupMap[lookupKey];
+
+          for (const record of records) {
+            const aggregationKey =
+              record.metric.frequency +
+              KEY_SEPARATOR +
+              record.metric?.txnCapturePeriod;
+
+            const existing = aggKeyMap.get(aggregationKey);
+            if (existing) {
+              existing.push(record);
+            } else {
+              aggKeyMap.set(aggregationKey, [record]);
+            }
+          }
+        }
+      }
+
+      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
+
+        const group = vdGroup.group;
+
+        for (const groupAgg of group?.groupMetricsAttributeAggregations ?? []) {
+
+          const metricsAgg = groupAgg.metricsAttributeAggregation;
+          const configuredMetricId = metricsAgg.metricsAttributeId;
+          const aggregation = metricsAgg.aggregation;
+
+          const aggKeyMap = metricToAggKeyMap.get(configuredMetricId);
+
+          if (!aggKeyMap || aggKeyMap.size === 0) {
+            this.logger.debug("empty map");
+            continue;
+          }
+
+          for (const telemetryRecords of aggKeyMap.values()) {
+
+            if (!telemetryRecords.length) continue;
+
+            const firstRecord = telemetryRecords[0];
+
+            result.push({
+              assetId: parentVD.assetId,
+              virtualDeviceId: parentVD.id,
+              groupId: vdGroup.groupId,
+              metricId: configuredMetricId,
+              frequency: firstRecord.metric.frequency,
+              txnCapturePeriod: firstRecord.metric?.txnCapturePeriod,
+              aggregation,
+              telemetryRecords,
+            });
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async recordsForAggregationWorki(
+    parentVDs: VirtualDevice[],
+    maxMeasureMtrcs: (TelemetryPayload | PeriodTelemetryPayloadAudit)[]
+  ) {
+    const result = [];
+
+    const aggregationLookupMap = _.groupBy(
+      maxMeasureMtrcs,
+      (record) =>
+        record.assetId +
+        KEY_SEPARATOR +
+        record.virtualDeviceId +
+        KEY_SEPARATOR +
+        record.metric?.metricsAttributeId,
+    );
+
+    for (const parentVD of parentVDs) {
+
+      const childVDs = parentVD.children ?? [];
+      console.log(childVDs.length);
+
+      if (childVDs.length == 0) {
+        this.logger.debug('There is not any children for parentId:', parentVD.id);
+        continue;
+      }
+
+      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
+
+        const group = vdGroup.group;
+
+        for (const groupAgg of group?.groupMetricsAttributeAggregations ?? []) {
+
+          const metricsAgg = groupAgg.metricsAttributeAggregation;
+          const configuredMetricId = metricsAgg.metricsAttributeId;
+          const aggregation = metricsAgg.aggregation;
+
+          const parentAggregationMap =
+            new Map<string, (TelemetryPayload | PeriodTelemetryPayloadAudit)[]>();
+
+          for (const child of childVDs) {
+
+            const lookupKey =
+              parentVD.assetId +
+              KEY_SEPARATOR +
+              child.id +
+              KEY_SEPARATOR +
+              configuredMetricId;
+
+            const matchedRecords = aggregationLookupMap[lookupKey] ?? [];
+
+            for (const record of matchedRecords) {
+
+              const aggregationKey = record.metric.frequency + KEY_SEPARATOR + record.metric?.txnCapturePeriod;
+              const existing = parentAggregationMap.get(aggregationKey);
+
+              if (existing) {
+                existing.push(record);
+              } else {
+                parentAggregationMap.set(
+                  aggregationKey,
+                  [record],
+                );
+              }
+            }
+          }
+
+          for (const telemetryRecords of parentAggregationMap.values()) {
+
+            if (!telemetryRecords.length) {
+              continue;
+            }
+
+            const firstRecord = telemetryRecords[0];
+
+            result.push({
+              assetId: parentVD.assetId,
+              virtualDeviceId: parentVD.id,
+              groupId: vdGroup.groupId,
+              metricId: configuredMetricId,
+              frequency: firstRecord.metric.frequency,
+              txnCapturePeriod: firstRecord.metric?.txnCapturePeriod,
+              aggregation,
+              telemetryRecords,
+            });
+          }
+        }
+      }
+    }
+    // console.log(result)
+    return result;
+  }
+
+  async recordsForAggregation1(
+    parentVDs: VirtualDevice[],
+    maxMeasureMtrcsMap: Map<string, TelemetryPayload | PeriodTelemetryPayloadAudit>,
+  ) {
+
+    const result = [];
+
+    for (const parentVD of parentVDs) {
+
+      const childVDs = parentVD.children ?? [];
+
+      if (!childVDs.length) {
+        continue;
+      }
+
+      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
+
+        const group = vdGroup.group;
+
+        for (const groupAgg of group?.groupMetricsAttributeAggregations ?? []) {
+
+          const metricsAgg = groupAgg.metricsAttributeAggregation;
+          const configuredMetricId = metricsAgg.metricsAttributeId;
+          const aggregation = metricsAgg.aggregation;
+
+          const parentAggregationMap =
+            new Map<string, (TelemetryPayload | PeriodTelemetryPayloadAudit)[]>();
+
+          for (const child of childVDs) {
+
+            for (const record of maxMeasureMtrcsMap.values()) {
+
+              const metric = record.metric;
+
+              if (
+                record.assetId !== child.assetId ||
+                record.virtualDeviceId !== child.id ||
+                metric?.metricsAttributeId !== configuredMetricId
+              ) {
+                continue;
+              }
+
+              const aggregationKey = metric?.frequency + KEY_SEPARATOR + metric?.txnCapturePeriod;
+              const existing = parentAggregationMap.get(aggregationKey);
+
+              if (existing) {
+                existing.push(record);
+              } else {
+                parentAggregationMap.set(
+                  aggregationKey,
+                  [record],
+                );
+              }
+            }
+          }
+
+          for (const telemetryRecords of parentAggregationMap.values()) {
+
+            if (telemetryRecords.length == 0) {
+              this.logger.debug("Empty telemetry Records");
+              continue;
+            }
+
+            const firstRecord = telemetryRecords[0];
+
+            result.push({
+              assetId: parentVD.assetId,
+              virtualDeviceId: parentVD.id,
+              groupId: vdGroup.groupId,
+              metricId: configuredMetricId,
+              frequency: firstRecord.metric?.frequency,
+              txnCapturePeriod: firstRecord.metric?.txnCapturePeriod,
+              aggregation,
+              telemetryRecords,
+            });
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async recordsForAggregation2(
+    parentVDs: VirtualDevice[],
+    maxMeasureMtrcs: (TelemetryPayload | PeriodTelemetryPayloadAudit)[],
+  ) {
+
+    const result = [];
+
+    // Fast lookup
+    const telemetryMap = _.groupBy(
+      maxMeasureMtrcs,
+      (record) => record.getTelemetryKey()
+    );
+
+    for (const parentVD of parentVDs) {
+
+      const childVDs = parentVD.children ?? [];
+
+      if (!childVDs.length) {
+        continue;
+      }
+
+      for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
+        const group = vdGroup.group;
+
+        for (const groupAgg of group?.groupMetricsAttributeAggregations ?? []) {
+
+          const metricsAgg = groupAgg.metricsAttributeAggregation;
+          const configuredMetricId = metricsAgg.metricsAttributeId;
+          const aggregation = metricsAgg.aggregation;
+
+          const telemetryRecords = [];
+
+          for (const child of childVDs) {
+
+            for (const records of Object.values(telemetryMap)) {
+
+              const first = records[0];
+
+              if (!first) {
+                continue;
+              }
+
+              const metric = first.metric;
+
+              if (
+                first.assetId === child.assetId &&
+                first.virtualDeviceId === child.id &&
+                metric?.metricsAttributeId === configuredMetricId
+              ) {
+                telemetryRecords.push(...records);
+              }
+            }
+          }
+
+          if (!telemetryRecords.length) {
+            continue;
+          }
+
+          const firstRecord = telemetryRecords[0];
+
+          result.push({
+            assetId: parentVD.assetId,
+            virtualDeviceId: parentVD.id,
+            groupId: vdGroup.groupId,
+            metricId: configuredMetricId,
+            frequency: firstRecord.metric?.frequency,
+            txnCapturePeriod: firstRecord.metric?.txnCapturePeriod,
+            aggregation,
+            telemetryRecords,
+          });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async findMaxTelmetryPayloadWorking(
     telemetryPylds: TelemetryPayload[],
     periodTeleMPylds: {
       parentMaxRecord: PeriodTelemetryPayloadAudit;
@@ -794,7 +1456,7 @@ export class IotServerService {
     return Array.from(maxMeasureMtrcsMap.values());
   }
 
-  async recordsForAggregation(
+  async recordsForAggregationWorking(
     periodTMWthMaxMeasure: {
       assetId: string;
       virtualDeviceId: string;
@@ -848,59 +1510,7 @@ export class IotServerService {
     return result;
   }
 
-  async aggregatedRecords(
-    aggregationInputRecords: any[],
-  ) {
 
-    const result: CreateTelemetryPayloadDto[] = [];
-
-    for (const record of aggregationInputRecords) {
-      const values =
-        record.telemetryRecords.map(
-          (r: any) => Number(r.metric?.measure ?? 0),
-        );
-
-      if (!values.length) {
-        continue;
-      }
-      // this.logger.debug("values", values);
-      console.log(`values for ${record.virtualDeviceId}: asset ${record.assetId}`, values);
-
-      let aggregatedValue = 0;
-
-      console.log("aggregation strategy", record.aggregation);
-      // 
-      switch (record.aggregation) {
-        case 'sum':
-          aggregatedValue = _.sum(values);
-          break;
-
-        case 'avg':
-          aggregatedValue = _.sum(values) / values.length;
-          break;
-
-        default:
-          break;
-      }
-
-      aggregatedValue = Number(
-        aggregatedValue.toFixed(2),
-      );
-
-      result.push({
-        assetId: record.assetId,
-        virtualDeviceId: record.virtualDeviceId,
-        metric: {
-          metricsAttributeId: record.metricId,
-          frequency: record.frequency,
-          txnCapturePeriod: record.txnCapturePeriod,
-          txnCaptureTime: new Date(),
-          measure: String(aggregatedValue),
-        },
-      } as CreateTelemetryPayloadDto);
-    }
-    return result;
-  }
 
   private findMaxRecordsPerChildVD(
     parentVD: VirtualDevice,

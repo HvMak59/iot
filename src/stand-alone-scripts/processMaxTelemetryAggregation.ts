@@ -90,7 +90,6 @@ async function aggregatePeriodicTelemetry() {
     const baseUrl = getBaseURL(scheme, appServer, appPort,);
 
     logger.debug(`Base URL: ${baseUrl}`);
-    console.log(`Base URL: ${baseUrl}`);
 
     const token = await getAuthToken(baseUrl, systemUser, systemPassword!,);
 

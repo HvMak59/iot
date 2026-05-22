@@ -83,13 +83,13 @@ export class MetricsAttributeController {
     );
   }
 
-  @Get('metricsToBeCalculated')
-  async findMetricsToBeCalculated() {
-    const fnName = this.findMetricsToBeCalculated.name;
+  // @Get('metricsToBeCalculated')
+  // async findMetricsToBeCalculated() {
+  //   const fnName = this.findMetricsToBeCalculated.name;
 
-    this.logger.debug(`${fnName} : Calling findMetricsToBeCalculated service`);
-    return await this.metricsAttributeService.metricsToBeCalculated();
-  }
+  //   this.logger.debug(`${fnName} : Calling findMetricsToBeCalculated service`);
+  //   return await this.metricsAttributeService.metricsToBeCalculated();
+  // }
 
   @Patch()
   async update(
