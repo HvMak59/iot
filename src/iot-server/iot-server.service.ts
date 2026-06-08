@@ -474,8 +474,6 @@ export class IotServerService {
     const aggregatedParentTelemetryPayloads = await this.aggregatedRecords(aggregationInputRecords);
 
     return {
-      // maxMeasureMtrcsMap,
-      // aggregationInputRecords,
       aggregatedParentTelemetryPayloads
     };
   }
@@ -565,7 +563,6 @@ export class IotServerService {
         new Map<string, Map<string, (TelemetryPayload | PeriodTelemetryPayloadAudit)[]>>();
       // metric -> (freq:period -> records)
 
-
       for (const child of childVDs) {
 
         for (const record of maxMeasureMtrcs) {
@@ -592,47 +589,6 @@ export class IotServerService {
           }
         }
       }
-
-      // for (const child of childVDs) {
-      //   const keyPrefix = parentVD.assetId + KEY_SEPARATOR + child.id + KEY_SEPARATOR;
-
-      //   // for (const lookupKey of Object.keys(aggregationLookupMap)) {
-      //   for (const [lookupKey, payloads] of Object.entries(aggregationLookupMap)) {
-
-      //     if (lookupKey.startsWith(keyPrefix) == false) {
-      //       this.logger.debug("Lookeup key is not matching");
-      //       continue;
-      //     }
-      //     // original key = asset:vd:metric
-      //     // keyprefix = asset:vd:
-      //     // metricid = metric
-      //     const metricId = lookupKey.slice(keyPrefix.length);
-
-      //     if (metricToAggKeyMap.has(metricId) == false) {
-      //       metricToAggKeyMap.set(metricId, new Map());
-      //     }
-
-      //     const aggKeyMap = metricToAggKeyMap.get(metricId)!;
-
-      //     const records = payloads;
-
-      //     // freq:period
-      //     for (const record of records) {
-      //       const aggregationKey =
-      //         record.metric.frequency +
-      //         KEY_SEPARATOR +
-      //         record.metric?.txnCapturePeriod;
-
-      //       const existing = aggKeyMap.get(aggregationKey);
-      //       if (existing) {
-      //         existing.push(record);
-      //       } else {
-      //         // metric -> (freq:period -> records)
-      //         aggKeyMap.set(aggregationKey, [record]);
-      //       }
-      //     }
-      //   }
-      // }
 
       for (const vdGroup of parentVD.virtualDeviceGroups ?? []) {
 
@@ -2351,30 +2307,22 @@ export class IotServerService {
     // }
 
     if (createdAlerts.length > 0) {
-      this.eventEmitter.emit('alert.created', {
-        assetId: assetID,
-        // orgId: "ffbacbae-6aa7-4d5e-8dbf-8da11b671e21",
-        alerts: createdAlerts,
-      });
+      this.eventEmitter.emit('alert.created', createdAlerts);
     }
 
     if (closedAlerts.length > 0) {
-      this.eventEmitter.emit('alert.closed', {
-        assetId: assetID,
-        alerts: closedAlerts,
-      });
+      this.eventEmitter.emit('alert.closed', closedAlerts);
     }
 
     if (incrementdAlerts.length > 0) {
-      this.eventEmitter.emit('alert.incremented', {
-        assetId: assetID,
-        // orgId: "ffbacbae-6aa7-4d5e-8dbf-8da11b671e21",
-        alerts: incrementdAlerts,
-      });
-      // 
+      // this.eventEmitter.emit('alert.incremented', {
+      //   assetId: assetID,
+      //   alerts: incrementdAlerts,
+      // });
+
+      this.eventEmitter.emit('alert.incremented', incrementdAlerts);
     }
 
-    // 
     return {
       createdAlerts: createdAlerts,
       //deletedCurrentOpenAlerts: deletedCurrentOpenAlerts,

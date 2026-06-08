@@ -284,7 +284,7 @@ export class AlertService {
     }
     this.alertGateway.sendAlerts(
       assetId,
-      AlertStatus.CREATED,
+      AlertStatus.created,
       [alertToBeSent as Alert]
     )
   }

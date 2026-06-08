@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { winstonServerLogger } from "src/app_config/serverWinston.config";
 import { Asset } from "./entities/asset.entity";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { KEY_SEPARATOR } from "src/app_config/constants";
 
 @Injectable()
@@ -43,4 +43,35 @@ export class AssetService {
         console.log(phoneNumber);
         return phoneNumber;
     }
+
+
+    async findOrgId(id: string) {
+        const asset = await this.repo.findOne({
+            select: {
+                id: true,
+                orgId: true
+            },
+            where: { id }
+        })
+
+        return asset?.orgId;
+    }
+
+    async findAssetOrgIdMap(assetIds: string[]) {
+
+        const assets = await this.repo.find({
+            select: {
+                id: true,
+                orgId: true,
+            },
+            where: {
+                id: In(assetIds),
+            },
+        });
+
+        return new Map(
+            assets.map(asset => [asset.id, asset.orgId]),
+        );
+    }
+
 }

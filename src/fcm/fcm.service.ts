@@ -23,7 +23,10 @@ export class FcmService {
 
         if (this.tokenToOrgMap.has(fcmToken)) {
             this.logger.error("Already having token");
-            return;
+            return {
+                success: false,
+                message: 'Token already registered',
+            };
         }
 
         // token -> org
@@ -36,13 +39,16 @@ export class FcmService {
 
         this.orgToTokensMap.get(orgId)?.add(fcmToken);
 
-        this.logger.log(
-            `FCM token registered to orgId=${orgId}`,
-        );
+        this.logger.log(`FCM token registered to orgId: ${orgId}`);
+        console.log(`FCM token registered to orgId: ${orgId}`);
+
+        return {
+            success: true,
+            message: 'FCM token registered successfully',
+        };
     }
 
-
-    disconnect(fcmToken: string): void {
+    disconnect(fcmToken: string) {
         if (!fcmToken) {
             throw new Error(
                 'fcmToken is required',
@@ -73,24 +79,24 @@ export class FcmService {
         );
     }
 
-    // getTokensByOrgId(orgId: string) {
-    //     return Array.from(
-    //         this.orgToTokensMap.get(
-    //             orgId,
-    //         ) || [],
-    //     );
-    // }
+    getTokensByOrgId(orgId: string) {
+        return Array.from(
+            this.orgToTokensMap.get(
+                orgId,
+            ) || [],
+        );
+    }
 
-    // getOrgIdByToken(fcmToken: string) {
-    //     return this.tokenToOrgMap.get(
-    //         fcmToken,
-    //     );
-    // }
+    getOrgIdByToken(fcmToken: string) {
+        return this.tokenToOrgMap.get(
+            fcmToken,
+        );
+    }
 
 
-    // hasToken(fcmToken: string) {
-    //     return this.tokenToOrgMap.has(
-    //         fcmToken,
-    //     );
-    // }
+    hasToken(fcmToken: string) {
+        return this.tokenToOrgMap.has(
+            fcmToken,
+        );
+    }
 }

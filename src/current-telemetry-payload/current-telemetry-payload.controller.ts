@@ -46,7 +46,8 @@ export class CurrentTelemetryPayloadController {
   create(
     @Body() createCurrentTelemetryPayloadsDto: CreateCurrentTelemetryDto[],
   ) {
-    return this.currentTelemetryPayloadService.createV2(
+    // return this.currentTelemetryPayloadService.createV2(
+    return this.currentTelemetryPayloadService.create(
       createCurrentTelemetryPayloadsDto,
     );
   }

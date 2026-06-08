@@ -48,16 +48,20 @@ export class TelemetryEventsListener {
             if (!groupedByVD.has(payload.virtualDeviceId)) {
                 groupedByVD.set(payload.virtualDeviceId, []);
             }
-
             groupedByVD.get(payload.virtualDeviceId)!.push(payload);
         }
 
         for (const [virtualDeviceId, devicePayloads] of groupedByVD.entries()) {
+            console.log("Calling sse");
+            // this.telemetrySseService.publish(virtualDeviceId, devicePayloads);
             // this.telemetryGateway.sendToWebSocket(
             //     virtualDeviceId,
             //     devicePayloads,
             // );
         }
     }
-
 }
+
+
+
+

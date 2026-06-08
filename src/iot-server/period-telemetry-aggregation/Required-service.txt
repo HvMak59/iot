@@ -1,0 +1,174 @@
+PeriodTelemetryPayloadAuditService : 
+
+ async findPeriodTelemetryPayloads(
+    inputTimeInEpoch: string,
+    metricsFrequency: MetricsFrequency,
+    isCalculationForced: boolean,
+  ) {
+    const inputDate = convertInputToDate(inputTimeInEpoch);
+
+    const whereCondition: FindPeriodTelemetryPayloadAuditDto = {
+      metric: {
+        frequency: metricsFrequency,
+      },
+      auditDateTime: {
+        createdAt: MoreThanOrEqual(inputDate),
+      },
+    };
+
+    if (isCalculationForced == false) {
+      this.logger.debug('IsCalculationForced = false');
+      whereCondition.metric = {
+        frequency: metricsFrequency,
+        txnCapturePeriod: LessThan(
+          inputDate
+        ),
+      };
+    }
+
+    const records = await this.repo.find({
+      where: whereCondition,
+      select: {
+        assetId: true,
+        virtualDeviceId: true,
+        metric: {
+          measure: true,
+          metricsAttributeId: true,
+          txnCapturePeriod: true,
+          txnCaptureTime: true,
+          frequency: true
+        },
+      },
+    });
+
+    const groupedRecords = _.groupBy(records, (record) => record.getTelemetryKey());
+
+    return groupedRecords;
+  }
+
+
+
+
+
+
+2.TelemetryPayloadService : 
+
+ async findTelemetryPayloads(
+    periodTMPylds: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+
+    const whereConditions = Object.keys(periodTMPylds).map((key) => {
+      const [
+        assetId,
+        virtualDeviceId,
+        metricsAttributeId,
+        frequency,
+        txnCapturePeriod,
+      ] = key.split(SEPARATOR);
+
+      return {
+        assetId,
+        virtualDeviceId,
+        metric: {
+          metricsAttributeId,
+          txnCapturePeriod: new Date(
+            txnCapturePeriod,
+          ),
+          frequency: frequency as unknown as MetricsFrequency,
+        },
+      };
+    });
+
+    if (whereConditions.length == 0) {
+      this.logger.debug(`Empty record array for a key in periodTMPyld, skipping...`);
+      return [];
+    }
+
+    return this.repo.find({
+      where: whereConditions,
+    });
+  }
+
+
+
+
+
+
+3.VirtualDeviceService : 
+
+async findParentVirtualDevices(
+    periodTMPylds: Record<string, PeriodTelemetryPayloadAudit[]>,
+  ) {
+    const flattenedRecords = Object.values(periodTMPylds).flat();
+
+    const uniqueVDIds = _.uniq(
+      flattenedRecords.map(
+        (record) => record.virtualDeviceId,
+      ),
+    );
+
+    if (uniqueVDIds.length == 0) {
+      this.logger.debug(
+        'No virtual device IDs found in recordSetA',
+      );
+      return [];
+    }
+
+    const virtualDevices = await this.repo.find({
+      where: {
+        id: In(uniqueVDIds),
+      },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+
+    const parentVDIds = _.uniq(
+      virtualDevices
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    if (parentVDIds.length == 0) {
+      this.logger.debug(`No parent virtual devices`);
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        id: In(parentVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+        children: {
+          id: true,
+        },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    });
+  }

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Firebase FCM Token Test</title>
+</head>
+
+<body>
+    <h2>Firebase FCM Token Generator</h2>
+
+    <button id="btn">
+        Generate FCM Token
+    </button>
+
+    <br />
+    <br />
+
+    <input type="text" id="orgId" placeholder="Enter Org ID" value="org-1" />
+
+    <button id="registerBtn">
+        Register Token To Backend
+    </button>
+
+    <p id="status"></p>
+
+    <textarea id="token" rows="10" cols="100" placeholder="FCM token will appear here..."></textarea>
+
+    <script type="module">
+
+        import {
+            initializeApp,
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+        import {
+            getMessaging,
+            getToken,
+            onMessage,
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+
+        // ==========================================
+        // FIREBASE CONFIG
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfGWJP7Y-zTIcPNaHmMO6CPS1GFz0R1Uo",
+            authDomain: "notify-demo-3be73.firebaseapp.com",
+            projectId: "notify-demo-3be73",
+            storageBucket: "notify-demo-3be73.firebasestorage.app",
+            messagingSenderId: "142312136181",
+            appId: "1:142312136181:web:5ae90f6963f0676a0394bc",
+            measurementId: "G-DWNJ4D9X85"
+        };
+
+
+        // ==========================================
+        // VAPID KEY
+        // ==========================================
+        const VAPID_KEY =
+            "BA9JLEuuMpkWb2e6hZZFioVjsLihvBq6AHrU8MSQwRIYjXwg3CAPFC37qzmpiKpH2aP8jKjUOWSpnZG9gamC5aM";
+
+
+        // ==========================================
+        // INIT FIREBASE
+        // ==========================================
+        const app =
+            initializeApp(firebaseConfig);
+
+        const messaging =
+            getMessaging(app);
+
+
+        // ==========================================
+        // ELEMENTS
+        // ==========================================
+        const btn =
+            document.getElementById("btn");
+
+        const registerBtn =
+            document.getElementById("registerBtn");
+
+        const tokenText =
+            document.getElementById("token");
+
+        const status =
+            document.getElementById("status");
+
+        const orgIdInput =
+            document.getElementById("orgId");
+
+
+        // ==========================================
+        // GENERATE TOKEN
+        // ==========================================
+        btn.addEventListener(
+            "click",
+            async () => {
+                try {
+
+                    status.innerText =
+                        "Requesting permission...";
+
+                    const permission =
+                        await Notification.requestPermission();
+
+                    if (permission !== "granted") {
+                        status.innerText =
+                            "Notification permission denied";
+
+                        return;
+                    }
+
+                    status.innerText =
+                        "Registering service worker...";
+
+                    const registration =
+                        await navigator.serviceWorker.register(
+                            "/firebase-messaging-sw.js"
+                        );
+
+                    console.log(
+                        "SW Registered:",
+                        registration,
+                    );
+
+                    status.innerText =
+                        "Generating FCM token...";
+
+                    const currentToken =
+                        await getToken(
+                            messaging,
+                            {
+                                vapidKey: VAPID_KEY,
+                                serviceWorkerRegistration:
+                                    registration,
+                            },
+                        );
+
+                    if (currentToken) {
+
+                        console.log(
+                            "FCM TOKEN:",
+                            currentToken,
+                        );
+
+                        tokenText.value =
+                            currentToken;
+
+                        status.innerText =
+                            "FCM token generated successfully!";
+
+                    } else {
+
+                        status.innerText =
+                            "No registration token available";
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    status.innerText =
+                        "Error generating token";
+                }
+            },
+        );
+
+
+        // ==========================================
+        // REGISTER TOKEN TO BACKEND
+        // ==========================================
+        registerBtn.addEventListener(
+            "click",
+            async () => {
+
+                try {
+
+                    const token =
+                        tokenText.value;
+
+                    const orgId =
+                        orgIdInput.value;
+
+                    if (!token) {
+
+                        alert(
+                            "Generate token first",
+                        );
+
+                        return;
+                    }
+
+                    status.innerText =
+                        "Registering token to backend...";
+
+                    // const response = await fetch(
+                    //         "http://localhost:3002/fcm/register",
+                    //         {
+                    //             method: "POST",
+
+                    //             headers: {
+                    //                 "Content-Type":
+                    //                     "application/json",
+                    //             },
+
+                    //             body: JSON.stringify({
+                    //                 orgId,
+                    //                 fcmToken: token,
+                    //             }),
+                    //         },
+                    //     );
+
+                    const response =
+                        await fetch(
+                            `http://localhost:3002/fcm/register?orgId=${encodeURIComponent(orgId)}&fcmToken=${encodeURIComponent(token)}`,
+                            {
+                                method: "POST",
+                            },
+                        );
+
+                    const result =
+                        await response.json();
+
+                    console.log(
+                        "REGISTER RESPONSE:",
+                        result,
+                    );
+
+                    status.innerText =
+                        "Token registered successfully!";
+
+                    alert(
+                        "Token registered successfully!",
+                    );
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    status.innerText =
+                        "Registration failed";
+
+                    alert(
+                        "Registration failed",
+                    );
+                }
+            },
+        );
+
+
+        // ==========================================
+        // FOREGROUND MESSAGE LISTENER
+        // ==========================================
+        // onMessage(
+        //     messaging,
+        //     (payload) => {
+
+        //         console.log(
+        //             "Foreground Message:",
+        //             payload,
+        //         );
+
+        //         alert(
+        //             `Notification Received:\n${payload.notification.title}\n${payload.notification.body}`,
+        //         );
+        //     },
+        // );
+
+        // ==========================================
+        // FOREGROUND MESSAGE LISTENER
+        // ==========================================
+        onMessage(
+            messaging,
+            (payload) => {
+
+                console.log(
+                    "Foreground Message:",
+                    payload,
+                );
+
+                // ----------------------------------
+                // EXTRACT VALUES
+                // ----------------------------------
+                const title =
+                    payload.notification?.title ||
+                    "Notification";
+
+                const body =
+                    payload.notification?.body ||
+                    "New message received";
+
+                // ----------------------------------
+                // SHOW BROWSER NOTIFICATION
+                // ----------------------------------
+                new Notification(
+                    title,
+                    {
+                        body: body,
+                        icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png",
+                    },
+                );
+
+                // ----------------------------------
+                // OPTIONAL ALERT POPUP
+                // ----------------------------------
+                alert(
+                    `Notification Received:\n${title}\n${body}`,
+                );
+
+                // ----------------------------------
+                // OPTIONAL: HANDLE DATA PAYLOAD
+                // ----------------------------------
+                if (payload.data) {
+
+                    console.log(
+                        "DATA PAYLOAD:",
+                        payload.data,
+                    );
+
+                    // Example:
+                    // payload.data.eventType
+                    // payload.data.assetId
+                    // payload.data.alertId
+                }
+            },
+        );
+    </script>
+</body>
+
+</html>

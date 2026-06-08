@@ -8,9 +8,11 @@ import { WhatsAppController } from '../whatsapp/whatsapp.controller';
 import { AssetService } from 'src/asset/asset.service';
 import { AssetModule } from 'src/asset/asset.module';
 import { WhatsAppModule } from 'src/whatsapp/whatsapp.module';
+import { FirebaseModule } from 'src/firebase/firebase.module';
+import { FcmModule } from 'src/fcm/fcm.module';
 
 @Module({
-    imports: [OrgModule, HttpModule, AssetModule, WhatsAppModule],
+    imports: [OrgModule, HttpModule, AssetModule, WhatsAppModule, FirebaseModule, FcmModule],
     controllers: [WhatsAppController],
     providers: [AlertGateway, AlertEventsListener],
     exports: [AlertGateway],

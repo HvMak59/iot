@@ -1,4 +1,4 @@
-import { Controller, Post, Query } from "@nestjs/common";
+import { Controller, Get, Post, Query } from "@nestjs/common";
 import { FcmService } from "./fcm.service";
 
 @Controller('fcm')
@@ -12,7 +12,15 @@ export class FcmController {
     async register(
         @Query('orgId') orgId: string,
         @Query('fcmToken') fcmToken: string,
+
     ) {
-        await this.fcmService.register(orgId, fcmToken);
+        return await this.fcmService.register(orgId, fcmToken);
+    }
+
+    @Get('token')
+    async getTokenFromOrgId(
+        @Query('orgId') orgId: string
+    ) {
+        return await this.fcmService.getTokensByOrgId(orgId);
     }
 }

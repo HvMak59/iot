@@ -42,6 +42,8 @@ import { MetricsAttributeAggregationModule } from './metrics-attribute-aggregati
 import { GroupMetricsAttributeAggregationModule } from './group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.module';
 import { VirtualDeviceGroupModule } from './virtual-device-group/virtual-device-group.module';
 import { FcmModule } from './fcm/fcm.module';
+import { FirebaseModule } from './firebase/firebase.module';
+import { SseModule } from './sse/sse.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -115,7 +117,9 @@ import { FcmModule } from './fcm/fcm.module';
     MetricsAttributeAggregationModule,
     GroupMetricsAttributeAggregationModule,
     VirtualDeviceGroupModule,
-    FcmModule
+    FcmModule,
+    FirebaseModule,
+    SseModule
   ],
   // providers: [
   //   {
@@ -335,6 +339,9 @@ export class AppModule { }
 // dataModelAdaptorId=TvaV1&csvDeviceTypeIds=dt1&csvDeviceModelIds=mfg1%3Adt1%3Adm1
 
 
+// Lift 
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/TvaV1/Arya/Lift/InnoV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+
 // assetID=Lift
 // csvVirtualDeviceIDs=Lift:vd
 // closeDateTime=1774241106000   
@@ -494,8 +501,8 @@ export class AppModule { }
 // good = beneficial,positive,
 // develop = cultivate
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-  
+
+
 // {"device_type":"invtr","device_name":"invt","device_id":"2026030006",
 // "date":"08/04/2026","time":"17:32:51","time_zone":"Asia/Kolkata","latitude":"0",
 // "longitude":"0","software_ver":"SM-1.03.D20_4G","signal_strength":"3","valid":true ,
@@ -530,12 +537,13 @@ export class AppModule { }
 // "frq":50.020,"invtTmp":45.500
 
 // I will upload my resume. Act as an Al recruiter and Job hunting machine. Analyze my 
-// resume in depth to identify the most suitable 2 year experienced or entry-level roles
-// I should target in India. Find real companies currently hiring across startups, scale-ups, 
-// MNCs, consulting firms, and both tech and non-tech sectors, and provide verified application 
+// resume in depth to identify the most suitable 2 year experienced roles
+// You should target in India,Europe. Find real companies currently hiring across startups, scale-ups, 
+// MNCs and tech sectors, and provide verified application 
 // links for each opportunity. Match every job with my profile and give a fit score out of 100. 
 // Create a prioritized job application list categorized into high-probability, 
 // medium-probability, and stretch roles. Curate list of jobs with application links atleast 20 
+// providing yearly package >= 8 LPA
 
 
 // Moicrosoft CMT ( Research Paper) : 
@@ -591,29 +599,6 @@ export class AppModule { }
 // create org 
 // create asset 
 
-// balkrishna : balkrishna123 // user level issue
-// 
-
-// asset : JaiPrakashKeshri, ManojKumarSingh, ShaileshKushwaha
-// balkrishna : user issue 
-// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55587
-// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55577
-// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:2026030147
-// device : Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55587
-// device : Hermes Technologies:HT SPC 3020-1-6:Z2604Y55577
-// device : Hermes Technologies:HT SPC 3020-1-6:2026030147
-// user : balkrishna
-
-//  Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55577
-//  Hermes Technologies:Hermes VFD MQTT R-RMU V1:Z2604Y55587
-
-// Correct Id-pass :
-// raaju : raaju123
-// jaiprakash: jaiprakash123 
-// balkrishna: balkrishna123  // needs sir's deletion 
-// manojsingh : manojsingh123
-
-
 
 // Raju Gupta : 
 //   userid: raaju
@@ -646,6 +631,95 @@ export class AppModule { }
 
 
 // Post tracking number : EG962447172IN
+
+
+
+// firebase admin sdk 
+
+
+// set GOOGLE_APPLICATION_CREDENTIALS = E: \Downloads\Hiten\iot2\src\firebase
+
+
+
+
+// License No : GJ02 20260005824
+// Navy :
+// hvmak.59@gmail.com 
+// #Money@59$
+
+
+// Halisa number : 5755042035318
+
+
+// Digital Instrumental : 
+// RequestID :252600000003985727 
+// Application No 3985727
+
+
+
+
+
+// Data Annotation : https://app.dataannotation.tech/workers/inbox?message_type=all
+
+// async function printGrid(url) {
+//     const response = await fetch(url);
+//     const html = await response.text();
+
+//     const characters = {};
+//     let maxX = 0;
+//     let maxY = 0;
+
+//     const rowMatches = html.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
+    
+//     rowMatches.forEach(row => {
+//         const cells = [];
+//         const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [];
+//         cellMatches.forEach(cell => {
+//             const text = cell.replace(/<[^>]+>/g, '').trim();
+//             cells.push(text);
+//         });
+
+//         if (cells.length === 3) {
+//             const x = parseInt(cells[0]);
+//             const char = cells[1];
+//             const y = parseInt(cells[2]);
+//             if (!isNaN(x) && !isNaN(y) && char) {
+//                 characters[`${x},${y}`] = char;
+//                 maxX = Math.max(maxX, x);
+//                 maxY = Math.max(maxY, y);
+//             }
+//         }
+//     });
+
+//     console.log(`Grid size: ${maxX+1} x ${maxY+1}, Characters found: ${Object.keys(characters).length}`);
+
+//     for (let y = 0; y <= maxY; y++) {
+//         let row = '';
+//         for (let x = 0; x <= maxX; x++) {
+//             row += characters[`${x},${y}`] || ' ';
+//         }
+//         console.log(row);
+//     }
+// }
+
+// printGrid("https://docs.google.com/document/d/e/2PACX-1vSvM5gDlNvt7npYHhp_XfsJvuntUhq184By5xO_pA4b_gCWeXb6dM6ZxwN8rE6S4ghUsCj2VKR21oEP/pub");
+
+
+
+
+
+// To test SSE Events 
+// in cmd 
+// curl -N "http://localhost:3002/sse/stream?virtualDeviceId=Lift:vd&metricsAttributeId=floor"
+// curl -N "http://localhost:3002/sse/stream?virtualDeviceId=Lift:vd&metricsAttributeId=floor&startTime=1777314600000&endTime=1780597800000"
+
+
+
+// technource : applied.... 9624770438 
+// verve systems : applied .... 7069016868
+// rysyth technologies : applied.....6356663508
+// eximium next : applied
+// Hidden Brains Infotechs : applied .... 9898021433
 
 
 

@@ -114,6 +114,79 @@ export class OrgService {
     }
   }
 
+  async getParentHierarchy(
+    orgId: string,
+  ) {
+
+    const hierarchy: string[] = [];
+
+    let currentOrgId: string | undefined = orgId;
+
+    while (currentOrgId) {
+
+      hierarchy.push(currentOrgId);
+
+      const org = await this.repo.findOne({
+        select: {
+          id: true,
+          parentId: true,
+        },
+        where: {
+          id: currentOrgId,
+        },
+      });
+
+      if (!org) {
+        break;
+      }
+
+      currentOrgId = org.parentId;
+    }
+
+    return hierarchy;
+  }
+
+  // async getChildrenHierarchy(
+  //   orgId: string,
+  // ) {
+
+  //   const org = await this.repo.findOne({
+  //     where: { id: orgId },
+  //   });
+
+  //   if (!org) {
+  //     return [];
+  //   }
+
+  //   const descendants = await this.repo.findDescendants(org);
+
+  //   return descendants.map(org => org.id);
+  // }
+
+  async getChildrenHierarchy(orgId: string) {
+
+    const org = await this.repo.findOne({
+      select: {
+        id: true
+      },
+      where: { id: orgId },
+    });
+
+    if (!org) {
+      this.logger.error(`OrgId ${orgId} not found`);
+      return [];
+    }
+
+    const descendants = await this.repo.findDescendants(org);
+
+    const descendantOrgs = [org, ...descendants];
+
+    return descendantOrgs.map(o => o.id);
+  }
+
+
+
+
   async setParent(childOrgId: string, parentOrgId: string) {
     const msgTemplate =
       this.serviceName +

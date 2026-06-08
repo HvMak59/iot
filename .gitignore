@@ -70,3 +70,12 @@ pids
 # Optional: uploads (if any)
 
 uploads
+
+
+
+# Firebase 
+src/firebase/firebase-admin-sdk.json
+
+
+
+

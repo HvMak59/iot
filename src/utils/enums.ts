@@ -103,10 +103,15 @@ export enum DeviceModelAlertFindMethod {
     DEVICE_OR_RMU,
 }
 
+// export enum AlertStatus {
+//     CREATED = 'CREATED',
+//     INCREMENTED = 'INCREMENTED',
+//     CLOSED = 'CLOSED'
+// }
 export enum AlertStatus {
-    CREATED = 'CREATED',
-    INCREMENTED = 'INCREMENTED',
-    CLOSED = 'CLOSED'
+    created = 'created',
+    incremented = 'incremented',
+    closed = 'closed'
 }
 
 export enum ContractType {
