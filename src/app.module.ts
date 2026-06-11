@@ -712,6 +712,12 @@ export class AppModule { }
 // in cmd 
 // curl -N "http://localhost:3002/sse/stream?virtualDeviceId=Lift:vd&metricsAttributeId=floor"
 // curl -N "http://localhost:3002/sse/stream?virtualDeviceId=Lift:vd&metricsAttributeId=floor&startTime=1777314600000&endTime=1780597800000"
+// curl -N "http://localhost:3002/sse/stream?virtualDeviceId=ChitraFilterPlant:ChitraWS1&metricsAttributeId=SolarIrradiance"
+
+
+
+
+
 
 
 
@@ -722,7 +728,7 @@ export class AppModule { }
 // Hidden Brains Infotechs : applied .... 9898021433
 
 
-
+// sejda.com - pdf editing 
 
 
 

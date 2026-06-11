@@ -1,0 +1,25 @@
+{
+    "telemetryDevice": {
+        "assetId": "ChitraFilterPlant",
+        "virtualDeviceId": "ChitraFilterPlant:ChitraWS1",
+        "id": "mfg1:dt1:dm3:sr4"
+    },
+    "TelemetryDeviceWithMetric": [
+        {
+            "metricsAttributeId": "SolarIrradiance",
+            "measure": "36",
+            "unit": null,
+            "frequency": 0,
+            "txnCaptureTimeInEpoch": 1781065800000,
+            "txnCapturePeriodInEpoch": 1781065800000
+        },
+        {
+            "metricsAttributeId": "WindSpeed",
+            "measure": "23",
+            "unit": null,
+            "frequency": 0,
+            "txnCaptureTimeInEpoch": 1781065800000,
+            "txnCapturePeriodInEpoch": 1781065800000
+        }
+    ]
+}

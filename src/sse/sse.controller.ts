@@ -14,18 +14,18 @@ export class SseController {
         @Query('endTime') endTime?: string,
     ) {
         console.log('sse controller');
-        console.log(
-            virtualDeviceId,
-            metricsAttributeId,
-            startTime,
-            endTime,
-        );
+        // console.log(
+        //     virtualDeviceId,
+        //     metricsAttributeId,
+        //     startTime,
+        //     endTime,
+        // );
 
         return this.sseService.subscribe(
             virtualDeviceId,
-            metricsAttributeId,
-            startTime ? Number(startTime) : undefined,
-            endTime ? Number(endTime) : undefined,
+            // metricsAttributeId,
+            // startTime ? Number(startTime) : undefined,
+            // endTime ? Number(endTime) : undefined,
         );
     }
 

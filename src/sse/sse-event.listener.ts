@@ -27,13 +27,14 @@ export class TelemetryEventsListener {
 
         for (const payload of currentTeleMPylds) {
             const vd = payload.virtualDeviceId;
-            const metricId = payload.metric?.metricsAttributeId;
+            // const metricId = payload.metric?.metricsAttributeId;
 
-            if (!vd && !metricId) {
-                this.logger.error(`virtualDevice or metricId missing`);
+            if (!vd) {
+                this.logger.error(`virtualDevice missing`);
                 continue;
             }
-            const key = vd + KEY_SEPARATOR + metricId;
+            // const key = vd + KEY_SEPARATOR + metricId;
+            const key = vd;
 
             if (!groupedByVdAndMtrcId.has(key)) {
                 groupedByVdAndMtrcId.set(key, []);
@@ -42,9 +43,9 @@ export class TelemetryEventsListener {
             groupedByVdAndMtrcId.get(key)!.push(payload);
         }
 
-        for (const [key, devicePayloads] of groupedByVdAndMtrcId.entries()) {
+        for (const [virtualDeviceId, devicePayloads] of groupedByVdAndMtrcId.entries()) {
             console.log("Calling sse");
-            this.telemetrySseService.publish(key, devicePayloads);
+            this.telemetrySseService.publish(virtualDeviceId, devicePayloads);
         }
     }
 }

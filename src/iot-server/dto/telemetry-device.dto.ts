@@ -11,6 +11,11 @@ import { FindAssetPerformanceTelemetry } from './find-asset-performance-telemetr
 export class TelemetryDevice extends PartialType(Device) {
   //isDeviceGroup: boolean;
   assetId: string;
+  virtualDeviceId?: string;
+  id?: string;
+  name?: string;
+  displayNumber: number;
+
   constructor(telemetryDevice: Partial<TelemetryDevice>) {
     super();
     Object.assign(this, telemetryDevice);
@@ -43,6 +48,9 @@ export class TelemetryDevice extends PartialType(Device) {
       //isDeviceGroup: currentTelemetryPayload.isDeviceGroup, */
       virtualDeviceId: telemetry.virtualDeviceId,
       id: telemetry.deviceId,
+      name: telemetry.virtualDevice?.name,
+      displayNumber: telemetry.virtualDevice?.displayOrder ?? 0,
+      // id: telemetry.deviceId
     });
   }
 

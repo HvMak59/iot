@@ -104,6 +104,9 @@ export class VirtualDevice {
     @Column({ nullable: true })
     deviceId?: string | null;
 
+    @Column({ default: 1 })
+    displayOrder: number;
+
     // @OneToMany(
     //     () => AssetCurrentPerformanceSource,
     //     (aCPS) => aCPS.virtualDevice,

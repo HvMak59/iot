@@ -307,7 +307,7 @@ export class CurrentTelemetryPayloadService {
       this.logger.debug(
         `${fName} : Firing CreateCurrTelemetryEvent with No of records upserted : ${result.length}`,
       );
-      // this.eventEmitter.emit(CreateCurrTelemetryEvent, result);
+      this.eventEmitter.emit('telemetry.inserted', result);
       return result;
       /* return await this.repo.save([...createCurrTelePayloadMap.values()]); */
     } catch (error) {
@@ -735,7 +735,10 @@ export class CurrentTelemetryPayloadService {
 
 
   async findByIds(ids: string[]) {
-    return this.repo.find({ where: { id: In(ids) } });
+    return this.repo.find({
+      where: { id: In(ids) },
+      relations: ['virtualDevice']
+    });
   }
 
 

@@ -301,10 +301,17 @@ export function getAssetID(asset: Asset) {
 }
 
 export function getMetricDTO(metric: Partial<Metric>) {
-  const { txnCaptureTime, frequency, metricsAttributeId, unit, ...metricDto } =
+  // const { txnCaptureTime, frequency, metricsAttributeId, unit, ...metricDto } =
+  const { txnCaptureTime, txnCapturePeriod, txnCaptureTimeInEpoch, txnCapturePeriodInEpoch, isCalculated, ...metricDto } =
     metric;
-  return metricDto;
+  return {
+    ...metricDto,
+    txnCaptureTime: txnCaptureTimeInEpoch,
+    txnCapturePeriod: txnCapturePeriodInEpoch,
+  };
+  // return metricDto;
 }
+
 
 export function getDeviceID(device: Device) {
   return device.id;
