@@ -3,7 +3,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { Alert } from '../entities/alert.entity';
 import { DeviceModelAlertFindMethod } from 'src/utils/enums';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
-// import { DeviceModelAlertFindMethod } from 'utils/enums';
+// import { DeviceModelAlertFindMethod } from 'src/utils/enums';
 
 export class InputAlertDto extends PartialType(Alert) {
   constructor(inputAlertDto: InputAlertDto) {

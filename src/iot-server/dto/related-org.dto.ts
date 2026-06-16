@@ -1,5 +1,5 @@
 // import { Org } from 'src/org/entities/org.entity';
-// import { OrgType } from 'utils/enums';
+// import { OrgType } from 'src/utils/enums';
 
 // export class RelatedOrg extends Org {
 //   relatedType: OrgType;

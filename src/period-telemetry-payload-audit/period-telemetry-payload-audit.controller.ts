@@ -20,9 +20,9 @@ import { MetricsFrequency } from 'src/common';
 import { FindPeriodTelemetryPayloadAuditDto } from './dto/find-period-telemetry-payload-audit.dto';
 import { PeriodTelemetryPayloadAuditService } from './period-telemetry-payload-audit.service';
 // import { MetricsFrequency } from 'src/utils/enums';
-// import { winstonServerLogger } from 'app_config/serverWinston.config';
-// import { getTryCatchErrorStr } from 'utils/others';
-// import { MetricsFrequency } from 'utils/enums';
+// import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+// import { getTryCatchErrorStr } from 'src/utils/others';
+// import { MetricsFrequency } from 'src/utils/enums';
 
 @Controller('period-telemetry-payload-audit')
 export class PeriodTelemetryPayloadAuditController {

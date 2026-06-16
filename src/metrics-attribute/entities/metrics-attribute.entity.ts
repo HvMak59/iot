@@ -16,12 +16,15 @@ import {
   // MetricsFrequency,
   MetricType,
 } from 'src/utils/enums';
-import { DeviceTypeMetricsAttribute } from 'src/Asset Current Performance Source/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
+// import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { getTryCatchErrorStr } from 'src/utils/others';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsAttributeFormula } from 'src/metrics-attribute-formula/entities/metrics-attribute-formula.entity';
 import { MetricsAttributeAggregation } from 'src/metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';
 import { MetricsFrequency } from 'src/common';
+import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
+import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
+import { AssetTypeCurrentPerformanceSource } from 'src/asset-type-current-performance-source/entities/asset-type-current-performance-source.entity';
 // import { DeviceModelAttribute } from '../../device-model-attribute/entities/device-model-attribute.entity';
 // import { MetricsAttributeFormula } from '../../metrics-attribute-formula/entities/metrics-attribute-formula.entity';
 // import { MetricsAttributeAggregation } from '../../metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';
@@ -143,21 +146,21 @@ export class MetricsAttribute {
   )
   deviceMetricsAttributeFormulas?: MetricsAttributeFormula[];
 
-  // @OneToMany(
-  //   () => AssetCurrentPerformanceSource,
-  //   (assetCurrentPerformanceSource) =>
-  //     assetCurrentPerformanceSource.metricsAttribute,
-  //   {
-  //     nullable: true,
-  //     cascade: true,
-  //   },
-  // )
-  // assetCurrentPerformanceSources?: AssetCurrentPerformanceSource[];
+  @OneToMany(
+    () => AssetCurrentPerformanceSource,
+    (assetCurrentPerformanceSource) =>
+      assetCurrentPerformanceSource.metricsAttribute,
+    {
+      nullable: true,
+      cascade: true,
+    },
+  )
+  assetCurrentPerformanceSources?: AssetCurrentPerformanceSource[];
 
-  // @OneToMany(() => AssetTypeCurrentPerformanceSource, (aTCPS) => aTCPS.metricsAttribute, {
-  //   nullable: true,
-  // })
-  // assetTypeCurrentPerformanceSources?: AssetTypeCurrentPerformanceSource[];
+  @OneToMany(() => AssetTypeCurrentPerformanceSource, (aTCPS) => aTCPS.metricsAttribute, {
+    nullable: true,
+  })
+  assetTypeCurrentPerformanceSources?: AssetTypeCurrentPerformanceSource[];
 
   @Column({ nullable: true })
   searchTerm: string;

@@ -7,16 +7,16 @@ import { DeviceTypeMetricsAttribute } from './entities/device-type-metrics-attri
 import { In, IsNull, Not, Repository } from 'typeorm';
 import { FindDeviceTypeMetricsAttributeDto } from './dto/find-device-type-metrics-attribute.dto';
 
-import serviceConfig from '../../app_config/service.config.json';
-// import { findAll } from 'utils/cmnFn.repository';
+import serviceConfig from 'src/app_config/service.config.json';
+// import { findAll } from 'src/utils/cmnFn.repository';
 import { FindDeviceTypeMetricsAttributeByMultipleIDsDto } from './dto/find-device-type-metrics-attribute-byMultipleIDs.dto';
-// import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import {
   DUPLICATE_RECORD,
   KEY_SEPARATOR,
   NO_RECORD,
 } from 'src/app_config/constants';
-import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+import _ from 'lodash';
 
 @Injectable()
 export class DeviceTypeMetricsAttributeService {
@@ -63,20 +63,35 @@ export class DeviceTypeMetricsAttributeService {
     }
   }
 
-  findAll(
+  // findAll(
+  //   searchCriteria: FindDeviceTypeMetricsAttributeDto,
+  //   relationsRequired: boolean = false,
+  // ) {
+  //   let relations = relationsRequired ? this.relations : ['metricsAttribute'];
+  //   return findAll<DeviceTypeMetricsAttribute>(
+  //     this.repo,
+  //     this.findAll.name,
+  //     relations,
+  //     searchCriteria,
+  //   );
+  // }
+
+  findAllWithMinimalFields(
     searchCriteria: FindDeviceTypeMetricsAttributeDto,
-    relationsRequired: boolean = false,
+    //relationsRequired: boolean = false,
   ) {
-    let relations = relationsRequired ? this.relations : ['metricsAttribute'];
-    // return this.findAll<DeviceTypeMetricsAttribute>(
-    //   this.repo,
-    //   this.findAll.name,
-    //   relations,
-    //   searchCriteria,
-    // );
+    return this.repo.find({
+      where: searchCriteria,
+      //relations: relationsRequired ? this.relations : ['metricsAttribute'],
+      select: {
+        deviceTypeId: true,
+        metricsAttributeId: true,
+        displayOrder: true,
+      },
+    });
   }
 
-  findByMultipleIDs(
+  async findByMultipleIDsWithMinimalFields(
     searchCriteria: FindDeviceTypeMetricsAttributeByMultipleIDsDto,
     relationsRequired: boolean = false,
     forDisplay: boolean = false,
@@ -86,7 +101,7 @@ export class DeviceTypeMetricsAttributeService {
     let relations = relationsRequired ? this.relations : ['metricsAttribute'];
 
     const whereCriteria: FindDeviceTypeMetricsAttributeDto = {
-      deviceTypeId: In(searchCriteria.csvDeviceTypeIDs.split(',')),
+      deviceTypeId: In(_.uniq(searchCriteria.csvDeviceTypeIDs.split(','))),
     };
     forDisplay == true ? (whereCriteria.displayOrder = Not(IsNull())) : null;
 
@@ -95,10 +110,85 @@ export class DeviceTypeMetricsAttributeService {
       displayOrder: Not(IsNull()),
     }; */
 
-    return this.repo.find({
+    const dTMAs = await this.repo.find({
+      select: {
+        deviceTypeId: true,
+        metricsAttributeId: true,
+        displayOrder: true,
+      },
       where: whereCriteria,
       relations: relations,
     });
+
+    this.logger.debug(`No of records found : ${dTMAs.length}`);
+
+    return dTMAs;
+    /* return this.repo.find({
+      where: whereCriteria,
+      relations: relations,
+      order: {
+        deviceTypeId: 'ASC',
+        displayOrder: 'ASC',
+      },
+    }); */
+  }
+
+  async dTMAsByByKey(
+    searchCriteria: FindDeviceTypeMetricsAttributeByMultipleIDsDto,
+    relationsRequired: boolean = false,
+    forDisplay: boolean = false,
+  ) {
+    const dTMAs = await this.findByMultipleIDsWithMinimalFields(
+      searchCriteria,
+      relationsRequired,
+      forDisplay,
+    );
+    const dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]> = _.groupBy(
+      dTMAs,
+      (dTMA) => new DeviceTypeMetricsAttribute(dTMA).getKey(),
+    );
+    return dTMAByKey;
+  }
+
+  async findByMultipleIDs(
+    searchCriteria: FindDeviceTypeMetricsAttributeByMultipleIDsDto,
+    relationsRequired: boolean = false,
+    forDisplay: boolean = false,
+  ) {
+    /* const event = `Input : ${JSON.stringify(searchCriteria)}`;
+    const msgTemplate = 'Find ' + this.serviceName + 's'; */
+    let relations = relationsRequired ? this.relations : ['metricsAttribute'];
+
+    const whereCriteria: FindDeviceTypeMetricsAttributeDto = {
+      deviceTypeId: In(_.uniq(searchCriteria.csvDeviceTypeIDs.split(','))),
+    };
+    forDisplay == true ? (whereCriteria.displayOrder = Not(IsNull())) : null;
+
+    /* const whereCriteria: FindDeviceTypeMetricsAttributeDto = {
+      deviceTypeId: In(searchCriteria.csvDeviceTypeIDs.split(',')),
+      displayOrder: Not(IsNull()),
+    }; */
+
+    const response = await this.repo.find({
+      where: whereCriteria,
+      relations: relations,
+      order: {
+        deviceTypeId: 'ASC',
+        displayOrder: 'ASC',
+      },
+    });
+
+    this.logger.debug(`No of records found : ${response.length}`);
+
+    return response;
+    /* return this.repo.find({
+      where: whereCriteria,
+      relations: relations,
+      order: {
+        deviceTypeId: 'ASC',
+        displayOrder: 'ASC',
+      },
+    }); */
   }
 
   findMainAttrib(deviceTypeId: string) {
@@ -113,16 +203,16 @@ export class DeviceTypeMetricsAttributeService {
     });
   }
 
-  findOne(
-    searchCriteria: FindDeviceTypeMetricsAttributeDto,
-    relationsRequired: boolean = false,
-  ) {
-    // const relations = relationsRequired
-    //   ? serviceConfig.deviceTypeMetricsAttribute.relations
-    //   : ['metricsAttribute'];
+  // findOne(
+  //   searchCriteria: FindDeviceTypeMetricsAttributeDto,
+  //   relationsRequired: boolean = false,
+  // ) {
+  //   const relations = relationsRequired
+  //     ? serviceConfig.deviceTypeMetricsAttribute.relations
+  //     : ['metricsAttribute'];
 
-    return this.repo.findOne({ where: searchCriteria, });
-  }
+  //   return this.repo.findOne({ where: searchCriteria, relations: relations });
+  // }
 
   findOneById(id: string) {
     return this.repo.findOne({

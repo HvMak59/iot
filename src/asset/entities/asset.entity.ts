@@ -6,8 +6,10 @@
 // import { TelemetryPayload } from 'telemetry-payload/entities/telemetry-payload.entity';
 import { Alert } from 'src/alert/entities/alert.entity';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
+import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { CurrentOpenAlert } from 'src/current-open-alert/entities/current-open-alert.entity';
+import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
 import { Org } from 'src/org/entities/org.entity';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
 import {
@@ -93,12 +95,12 @@ export class Asset {
 
     //public assetState: EntityState;
 
-    // @OneToMany(
-    //     () => CurrentTelemetryPayload,
-    //     (currentTelemetryPayload) => currentTelemetryPayload.asset,
-    //     { nullable: true, cascade: true /* , eager: true  */ },
-    // )
-    // currentTelemetryPayloads?: CurrentTelemetryPayload[];
+    @OneToMany(
+        () => CurrentTelemetryPayload,
+        (currentTelemetryPayload) => currentTelemetryPayload.asset,
+        { nullable: true, cascade: true /* , eager: true  */ },
+    )
+    currentTelemetryPayloads?: CurrentTelemetryPayload[];
 
     // @OneToMany(
     //     () => TelemetryPayload,
@@ -107,15 +109,15 @@ export class Asset {
     // )
     // telemetryPayloads?: TelemetryPayload[];
 
-    // @OneToMany(
-    //     () => AssetCurrentPerformanceSource,
-    //     (assetCurrentPerformanceSource) => assetCurrentPerformanceSource.asset,
-    //     {
-    //         nullable: true,
-    //         cascade: true,
-    //     },
-    // )
-    // assetCurrentPerformanceSources?: AssetCurrentPerformanceSource[];
+    @OneToMany(
+        () => AssetCurrentPerformanceSource,
+        (assetCurrentPerformanceSource) => assetCurrentPerformanceSource.asset,
+        {
+            nullable: true,
+            cascade: true,
+        },
+    )
+    assetCurrentPerformanceSources?: AssetCurrentPerformanceSource[];
 
     @Column({ nullable: true, type: 'float' })
     capacityMeasure: number;

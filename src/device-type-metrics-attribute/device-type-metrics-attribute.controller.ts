@@ -16,13 +16,12 @@ import {
 } from 'src/app_config/constants';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { Response } from 'express';
-// import { UserId } from 'src/req-user-id.decorator';
+import { UserId } from 'src/utils/req-user-id.decorator';
 import { DeviceTypeMetricsAttributeService } from './device-type-metrics-attribute.service';
 import { CreateDeviceTypeMetricsAttributeDto } from './dto/create-device-type-metrics-attribute.dto';
 import { FindDeviceTypeMetricsAttributeByMultipleIDsDto } from './dto/find-device-type-metrics-attribute-byMultipleIDs.dto';
 import { FindDeviceTypeMetricsAttributeDto } from './dto/find-device-type-metrics-attribute.dto';
 import { UpdateDeviceTypeMetricsAttributeDto } from './dto/update-device-type-metrics-attribute.dto';
-import { UserId } from 'src/utils/req-user-id.decorator';
 
 @Controller('device-type-metrics-attribute')
 export class DeviceTypeMetricsAttributeController {
@@ -66,7 +65,22 @@ export class DeviceTypeMetricsAttributeController {
     )}`;
     this.logger.debug(fnName + KEY_SEPARATOR + input);
 
-    return await this.deviceTypeMetricsAttributeService.findAll(searchCriteria);
+    // return await this.deviceTypeMetricsAttributeService.findAll(searchCriteria);
+  }
+
+  @Get('minimalFields')
+  async findAllWithMinimalFields(
+    @Query() searchCriteria: FindDeviceTypeMetricsAttributeDto,
+  ) {
+    const fnName = this.findAllWithMinimalFields.name;
+    const input = `Input : Find DeviceTypeMetricsAttribute with minimal fields and searchCriteria : ${JSON.stringify(
+      searchCriteria,
+    )}`;
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+    return await this.deviceTypeMetricsAttributeService.findAllWithMinimalFields(
+      searchCriteria,
+    );
   }
 
   @Get('byMultipleIDs')
@@ -146,7 +160,7 @@ export class DeviceTypeMetricsAttributeController {
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
 
-    return await this.deviceTypeMetricsAttributeService.findOne(searchCriteria);
+    // return await this.deviceTypeMetricsAttributeService.findOne(searchCriteria);
   }
 
   @Patch()
@@ -167,7 +181,7 @@ export class DeviceTypeMetricsAttributeController {
       this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
       throw new Error(USER_NOT_IN_REQUEST_HEADER);
     } else {
-      updateDeviceTypeMetricsAttributeDto.updatedBy = userId;
+      // updateDeviceTypeMetricsAttributeDto.updatedBy = userId;
       this.logger.debug(`${fnName} : Calling update service`);
 
       return await this.deviceTypeMetricsAttributeService.update(
@@ -193,37 +207,37 @@ export class DeviceTypeMetricsAttributeController {
     }
   }
 
-  @Delete('softDelete')
-  async softDelete(@UserId() userId: string, @Query('id') id: string) {
-    const fnName = this.softDelete.name;
-    const input = `Input : DeviceTypeMetricsAttribute id : ${id} to be softDeleted`;
+  // @Delete('softDelete')
+  // async softDelete(@UserId() userId: string, @Query('id') id: string) {
+  //   const fnName = this.softDelete.name;
+  //   const input = `Input : DeviceTypeMetricsAttribute id : ${id} to be softDeleted`;
 
-    this.logger.debug(fnName + KEY_SEPARATOR + input);
+  //   this.logger.debug(fnName + KEY_SEPARATOR + input);
 
-    if (userId == null) {
-      this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
-      throw new Error(USER_NOT_IN_REQUEST_HEADER);
-    } else {
-      const searchCriteria: FindDeviceTypeMetricsAttributeDto = { id };
-      const deviceTypeMetricsAttributeToBeDeleted =
-        await this.deviceTypeMetricsAttributeService.findOne(searchCriteria);
+  //   if (userId == null) {
+  //     this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
+  //     throw new Error(USER_NOT_IN_REQUEST_HEADER);
+  //   } else {
+  //     const searchCriteria: FindDeviceTypeMetricsAttributeDto = { id };
+  //     const deviceTypeMetricsAttributeToBeDeleted =
+  //       // await this.deviceTypeMetricsAttributeService.findOne(searchCriteria);
 
-      if (deviceTypeMetricsAttributeToBeDeleted) {
-        deviceTypeMetricsAttributeToBeDeleted.deletedBy = userId;
-        return await this.deviceTypeMetricsAttributeService.softDelete(
-          id,
-          deviceTypeMetricsAttributeToBeDeleted,
-        );
-      } else {
-        this.logger.error(
-          `${fnName} : ${NO_RECORD} : DeviceTypeMetricsAttribute with id : ${id} not found`,
-        );
-        throw new Error(
-          `${NO_RECORD} : DeviceTypeMetricsAttribute with id : ${id} not found`,
-        );
-      }
-    }
-  }
+  //     if (deviceTypeMetricsAttributeToBeDeleted) {
+  //       deviceTypeMetricsAttributeToBeDeleted.deletedBy = userId;
+  //       return await this.deviceTypeMetricsAttributeService.softDelete(
+  //         id,
+  //         deviceTypeMetricsAttributeToBeDeleted,
+  //       );
+  //     } else {
+  //       this.logger.error(
+  //         `${fnName} : ${NO_RECORD} : DeviceTypeMetricsAttribute with id : ${id} not found`,
+  //       );
+  //       throw new Error(
+  //         `${NO_RECORD} : DeviceTypeMetricsAttribute with id : ${id} not found`,
+  //       );
+  //     }
+  //   }
+  // }
 
   @Patch('restore')
   async restore(@UserId() userId: string, @Query('id') id: string) {

@@ -9,17 +9,11 @@ export class SseController {
     @Sse('stream')
     stream(
         @Query('virtualDeviceId') virtualDeviceId: string,
-        @Query('metricsAttributeId') metricsAttributeId: string,
-        @Query('startTime') startTime?: string,
-        @Query('endTime') endTime?: string,
+        // @Query('metricsAttributeId') metricsAttributeId: string,
+        // @Query('startTime') startTime?: string,
+        // @Query('endTime') endTime?: string,
     ) {
         console.log('sse controller');
-        // console.log(
-        //     virtualDeviceId,
-        //     metricsAttributeId,
-        //     startTime,
-        //     endTime,
-        // );
 
         return this.sseService.subscribe(
             virtualDeviceId,

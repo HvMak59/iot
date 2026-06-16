@@ -23,29 +23,31 @@ export class TelemetryEventsListener {
 
         const currentTeleMPylds = await this.currentTelemetryPayloadService.findByIds(payloads.map(s => s.id));
 
-        const groupedByVdAndMtrcId = new Map<string, CurrentTelemetryPayload[]>();
+        const groupedByVd = new Map<string, CurrentTelemetryPayload[]>();
 
         for (const payload of currentTeleMPylds) {
             const vd = payload.virtualDeviceId;
-            // const metricId = payload.metric?.metricsAttributeId;
 
             if (!vd) {
                 this.logger.error(`virtualDevice missing`);
                 continue;
             }
-            // const key = vd + KEY_SEPARATOR + metricId;
             const key = vd;
 
-            if (!groupedByVdAndMtrcId.has(key)) {
-                groupedByVdAndMtrcId.set(key, []);
+            if (!groupedByVd.has(key)) {
+                groupedByVd.set(key, []);
             }
 
-            groupedByVdAndMtrcId.get(key)!.push(payload);
+            groupedByVd.get(key)!.push(payload);
         }
 
-        for (const [virtualDeviceId, devicePayloads] of groupedByVdAndMtrcId.entries()) {
+        for (const [virtualDeviceId, devicePayloads] of groupedByVd.entries()) {
             console.log("Calling sse");
             this.telemetrySseService.publish(virtualDeviceId, devicePayloads);
         }
     }
 }
+
+
+
+

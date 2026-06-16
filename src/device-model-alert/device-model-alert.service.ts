@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { DeviceModelAlert } from './entities/device-model-alert.entity';
 import { FindDeviceModelAlertDto } from './dto/find-device-model-alert.dto';
-// import { findAll } from 'utils/cmnFn.repository';
+// import { findAll } from 'src/utils/cmnFn.repository';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import {
   DUPLICATE_RECORD,

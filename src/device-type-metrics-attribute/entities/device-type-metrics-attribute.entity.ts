@@ -1,6 +1,6 @@
-// import { AuditDateTime } from '../../audit_attribute/entities/audit_date_time.entity';
-// import { DeviceType } from '../../device-type/entities/device-type.entity';
-// import { MetricsAttribute } from '../../metrics-attribute/entities/metrics-attribute.entity';
+import { AuditDateTime } from '../../audit_attribute/entities/audit_date_time.entity';
+import { DeviceType } from '../../device-type/entities/device-type.entity';
+import { MetricsAttribute } from '../../metrics-attribute/entities/metrics-attribute.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -10,13 +10,10 @@ import {
   OneToMany,
   PrimaryColumn,
 } from 'typeorm';
-// import { MetricsAttributeAdaptor } from '../../metrics-attribute-adaptor/entities/metrics-attribute-adaptor.entity';
-// import { Unit } from '../../unit/entities/unit.entity';
+import { MetricsAttributeAdaptor } from '../../metrics-attribute-adaptor/entities/metrics-attribute-adaptor.entity';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
-import { DeviceType } from 'src/device-type/entities/device-type.entity';
-import { MetricsAttribute } from 'src/metrics-attribute/entities/metrics-attribute.entity';
-import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
-import { MetricsAttributeAdaptor } from 'src/metrics-attribute-adaptor/entities/metrics-attribute-adaptor.entity';
+// import { Unit } from 'src/unit/entities/unit.entity';
+// import { KEY_SEPARATOR } from '../../../app_config/constants';
 
 @Entity()
 //@Unique(['deviceTypeId', 'metricsAttributeId'])
@@ -56,25 +53,19 @@ export class DeviceTypeMetricsAttribute {
   )
   metricsAttribute: MetricsAttribute;
 
-  @OneToMany(
-    () => MetricsAttributeAdaptor,
-    (attributeAdaptor) => attributeAdaptor.deviceTypeMetricsAttribute,
-  )
-  metricsAttributeAdaptors: MetricsAttributeAdaptor[];
-
   @Column()
   metricsAttributeId: string;
 
-  // @OneToMany(
-  //   () => MetricsAttributeAdaptor,
-  //   (metricsAttributeAdaptor) =>
-  //     metricsAttributeAdaptor.deviceTypeMetricsAttribute,
-  //   {
-  //     nullable: true,
-  //     cascade: true,
-  //   },
-  // )
-  // metricsAttributeAdaptors?: MetricsAttributeAdaptor[];
+  @OneToMany(
+    () => MetricsAttributeAdaptor,
+    (metricsAttributeAdaptor) =>
+      metricsAttributeAdaptor.deviceTypeMetricsAttribute,
+    {
+      nullable: true,
+      cascade: true,
+    },
+  )
+  metricsAttributeAdaptors?: MetricsAttributeAdaptor[];
 
   // @ManyToOne(() => Unit, (unit) => unit.deviceTypeMetricsAttributes, {
   //   nullable: true,

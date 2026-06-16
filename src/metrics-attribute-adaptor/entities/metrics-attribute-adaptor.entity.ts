@@ -16,7 +16,7 @@ import {
 import { DeviceModel } from 'src/device-model/entities/device-model.entity';
 import { AlertType } from 'src/utils/enums';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
-import { DeviceTypeMetricsAttribute } from 'src/Asset Current Performance Source/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
+import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 
 
 @Unique(['dataModelAdaptorId', 'deviceTypeId', 'sourceAttribute'])

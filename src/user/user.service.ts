@@ -20,7 +20,7 @@ import { firstValueFrom } from 'rxjs';
 //   getTokenString,
 //   getTryCatchErrorStr,
 //   throwErrIfSrvcRespFailure,
-// } from 'utils/others';
+// } from 'src/utils/others';
 // import {
 //   CURRENT_PASSWORD_DOES_NOT_MATCH,
 //   DUPLICATE_RECORD,
@@ -43,7 +43,7 @@ import { firstValueFrom } from 'rxjs';
 // import { OrgService } from 'src/org/org.service';
 // import { firstValueFrom } from 'rxjs';
 // import { FindOrgDto } from 'src/org/dto/find-org.dto';
-// import { OrgType } from 'utils/enums';
+// import { OrgType } from 'src/utils/enums';
 // import { UserRole } from 'src/user-role/entities/user-role.entity';
 // import { OrgUser } from 'src/org-user/entities/org-user.entity';
 

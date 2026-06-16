@@ -21,6 +21,7 @@ import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsFrequency } from 'src/common';
 import { Device } from 'src/device/entities/device.entity';
+import { Asset } from 'src/asset/entities/asset.entity';
 
 @Entity()
 //@Unique(['virtualDeviceId', 'metric.metricsAttributeId'])
@@ -98,8 +99,8 @@ export class CurrentTelemetryPayload {
   @Column(() => Metric)
   metric: Metric;
 
-  // @ManyToOne(() => Asset, (asset) => asset.currentTelemetryPayloads)
-  // asset: Asset;
+  @ManyToOne(() => Asset, (asset) => asset.currentTelemetryPayloads)
+  asset: Asset;
 
   @Column(() => AuditDateTime)
   auditAttribute: AuditDateTime;
@@ -107,9 +108,9 @@ export class CurrentTelemetryPayload {
   getKey() {
     /* return `${this.assetId},${this.virtualDeviceId},${this.metric.metricsAttributeId}`; */
     return (
-      // (this.assetId ?? this.asset?.id ?? '') +
-      // KEY_SEPARATOR +
-      //this.virtualDeviceId +
+      (this.assetId ?? this.asset?.id ?? '') +
+      KEY_SEPARATOR +
+      this.virtualDeviceId +
       (this.virtualDeviceId ?? this.virtualDevice?.id ?? '') +
       KEY_SEPARATOR +
       this.metric.metricsAttributeId
@@ -137,6 +138,18 @@ export class CurrentTelemetryPayload {
     } else {
       return !this.hasArrivedCTPLIncreased(arrivedCTPL);
     }
+  }
+
+  getVDKey() {
+    return (
+      (this.assetId ?? this.asset?.id ?? '') +
+      KEY_SEPARATOR +
+      (this.virtualDeviceId ?? this.virtualDevice?.id ?? '')
+    );
+  }
+
+  getAssetVDMetricKey() {
+    return this.getKey();
   }
 
   hasArrivedCTPLIncreased(

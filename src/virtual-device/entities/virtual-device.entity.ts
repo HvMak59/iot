@@ -34,6 +34,7 @@ import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-paylo
 import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
 import { CurrentOpenAlert } from 'src/current-open-alert/entities/current-open-alert.entity';
 import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
+import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
 // import { DeviceType } from 'device-type/entities/device-t/ype.entity';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Alert } from 'alert/entities/alert.entity';
@@ -107,15 +108,15 @@ export class VirtualDevice {
     @Column({ default: 1 })
     displayOrder: number;
 
-    // @OneToMany(
-    //     () => AssetCurrentPerformanceSource,
-    //     (aCPS) => aCPS.virtualDevice,
-    //     {
-    //         nullable: true,
-    //         cascade: true,
-    //     },
-    // )
-    // assetCurrentPerformanceSources?: AssetCurrentPerformanceSource[];
+    @OneToMany(
+        () => AssetCurrentPerformanceSource,
+        (aCPS) => aCPS.virtualDevice,
+        {
+            nullable: true,
+            cascade: true,
+        },
+    )
+    assetCurrentPerformanceSources?: AssetCurrentPerformanceSource[];
 
     @OneToMany(() => CurrentTelemetryPayload, (cTP) => cTP.virtualDevice, {
         nullable: true,

@@ -2,7 +2,7 @@ import { DeviceModel } from 'src/device-model/entities/device-model.entity';
 import { Device } from 'src/device/entities/device.entity';
 // import { Org } from 'src/org/entities/org.entity';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
-// import { EntityState } from 'utils/commonModels/entity_state';
+// import { EntityState } from 'src/utils/commonModels/entity_state';
 
 export class DeviceDto {
   id: string;

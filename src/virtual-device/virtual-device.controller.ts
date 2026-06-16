@@ -18,7 +18,7 @@ import { VirtualDeviceService } from "./virtual-device.service";
 // import { VirtualDeviceService } from './virtual-device.service';
 // import { CreateVirtualDeviceDto } from './dto/create-virtual-device.dto';
 // import { UpdateVirtualDeviceDto } from './dto/update-virtual-device.dto';
-// // import { winstonServerLogger } from 'app_config/serverWinston.config';
+// // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 // import { FindVirtualDeviceDto } from './dto/find-virtual-device.dto';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config (1)';
 // import { UserId } from 'src/utils/req-user-id-decorator';
@@ -26,9 +26,9 @@ import { VirtualDeviceService } from "./virtual-device.service";
 // import { KEY_SEPARATOR, USER_NOT_IN_REQUEST_HEADER } from 'src/app_config/constants';
 // import { AuthService } from 'src/auth/auth.services';
 // // import { Public } from 'src/auth/entities/public_route';
-// // import { UserId } from 'utils/req-user-id.decorator';
-// // import { Token } from 'utils/token.decorator';
-// // import { Relations } from 'utils/enums';
+// // import { UserId } from 'src/utils/req-user-id.decorator';
+// // import { Token } from 'src/utils/token.decorator';
+// // import { Relations } from 'src/utils/enums';
 
 @Controller('virtual-device')
 export class VirtualDeviceController {

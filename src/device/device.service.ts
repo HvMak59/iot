@@ -23,13 +23,13 @@ import {
 import { FindDevicesFromMultipleIDs } from './dto/find-device-from-multiple-IDs.dto';
 import _ from 'lodash';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-// import { Relations } from 'utils/enums';
+// import { Relations } from 'src/utils/enums';
 
 // import { FindVirtualDeviceDto } from 'src/virtual-device/dto/find-virtual-device.dto';
 import { FindAssetDto } from 'src/asset/dto/find-asset.dto';
 import { DeviceDto } from 'src/iot-server/dto/device.dto';
 import { Relations } from 'src/utils/enums';
-import { DeviceTypeMetricsAttribute } from 'src/Asset Current Performance Source/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
+import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { FindOrgDto } from 'src/org/dto/find-org.dto';
 import { FindDeviceModelDto } from 'src/device-model/dto/find-device-model.dto';
 import { FindVirtualDeviceDto } from 'src/virtual-device/dto/find-virtual-device.dto';

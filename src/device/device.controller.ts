@@ -14,7 +14,7 @@ import {
 } from 'src/app_config/constants';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { Public } from 'src/auth/entities/public_route';
-// import { Relations } from 'utils/enums';
+// import { Relations } from 'src/utils/enums';
 // import { UserId } from 'src/utils/req-user-id.decorator';
 import { DeviceService } from './device.service';
 import { CreateDeviceDto } from './dto/create-device.dto';

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { DUPLICATE_RECORD, NO_RECORD } from 'src/app_config/constants';
+import { DUPLICATE_RECORD, KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
 import { AxiosError, AxiosResponse } from 'axios';
 import { ValidationError } from 'class-validator';
 import _ from 'lodash';
@@ -20,6 +20,13 @@ import { Device } from 'src/device/entities/device.entity';
 import { Metric } from 'src/metrics/entities/metric.entity';
 import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-payload.entity';
 import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
+import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
+import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
+import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
+import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+import { TelemetryDevice } from 'src/iot-server/dto/telemetry-device.dto';
+import { TelemetryPayloadV3DTO } from 'src/iot-server/dto/telemetry-payload-v3.dto';
+import { MetricWithDisplayProperty } from 'src/iot-server/dto/metric_with_display_property.dto';
 // import { MetricsFrequency } from 'common';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Metric } from 'metrics/entities/metric.entity';
@@ -312,6 +319,77 @@ export function getMetricDTO(metric: Partial<Metric>) {
   // return metricDto;
 }
 
+const uncommentThis = 4
+export function getTPLV3DTO<
+  T extends CurrentTelemetryPayload | TelemetryPayload,
+>(
+  payloads: T[],
+  //aCPSByKey: _.Dictionary<AssetCurrentPerformanceSource[]>,
+  aCPSByKey: Map<string, AssetCurrentPerformanceSource>,
+  PayloadCtor: new (payload: any) => CurrentTelemetryPayload | TelemetryPayload,
+  dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+) {
+  const logger = winstonServerLogger(getTPLV3DTO.name);
+  const tPLV3DTOs: TelemetryPayloadV3DTO[] = [];
+  /* const cTPLsByPK = _.groupBy(payloads, (ctpl) =>
+    new PayloadCtor(ctpl).getVDKey(),
+  ); */
+  const cTPLsByPK = _.groupBy(payloads, (ctpl) => {
+    return new PayloadCtor(ctpl).getVDKey();
+  });
+  for (const [pK, dTMA] of Object.entries(dTMAByKey)) {
+    logger.debug(
+      `${getTPLV3DTO.name} : dTMAByKey entry : ${pK} : ${JSON.stringify(dTMA)}`,
+    );
+  }
+  //  
+  for (const [pk, cTPLs] of Object.entries(cTPLsByPK)) {
+    const telemetryDevice = TelemetryDevice.createFromTelemetry(cTPLs[0]);
+    const metricsWithDisplayProperty: MetricWithDisplayProperty[] = [];
+    for (const cTPL of cTPLs) {
+      const aCPS = aCPSByKey.get(new PayloadCtor(cTPL).getAssetVDMetricKey());
+      const dTMAKey = `${cTPL.virtualDevice?.deviceTypeId ?? ''
+        }${KEY_SEPARATOR}${cTPL.metric?.metricsAttributeId ?? ''}`;
+      logger.debug(
+        `${getTPLV3DTO.name} : dTMAKey is : ${dTMAKey} for metric ${cTPL.metric?.metricsAttributeId} and deviceTypeId ${cTPL.virtualDevice?.deviceTypeId}`,
+      );
+      logger.debug(
+        `${getTPLV3DTO.name} : dTMAByKey is : ${JSON.stringify(
+          dTMAByKey[dTMAKey],
+        )}`,
+      );
+      //                                                                                                                                                                           
+      const metricWithDisplayProperty = new MetricWithDisplayProperty({
+        metric: cTPL.metric!,
+        telemetryDisplayProperty: {
+          metricsAttributeId:
+            cTPL.metric?.metricsAttributeId ??
+            aCPS?.assetTypeCurrentPerformanceSource.label ??
+            '',
+          frequency: cTPL.metric?.frequency ?? MetricsFrequency.INSTANT,
+          displayName:
+            aCPS?.assetTypeCurrentPerformanceSource.label ??
+            cTPL.metric?.metricsAttributeId ??
+            '', //currTelemetryPayloadObj.metric.metricsAttributeId,
+          displayPriority:
+            aCPS?.assetTypeCurrentPerformanceSource.displayPriority,
+          displayOrder:
+            dTMAByKey[dTMAKey]?.[0]?.displayOrder ??
+            aCPS?.assetTypeCurrentPerformanceSource.displayOrder,
+          unit: cTPL.metric?.unit,
+        },
+      });
+      metricsWithDisplayProperty.push(metricWithDisplayProperty);
+    }
+    tPLV3DTOs.push(
+      new TelemetryPayloadV3DTO({
+        telemetryDevice,
+        metricsWithDisplayProperties: metricsWithDisplayProperty,
+      }),
+    );
+  }
+  return tPLV3DTOs;
+}
 
 export function getDeviceID(device: Device) {
   return device.id;

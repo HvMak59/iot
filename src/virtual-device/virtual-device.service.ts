@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-// import { winstonServerLogger } from 'app_config/serverWinston.config';
+// import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { In, Repository, TreeRepository } from 'typeorm';
 // import {
 //   deleteRec,
 //   findAll,
 //   restore,
 //   softDelete,
-// } from 'utils/cmnFn.repository';
+// } from 'src/utils/cmnFn.repository';
 // import { CreateVirtualDeviceDto } from './dto/create-virtual-device.dto';
 import { FindVirtualDeviceDto } from './dto/find-virtual-device.dto';
 // import { UpdateVirtualDeviceDto } from './dto/update-virtual-device.dto';
@@ -21,10 +21,10 @@ import * as _ from 'lodash';
 //   NO_RECORD,
 //   UPDATE_VIRTUAL_DEVICE_GROUP_FROM_VIRTUAL_DEVICE_URL,
 //   VIRTUAL_DEVICE_GROUP_URL,
-// } from 'app_config/constants';
+// } from 'src/app_config/constants';
 // import { DUPLICATE_RECORD, KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
 import { HttpService } from '@nestjs/axios';
-// import { getTokenString, throwErrIfSrvcRespFailure } from 'utils/others';
+// import { getTokenString, throwErrIfSrvcRespFailure } from 'src/utils/others';
 import { firstValueFrom } from 'rxjs';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config (1)';
 import { Device } from 'src/device/entities/device.entity';
@@ -44,7 +44,7 @@ import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/
 // import { Device } from 'src/device/entities/device.entity';
 // import { DeviceModel } from 'src/device-model/entities/device-model.entity';
 // import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
-// import { Relations } from 'utils/enums';
+// import { Relations } from 'src/utils/enums';
 
 
 @Injectable()

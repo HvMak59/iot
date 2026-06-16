@@ -16,7 +16,7 @@ import {
 //   USER_NOT_IN_REQUEST_HEADER,
 // } from 'src/app_config/constants';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-// import { getTryCatchErrorStr } from 'utils/others';
+// import { getTryCatchErrorStr } from 'src/utils/others';
 // import { UserId } from 'src/utils/req-user-id.decorator';
 import { AlertService } from './alert.service';
 import { CreateAlertDto } from './dto/create-alert.dto';
@@ -28,7 +28,7 @@ import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { UserId } from 'src/utils/req-user-id.decorator';
 import { KEY_SEPARATOR, USER_NOT_IN_REQUEST_HEADER } from 'src/app_config/constants';
 import { getTryCatchErrorStr } from 'src/utils/others';
-// import { UserId } from 'utils/req-user-id-decorator';
+// import { UserId } from 'src/utils/req-user-id-decorator';
 
 @Controller('alert')
 export class AlertController {

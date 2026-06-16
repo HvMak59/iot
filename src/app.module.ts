@@ -24,7 +24,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { MetricsAttributeModule } from './metrics-attribute/metrics-attribute.module';
 import { UserModule } from './user/user.module';
 import { UserRoleModule } from './user-role/user-role.module';
-import { DeviceTypeMetricsAttributeModule } from './Asset Current Performance Source/device-type-metrics-attribute/device-type-metrics-attribute.module';
+// import { DeviceTypeMetricsAttributeModule } from './Asset Current Performance Source/device-type-metrics-attribute/device-type-metrics-attribute.module';
 import { AssetModule } from './asset/asset.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { IotServerModule } from './iot-server/iot-server.module';
@@ -44,6 +44,9 @@ import { VirtualDeviceGroupModule } from './virtual-device-group/virtual-device-
 import { FcmModule } from './fcm/fcm.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { SseModule } from './sse/sse.module';
+import { DeviceTypeMetricsAttributeModule } from './device-type-metrics-attribute/device-type-metrics-attribute.module';
+import { AssetCurrentPerformanceSourceModule } from './asset-current-performance-source/asset-current-performance-source.module';
+import { AssetTypeCurrentPerformanceSourceModule } from './asset-type-current-performance-source/asset-type-current-performance-source.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -119,7 +122,10 @@ import { SseModule } from './sse/sse.module';
     VirtualDeviceGroupModule,
     FcmModule,
     FirebaseModule,
-    SseModule
+    SseModule,
+
+    AssetCurrentPerformanceSourceModule,
+    AssetTypeCurrentPerformanceSourceModule
   ],
   // providers: [
   //   {
@@ -220,6 +226,7 @@ export class AppModule { }
 
 // Election : 
 // EPIC : NHJ2231512
+// S06023G8C1206261200012
 
 
 // 1 - ivt,invt
@@ -733,3 +740,26 @@ export class AppModule { }
 
 
 
+
+// su-prabhat good morning.... ghana time thi content nakhvno plan bnavi ryo to aaj nakhu 
+// kal nakhu karta karta 2 year thai gya pan have lage chhe jo even whole week ma 1 vdo post 
+// karyo hot to y ghana bdha thai jot ...so dwarkadhish nu name lai ne vlog start kri nakhie..
+// so ame loko savare 4 vage mehsana thi nikdya ta mehsana-ahmd-rjkot-jmngr and last ma dwarka
+// we apde 11 vgya nu checkin htu to chekcck in kari lidhu....now chakachk room hta ...lemme show you 
+// pachi hotel this 36 km dur nageshwar mahadev nu mandir che tya java nikdya....tya sara eva darshan 
+// kri ne we went towards ruxmani temple ....etlo mst mahol hato....now journey begins to dwarika
+// mandir....tya video shooting allowed nathi so....9.30 sudhi j darshan allowed che ena thi late 
+// na javu....one more thing...according to my personal experience nana badako lai ne jvu avoid krvu
+// next day moring we went to sudarshan setu.....bhai kharekh jbbr jas mahol hto ahiya .... aa to must
+// visit spot che 
+ 
+
+
+
+// TelemetryPayloadV3DTO 'src/iot-server/dto/telemetry-payload-v3.dto';
+// MetricWithDisplayProperty  dto  'src/iot-server/dto/metric_with_display_property.dto';
+
+
+
+
+// https://pmaymis.gov.in/PMAYMIS2_2024/PMAY_SURVEY/EligiblityCheck.aspx

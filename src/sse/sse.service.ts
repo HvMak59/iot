@@ -198,29 +198,13 @@
 
 
 
-import {
-    Injectable,
-    MessageEvent,
-} from '@nestjs/common';
-
-import {
-    Subject,
-    Observable,
-    from,
-    concat,
-} from 'rxjs';
-
-import {
-    filter,
-    map,
-    finalize,
-} from 'rxjs/operators';
-import { KEY_SEPARATOR } from 'src/app_config/constants';
+import { Injectable, MessageEvent } from '@nestjs/common';
+import { Subject, Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
 import { TelemetryDevice } from 'src/iot-server/dto/telemetry-device.dto';
 import { FindTelemetryPayloadForAPeriod } from 'src/telemetry-payload/dto/find-telemetry-payload-for-a-period.dto';
-import { TelemetryPayload } from 'src/telemetry-payload/entities/telemetry-payload.entity';
 import { TelemetryPayloadService } from 'src/telemetry-payload/telemetry-payload.service';
 import { getMetricDTO } from 'src/utils/others';
 
@@ -228,19 +212,11 @@ import { getMetricDTO } from 'src/utils/others';
 export class SseService {
 
     private readonly logger = winstonServerLogger(SseService.name);
-
     private readonly streams = new Map<string, Subject<MessageEvent>>();
 
     constructor(
         private readonly telemetryPayloadService: TelemetryPayloadService,
     ) { }
-
-    // subscribe(
-    //     virtualDeviceId: string,
-    //     metricsAttributeId: string,
-    //     startTime?: number,
-    //     endTime?: number,
-    // ): Observable<MessageEvent> {
 
     subscribe(virtualDeviceId: string): Observable<MessageEvent> {
 
@@ -261,12 +237,10 @@ export class SseService {
 
                 if (!stream!.observed) {
                     this.streams.delete(virtualDeviceId);
-
                     this.logger.debug(`Removed stream: ${virtualDeviceId}`);
                 }
             }),
         );
-
         // if (startTime !== undefined && endTime !== undefined) {
         //     const history = from(
         //         this.fetchHistory(
@@ -342,14 +316,10 @@ export class SseService {
 
         const message = this.buildDto(payloads)
 
-        stream.next(
-            // this.buildDto(payloads)
-            message
-        );
+        stream.next(message);
     }
 
     private buildDto(payloads: CurrentTelemetryPayload[]): MessageEvent {
-
         const first = payloads[0];
 
         return {
@@ -361,152 +331,25 @@ export class SseService {
     }
 
 
-    private fetchHistory(
-        virtualDeviceId: string,
-        metricsAttributeId: string,
-        startTime: number,
-        endTime: number,
-    ) {
-
-        const dto = new FindTelemetryPayloadForAPeriod({
-            virtualDeviceId,
-            metricsAttributeId,
-            startTime,
-            endTime,
-        });
-
-        return this.telemetryPayloadService.findForATimePeriod(dto);
-    }
 }
 
 
-// [
-//     {
-// "telemetryDevice": {
-//     "assetId": "Super Specialist Technocrats LLP",
-//     "virtualDeviceId": "Super Specialist Technocrats LLP:SST Inverters",
-//     "id": null,
-//     "name": "SST Inverters",
-//     "displayNumber": 1
-// },
-// "metricsWithDisplayProperties": [
-//     {
-//         "metric": {
-//             "metricsAttributeId": "L2_Phase_Current",
-//             "measure": "0",
-//             "unit": "A",
-//             "frequency": 0,
-//             "txnCaptureTime": 1779125417000,
-//             "txnCapturePeriod": 1779125417000
-//         },
-//         "telemetryDisplayProperty": {
-//             "metricsAttributeId": "L2_Phase_Current",
-//             "frequency": 0,
-//             "displayName": "L2 phase current",
-//             "displayPriority": 1,
-//             "displayOrder": 16,
-//             "unit": "A"
-//         }
-//     },
-//   ]
 
 
-const idk = 8;
-// publish(virtualDeviceId: string, payloads: CurrentTelemetryPayload[]) {
-//     console.log("in publish");
-//     const groupedByMetric = new Map<string, CurrentTelemetryPayload[]>();
 
-//     for (const payload of payloads) {
-//         const metricId = payload.metric?.metricsAttributeId;
-//         if (!metricId) continue;
-
-//         if (!groupedByMetric.has(metricId)) {
-//             groupedByMetric.set(metricId, []);
-//         }
-//         groupedByMetric.get(metricId)!.push(payload);
-//     }
-
-//     for (const [metricsAttributeId, metricPayloads] of groupedByMetric.entries()) {
-//         // console.log('publishing', virtualDeviceId, metricsAttributeId, payloads);
-//         this.eventBus.next({ virtualDeviceId, metricsAttributeId, payloads: metricPayloads });
-//     }
-// }
-
-// subscribe(
+// private fetchHistory(
 //     virtualDeviceId: string,
 //     metricsAttributeId: string,
-//     startTime?: number,
-//     endTime?: number,
+//     startTime: number,
+//     endTime: number,
 // ) {
-//     console.log('sse service');
-//     const liveStream = this.eventBus.pipe(
-//         filter(e =>
-//             e.virtualDeviceId === virtualDeviceId &&
-//             e.metricsAttributeId === metricsAttributeId
-//         ),
-//         map(e => this.toSseEvent('LIVE', metricsAttributeId, e.payloads)),
-//     );
 
-//     if (startTime !== undefined && endTime !== undefined) {
-//         const history = from(
-//             this.fetchHistory(virtualDeviceId, metricsAttributeId, startTime, endTime)
-//         ).pipe(
-//             mergeMap(history => {
-//                 if (!history.length) return EMPTY;
-//                 return [this.toSseEvent('HISTORY', metricsAttributeId, history)];
-//             })
-//         )
-//         // concat instead of manual nested subscribe — emits history fully, then live
-//         return concat(history, liveStream);
-//     }
+//     const dto = new FindTelemetryPayloadForAPeriod({
+//         virtualDeviceId,
+//         metricsAttributeId,
+//         startTime,
+//         endTime,
+//     });
 
-//     return liveStream;
+//     return this.telemetryPayloadService.findForATimePeriod(dto);
 // }
-
-const withMergeMap = 4;
-// const history = from(
-// this.fetchHistory(
-//     virtualDeviceId,
-//     metricsAttributeId,
-//     startTime,
-//     endTime,
-// ),
-// ).pipe(
-//     mergeMap(history => {
-
-//         if (!history.length) {
-//             return EMPTY;
-//         }
-
-//         return [
-//             this.toSseEvent(
-//                 'HISTORY',
-//                 metricsAttributeId,
-//                 history,
-//             ),
-//         ];
-//     }),
-// );
-
-const withMap = 3;
-// const history = from(
-// this.fetchHistory(
-//     virtualDeviceId,
-//     metricsAttributeId,
-//     startTime,
-//     endTime,
-// ),
-// ).pipe(
-//     // filter(history => history.length > 0),
-//     map(history =>
-//         this.toSseEvent(
-//             'HISTORY',
-//             metricsAttributeId,
-//             history,
-//         ),
-//     ),
-// );
-
-
-
-

@@ -3,14 +3,14 @@ import { PartialType } from '@nestjs/mapped-types';
 // import { AlertMaster } from 'src/alert-master/entities/alert-master.entity';
 // import { DeviceModelAlert } from 'src/device-model-alert/entities/device-model-alert.entity';
 // import { Device } from 'src/device/entities/device.entity';
-// import { AlertType, DeviceModelAlertFindMethod } from 'utils/enums';
+// import { AlertType, DeviceModelAlertFindMethod } from 'src/utils/enums';
 
 import { Alert } from '../entities/alert.entity';
 import { InputAlertDto } from './input-alert.dto';
 import { InputAlert2Dto } from './input-alert2.dto';
 import { AlertMaster } from 'src/alert-master/entities/alert-master.entity';
 // import { DeviceModelAlert } from 'device-model-alert/entities/device-model-alert.entity';
-// import { AlertType } from 'utils/enums';
+// import { AlertType } from 'src/utils/enums';
 // import { AlertMaster } from 'alert-master/entities/alert-master.entity';
 
 export class CreateAlertDto extends PartialType(Alert) {

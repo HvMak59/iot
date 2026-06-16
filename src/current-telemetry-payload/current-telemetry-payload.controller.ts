@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 // import { Public } from 'src/auth/entities/public_route';
-// import { getTryCatchErrorStr } from 'utils/others';
+// import { getTryCatchErrorStr } from 'src/utils/others';
 import { CurrentTelemetryPayloadService } from './current-telemetry-payload.service';
 import { CreateCurrentTelemetryDto } from './dto/create-current-telemetry.dto';
 import { FindCurrentTelemetryForAPeriod } from './dto/find-current-telemetry-for-a-period.dto';

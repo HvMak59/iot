@@ -1,4 +1,6 @@
-import { MetricsFrequency } from 'src/utils/enums';
+// import { MetricsFrequency } from 'src/utils/enums';
+
+import { MetricsFrequency } from 'src/common';
 
 /* export class TelemetryDisplayProperty extends PickType(AssetTypeCurrentPerformanceSource, ['measureLabel', 'measureGroup', 'measureGroupDispOrder', 'measureItemDispOrder']) {
     constructor(telemetryDisplayProperty: Partial<AssetCurrentPerformanceSource>) {

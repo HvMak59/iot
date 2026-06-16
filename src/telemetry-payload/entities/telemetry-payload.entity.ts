@@ -13,6 +13,7 @@ import { KEY_SEPARATOR, SEPARATOR } from 'src/app_config/constants';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { Metric } from 'src/metrics/entities/metric.entity';
+import { Asset } from 'src/asset/entities/asset.entity';
 
 // @Entity()
 // @Index(
@@ -59,6 +60,9 @@ export class TelemetryPayload {
   @Column('uuid')
   telemetryHeaderId: string;
 
+  @ManyToOne(() => Asset, (asset) => asset.currentTelemetryPayloads)
+  asset: Asset;
+
   @Column()
   assetId: string;
 
@@ -101,6 +105,18 @@ export class TelemetryPayload {
   getAttributeKeyIncl10thMin() {
     const metricDt = new Date(this.metric.txnCaptureTime);
     return this.getAttributeKey() + KEY_SEPARATOR + metricDt.getHours() + KEY_SEPARATOR + (metricDt.getMinutes() / 10).toFixed(0);
+  }
+
+  getVDKey() {
+    return (
+      (this.assetId ?? this.asset?.id ?? '') +
+      KEY_SEPARATOR +
+      (this.virtualDeviceId ?? this.virtualDevice?.id ?? '')
+    );
+  }
+
+  getAssetVDMetricKey() {
+    return this.getKey();
   }
 
   getTelemetryKey() {

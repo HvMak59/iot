@@ -53,7 +53,7 @@ import { ParentAggregationResult } from './interface/parent-aggregation-result.i
 // import { FindAlertDto } from 'alert/dto/find-alert.dto';
 // import { InputAlertDto } from 'alert/dto/input-alert.dto';
 // import { CreateAlertDto } from 'alert/dto/create-alert.dto';
-// import { getTokenString } from 'utils/others';
+// import { getTokenString } from 'src/utils/others';
 // import { DeviceModel } from 'device-model/entities/device-model.entity';
 // import { FindDeviceModelAlertByMultipleIDs } from 'device-model-alert/dto/find-device-model-alert-byMultipleIDs.dto';
 // import { AlertMaster } from 'alert-master/entities/alert-master.entity';

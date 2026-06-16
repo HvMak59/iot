@@ -26,7 +26,7 @@ import { FindDevicesFromMultipleIDs } from 'src/device/dto/find-device-from-mult
 import { Public } from 'src/auth/entities/public_route';
 import { InputAlertDto } from 'src/alert/dto/input-alert.dto';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
-// import { Token } from 'utils/token.decorator';
+// import { Token } from 'src/utils/token.decorator';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { Token } from 'src/utils/token.decorator';

@@ -1,4 +1,4 @@
-// import { PartialType } from '@nestjs/swagger';
+// import { PartialType } from '@nestjs/mapped-types';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateVirtualDeviceGroupDto } from './create-virtual-device-group.dto';
 

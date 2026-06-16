@@ -13,7 +13,7 @@ import { DeviceModel } from '../../device-model/entities/device-model.entity';
 import { VirtualDevice } from '../../virtual-device/entities/virtual-device.entity';
 // import { NoCommaValidator } from '../../../utils/no-comma.validator';
 import { Validate } from 'class-validator';
-import { DeviceTypeMetricsAttribute } from 'src/Asset Current Performance Source/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
+import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsAttributeAdaptor } from 'src/metrics-attribute-adaptor/entities/metrics-attribute-adaptor.entity';
 // import { KEY_SEPARATOR }from 'src/app_config/constants';

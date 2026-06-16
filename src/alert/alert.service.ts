@@ -17,7 +17,7 @@ import {
   Not,
   Repository,
 } from 'typeorm';
-// import { deleteRec, restore, softDelete } from 'utils/cmnFn.repository';
+// import { deleteRec, restore, softDelete } from 'src/utils/cmnFn.repository';
 import _ from 'lodash';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 // import { FindAssetDto } from 'src/asset/dto/find-asset.dto';

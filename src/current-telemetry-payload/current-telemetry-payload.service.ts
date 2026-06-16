@@ -20,7 +20,7 @@ import { FindCurrentTelemetryDto } from './dto/find-current-telemetry.dto';
 //   hasPeriodTelemetryIncreased,
 //   hasPeriodTelemetryNotIncreased,
 //   isPeriodTelemetry,
-// } from 'utils/others';
+// } from 'src/utils/others';
 import { FindCurrentTelemetryForAPeriod } from './dto/find-current-telemetry-for-a-period.dto';
 // import _ from 'lodash';
 import { FindCurrentTelemetryPayloadsByMultipleIDs } from './dto/find-current-telemetry-payloads-byMultipleIDs.dto';
@@ -877,15 +877,15 @@ export class CurrentTelemetryPayloadService {
   //     return result;
   //   }
 
-  //   findByMultipleConditions(searchCriteria: FindCurrentTelemetryDto[]) {
-  //     const fnName = this.findByMultipleConditions.name;
-  //     this.logger.debug(`${fnName} : Start`);
-  //     this.logger.debug(`Input : No of conditions : ${searchCriteria.length}`);
-  //     const result = this.repo.find({
-  //       where: searchCriteria,
-  //     });
-  //     return result;
-  //   }
+  findByMultipleConditions(searchCriteria: FindCurrentTelemetryDto[]) {
+    const fnName = this.findByMultipleConditions.name;
+    this.logger.debug(`${fnName} : Start`);
+    this.logger.debug(`Input : No of conditions : ${searchCriteria.length}`);
+    const result = this.repo.find({
+      where: searchCriteria,
+    });
+    return result;
+  }
 
   //   async findWithInGivenTimeRange(
   //     assetId: string,
