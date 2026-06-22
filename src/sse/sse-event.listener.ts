@@ -5,6 +5,13 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { CurrentTelemetryPayload } from "../current-telemetry-payload/entities/current-telemetry-payload.entity";
 import { KEY_SEPARATOR } from "src/app_config/constants";
 import { winstonServerLogger } from "src/app_config/serverWinston.config";
+import { AssetCurrentPerformanceSourceService } from "src/asset-current-performance-source/asset-current-performance-source.service";
+import { AssetCurrentPerformanceSource } from "src/asset-current-performance-source/entities/asset-current-performance-source.entity";
+import { DeviceTypeMetricsAttribute } from "src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity";
+import { DeviceTypeMetricsAttributeService } from "src/device-type-metrics-attribute/device-type-metrics-attribute.service";
+import { getTPLV3DTO } from "src/utils/others";
+import _ from "lodash";
+import { AssetCurrentPerformanceSourceRepo } from "src/asset-current-performance-source/entities/asset-current-performance-source-repo.entity";
 
 @Injectable()
 export class TelemetryEventsListener {
@@ -12,40 +19,174 @@ export class TelemetryEventsListener {
     private readonly logger = winstonServerLogger(TelemetryEventsListener.name);
 
     constructor(
-        private readonly telemetrySseService: SseService,  // ← swapped
+        private readonly telemetrySseService: SseService,
+        private readonly aCPSService: AssetCurrentPerformanceSourceService,
         private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
+        private readonly deviceTypeMetricsAttributeService: DeviceTypeMetricsAttributeService,
     ) { }
+
+    // @OnEvent('telemetry.inserted')
+    // async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
+    //     console.log("listener");
+    //     if (!payloads || payloads.length === 0) return;
+
+    //     const currentTeleMPylds = await this.currentTelemetryPayloadService.findByIds(payloads.map(s => s.id));
+
+    //     const groupedByVd = new Map<string, CurrentTelemetryPayload[]>();
+
+    //     for (const payload of currentTeleMPylds) {
+    //         const vd = payload.virtualDeviceId;
+
+    //         if (!vd) {
+    //             this.logger.error(`virtualDevice missing`);
+    //             continue;
+    //         }
+    //         const key = vd;
+
+    //         if (!groupedByVd.has(key)) {
+    //             groupedByVd.set(key, []);
+    //         }
+
+    //         groupedByVd.get(key)!.push(payload);
+    //     }
+
+    //     for (const [virtualDeviceId, devicePayloads] of groupedByVd.entries()) {
+    //         console.log("Calling sse");
+    //         this.telemetrySseService.publish(virtualDeviceId, devicePayloads);
+    //     }
+    // }
+
 
     @OnEvent('telemetry.inserted')
     async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
-        console.log("listener");
+        const fnName = this.handleTelemetryInserted.name;
         if (!payloads || payloads.length === 0) return;
 
-        const currentTeleMPylds = await this.currentTelemetryPayloadService.findByIds(payloads.map(s => s.id));
+        const assetIds = _.uniq(payloads.map(p => p.assetId).filter(Boolean));
 
-        const groupedByVd = new Map<string, CurrentTelemetryPayload[]>();
+        console.log(assetIds);
+        for (const assetId of assetIds) {
+            const aCPSs = await this.aCPSService.findByAssetID(assetId!);
+            console.log(aCPSs)
 
-        for (const payload of currentTeleMPylds) {
-            const vd = payload.virtualDeviceId;
-
-            if (!vd) {
-                this.logger.error(`virtualDevice missing`);
+            if (_.isNil(aCPSs) || aCPSs.length === 0) {
+                this.logger.warn(`${fnName} No ACPS found for asset ${assetId}, skipping`);
                 continue;
             }
-            const key = vd;
 
-            if (!groupedByVd.has(key)) {
-                groupedByVd.set(key, []);
+            this.logger.debug(`${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`);
+
+            const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+            const deviceTypeIDSet = new Set<string>();
+
+            for (const aCPS of aCPSs) {
+                const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+                aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+                if (aCPSObj.virtualDevice?.deviceTypeId) {
+                    deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+                }
             }
 
-            groupedByVd.get(key)!.push(payload);
-        }
+            let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
+            if (deviceTypeIDSet.size > 0) {
+                dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+                    { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
+                    false,
+                    true,
+                );
+            }
+            const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+            const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+            const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
 
-        for (const [virtualDeviceId, devicePayloads] of groupedByVd.entries()) {
-            console.log("Calling sse");
-            this.telemetrySseService.publish(virtualDeviceId, devicePayloads);
+            const message = {
+                data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
+            };
+
+            this.telemetrySseService.publish(assetId!, message);
         }
     }
+
+
+    private wokring = '18/06';
+    // @OnEvent('telemetry.inserted')
+    // async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
+    //     console.log("listener");
+    //     const fnName = this.handleTelemetryInserted.name;
+    //     if (!payloads || payloads.length === 0) return;
+
+    //     const currentTeleMPylds = await this.currentTelemetryPayloadService.findByIds(
+    //         payloads.map(s => s.id)
+    //     );
+
+    //     // const groupedByAsset = new Map<string, CurrentTelemetryPayload[]>();
+
+    //     // for (const payload of currentTeleMPylds) {
+    //     //     const assetId = payload.assetId;
+
+    //     //     if (!assetId) {
+    //     //         this.logger.error(`assetId missing on payload ${payload.id}`);
+    //     //         continue;
+    //     //     }
+
+    //     //     if (!groupedByAsset.has(assetId)) {
+    //     //         groupedByAsset.set(assetId, []);
+    //     //     }
+
+    //     //     groupedByAsset.get(assetId)!.push(payload);
+    //     // }
+
+    //     const groupedByAsset = _.groupBy(currentTeleMPylds, (payload) => payload.assetId);
+
+    //     for (const [assetId, assetPayloads] of Object.entries(groupedByAsset)) {
+    //         const aCPSs = await this.aCPSService.findByAssetID(assetId);
+
+    //         if (_.isNil(aCPSs)) {
+    //             this.logger.warn(
+    //                 `${fnName} No ACPS found for asset ${assetId}, skipping sending CTPL`,
+    //             );
+    //             continue;
+    //         }
+    //         else {
+    //             this.logger.debug(
+    //                 `${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`,
+    //             );
+
+    //             const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+    //             const deviceTypeIDSet = new Set<string>();
+
+    //             for (const aCPS of aCPSs) {
+    //                 const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+    //                 aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+    //                 if (aCPSObj.virtualDevice?.deviceTypeId) {
+    //                     deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+    //                 }
+    //             }
+
+    //             let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
+    //             if (deviceTypeIDSet.size > 0) {
+    //                 dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+    //                     {
+    //                         csvDeviceTypeIDs: [...deviceTypeIDSet].join(',')
+    //                     },
+    //                     false,
+    //                     true,
+    //                 );
+    //             }
+
+    //             const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+    //             const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+    //             const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
+
+    //             const message = {
+    //                 data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
+    //             };
+
+
+    //             this.telemetrySseService.publish(assetId, message);
+    //         }
+    //     }
+    // }
 }
 
 

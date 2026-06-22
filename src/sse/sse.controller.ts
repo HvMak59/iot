@@ -8,7 +8,8 @@ export class SseController {
 
     @Sse('stream')
     stream(
-        @Query('virtualDeviceId') virtualDeviceId: string,
+        // @Query('virtualDeviceId') virtualDeviceId: string,
+        @Query('assetId') assetId: string,
         // @Query('metricsAttributeId') metricsAttributeId: string,
         // @Query('startTime') startTime?: string,
         // @Query('endTime') endTime?: string,
@@ -16,7 +17,7 @@ export class SseController {
         console.log('sse controller');
 
         return this.sseService.subscribe(
-            virtualDeviceId,
+            assetId,
             // metricsAttributeId,
             // startTime ? Number(startTime) : undefined,
             // endTime ? Number(endTime) : undefined,
@@ -25,6 +26,11 @@ export class SseController {
 
     @Post('publish')
     publish() {
-        this.sseService.publish("Lift:vd", []);
+        // this.sseService.publish("Lift:vd", []);
+    }
+
+    @Post('handle')
+    handleEvent(@Query('assetId') assetId: string) {
+        // return this.sseService.handleTelemetryInserted(assetId);
     }
 }

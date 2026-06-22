@@ -720,6 +720,8 @@ export class AppModule { }
 // curl -N "http://localhost:3002/sse/stream?virtualDeviceId=Lift:vd&metricsAttributeId=floor"
 // curl -N "http://localhost:3002/sse/stream?virtualDeviceId=Lift:vd&metricsAttributeId=floor&startTime=1777314600000&endTime=1780597800000"
 // curl -N "http://localhost:3002/sse/stream?virtualDeviceId=ChitraFilterPlant:ChitraWS1&metricsAttributeId=SolarIrradiance"
+// new one 
+// curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant"
 
 
 
@@ -751,7 +753,8 @@ export class AppModule { }
 // mandir....tya video shooting allowed nathi so....9.30 sudhi j darshan allowed che ena thi late 
 // na javu....one more thing...according to my personal experience nana badako lai ne jvu avoid krvu
 // next day moring we went to sudarshan setu.....bhai kharekh jbbr jas mahol hto ahiya .... aa to must
-// visit spot che 
+// visit spot che shivraj pur beach javanu htu but bandh htu to e experience rai gyo...and then we 
+// went back. 
  
 
 
@@ -763,3 +766,80 @@ export class AppModule { }
 
 
 // https://pmaymis.gov.in/PMAYMIS2_2024/PMAY_SURVEY/EligiblityCheck.aspx
+
+
+// theversatilegurl__
+
+
+// Claude insta :
+// You are a content strategist for my Instagram account @[YOUR_INSTAGRAM_HANDLE]. Before giving any strategy, open my Instagram profile tab and analyze the following:
+
+
+// My last 12 posts (format, topic, estimated engagement)
+
+// Which content styles I use most (Reels vs Carousels vs Static)
+
+// Recurring themes and hooks I already use
+
+// What seems to be working vs underperforming
+
+// My current bio and how well it converts
+
+// Once you have analyzed my profile, use that data to inform everything below. Do not give generic advice every recommendation must be based on what you actually see on my profile.
+
+// My profile context:
+
+// [YOUR AGE]-year-old [FOUNDER / FREELANCER / CREATOR / EMPLOYEE pick one]
+
+// Content niche: [YOUR NICHE e.g. fitness, coding, finance, travel]
+
+// - Target audience: [WHO YOU WANT TO REACH - e.g. beginner developers, gym beginners, startup founders]
+
+// [ANY OTHER PLATFORM OR COMMUNITY - e.g. I also run a newsletter / YouTube / Discord]
+
+// - Current follower count: [X]
+
+// My goals:
+
+// - [GOAL 1 - e.g. grow followers in my niche
+
+// [GOAL 2 - e.g. drive leads for my service/ product]
+
+// [GOAL 3 e.g. grow my community/ newsletter]
+
+// [GOAL 4 e.g. build personal brand around X]
+
+// Now give me:
+
+// **Step 1 - Profile Audit**
+
+// Based on what you see: what's working, what's not, and 3 quick fixes for my bio/ highlights/profile.
+
+// *Step 2 - Content Pillars**
+
+// 1)
+
+// 4-5 pillars with % of weekly distribution and goal of each (attract / nurture / convert / authority). Based on my existing content gaps.
+
+// **Step 3 – Weekly Format Mix**
+
+// Ideal Reels vs Carousels vs Stories vs Posts breakdown per week based on what already performs for me.
+
+// **Step 4 – 1-Week Content Calendar**
+
+// 7 post ideas with: title, format, opening hook (first 3 seconds for Reels or first slide for carousels), and CTA. Make hooks scroll- stopping for [YOUR AUDIENCE].
+
+// **Step 5 - 5 Viral Hook Templates**
+
+// Adapted to [YOUR NICHE] content. Based on hook styles that already work on my page.
+
+// ****Step 6 - Conversion Funnel**
+
+// How my content should flow from cold audience → [YOUR END GOAL e.g. newsletter subscriber / client inquiry / community member].
+
+// **Step 7
+
+// 3 Weekly KPIs**
+
+// Metrics I should track every week to measure
+

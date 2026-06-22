@@ -199,14 +199,21 @@
 
 
 import { Injectable, MessageEvent } from '@nestjs/common';
+import _ from 'lodash';
 import { Subject, Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+import { AssetCurrentPerformanceSourceService } from 'src/asset-current-performance-source/asset-current-performance-source.service';
+import { AssetCurrentPerformanceSourceRepo } from 'src/asset-current-performance-source/entities/asset-current-performance-source-repo.entity';
+import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
+import { CurrentTelemetryPayloadService } from 'src/current-telemetry-payload/current-telemetry-payload.service';
 import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
+import { DeviceTypeMetricsAttributeService } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.service';
+import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { TelemetryDevice } from 'src/iot-server/dto/telemetry-device.dto';
 import { FindTelemetryPayloadForAPeriod } from 'src/telemetry-payload/dto/find-telemetry-payload-for-a-period.dto';
 import { TelemetryPayloadService } from 'src/telemetry-payload/telemetry-payload.service';
-import { getMetricDTO } from 'src/utils/others';
+import { getMetricDTO, getTPLV3DTO } from 'src/utils/others';
 
 @Injectable()
 export class SseService {
@@ -216,28 +223,32 @@ export class SseService {
 
     constructor(
         private readonly telemetryPayloadService: TelemetryPayloadService,
+
+        private readonly aCPSService: AssetCurrentPerformanceSourceService,
+        private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
+        private readonly deviceTypeMetricsAttributeService: DeviceTypeMetricsAttributeService,
     ) { }
+    // 
+    // subscribe(virtualDeviceId: string): Observable<MessageEvent> {
+    subscribe(assetId: string): Observable<MessageEvent> {
 
-    subscribe(virtualDeviceId: string): Observable<MessageEvent> {
-
-        let stream = this.streams.get(virtualDeviceId);
+        let stream = this.streams.get(assetId);
 
         if (!stream) {
             stream = new Subject<MessageEvent>();
-            this.streams.set(virtualDeviceId, stream);
+            this.streams.set(assetId, stream);
         }
 
-        this.logger.debug(`Client subscribed: ${virtualDeviceId}`);
+        this.logger.debug(`Client subscribed: ${assetId}`);
 
-        // const liveStream = stream.pipe(
         return stream.pipe(
             finalize(() => {
 
-                this.logger.debug(`Client disconnected: ${virtualDeviceId}`);
+                this.logger.debug(`Client disconnected: ${assetId}`);
 
                 if (!stream!.observed) {
-                    this.streams.delete(virtualDeviceId);
-                    this.logger.debug(`Removed stream: ${virtualDeviceId}`);
+                    this.streams.delete(assetId);
+                    this.logger.debug(`Removed stream: ${assetId}`);
                 }
             }),
         );
@@ -309,27 +320,119 @@ export class SseService {
     //     }
     // }
 
-    publish(virtualDeviceId: string, payloads: CurrentTelemetryPayload[]) {
-        const stream = this.streams.get(virtualDeviceId);
+    // SSE service - now dead simple
 
-        if (!stream) return;
-
-        const message = this.buildDto(payloads)
-
+    publish(assetId: string, message: MessageEvent) {
+        const stream = this.streams.get(assetId);
+        if (!stream) {
+            this.logger.error('No stream found for assetId:', assetId);
+            return;
+        }
         stream.next(message);
     }
 
-    private buildDto(payloads: CurrentTelemetryPayload[]): MessageEvent {
-        const first = payloads[0];
+    // publish(
+    //     assetId: string,
+    //     payloads: CurrentTelemetryPayload[],
+    //     aCPSByKey: Map<string, AssetCurrentPerformanceSource>,
+    //     dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+    // ) {
+    //     const stream = this.streams.get(assetId);
+    //     if (!stream) return;
 
+    //     const message = this.buildDto(payloads, aCPSByKey, dTMAByKey);
+    //     stream.next(message);
+    // }
+
+    private buildDto(
+        payloads: CurrentTelemetryPayload[],
+        aCPSByKey: Map<string, AssetCurrentPerformanceSource>,
+        dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+    ): MessageEvent {
         return {
-            data: {
-                telemetryDevice: TelemetryDevice.createFromTelemetry(first),
-                metrics: payloads.map(p => getMetricDTO(p.metric)),
-            },
+            data: getTPLV3DTO(payloads, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
         };
     }
 
+    // publish(virtualDeviceId: string, payloads: CurrentTelemetryPayload[]) {
+    //     const stream = this.streams.get(virtualDeviceId);
+
+    //     if (!stream) return;
+
+    //     const message = this.buildDto(payloads)
+
+    //     stream.next(message);
+    // }
+
+    // private buildDto(payloads: CurrentTelemetryPayload[]): MessageEvent {
+    //     const first = payloads[0];
+
+    //     return {
+    //         data: {
+    //             telemetryDevice: TelemetryDevice.createFromTelemetry(first),
+    //             metrics: payloads.map(p => getMetricDTO(p.metric)),
+    //         },
+    //     };
+    // }
+
+    async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
+        // async handleTelemetryInserted(assetId: string) {
+        const fnName = this.handleTelemetryInserted.name;
+
+        if (!payloads || payloads.length === 0) {
+            this.logger.error(`Empty payloads`);
+            return;
+        }
+
+        const assetIds = _.uniq(payloads.map(p => p.assetId).filter(Boolean));
+
+        for (const assetId of assetIds) {
+            const aCPSs = await this.aCPSService.findByAssetID(assetId!);
+            // console.log('assets', aCPSs);
+
+            if (_.isNil(aCPSs) || aCPSs.length === 0) {
+                this.logger.warn(`${fnName} No ACPS found for asset ${assetId}, skipping`);
+                continue;
+            }
+            else {
+                this.logger.debug(`${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`);
+
+                const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+                const deviceTypeIDSet = new Set<string>();
+
+                for (const aCPS of aCPSs) {
+                    const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+                    aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+
+                    if (aCPSObj.virtualDevice?.deviceTypeId) {
+                        deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+                    }
+                }
+                console.log(deviceTypeIDSet.size);
+
+                let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
+                if (deviceTypeIDSet.size > 0) {
+                    dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+                        { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
+                        false,
+                        true,
+                    );
+                }
+
+                console.log("keys", dTMAByKey);
+
+                const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+                const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+                const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
+
+                const message = {
+                    data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
+                };
+
+                this.publish(assetId!, message);
+            }
+        }
+    }
 
 }
 

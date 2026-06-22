@@ -143,6 +143,7 @@ export class DeviceTypeMetricsAttributeService {
       relationsRequired,
       forDisplay,
     );
+    console.log('dtma', dTMAs);
     const dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]> = _.groupBy(
       dTMAs,
       (dTMA) => new DeviceTypeMetricsAttribute(dTMA).getKey(),

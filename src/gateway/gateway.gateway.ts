@@ -227,7 +227,6 @@ export class GatewayGateway implements OnModuleInit {
           true,
         );
       }
-      //  
 
       const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
       const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();

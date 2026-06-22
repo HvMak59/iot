@@ -148,9 +148,8 @@ export class AssetCurrentPerformanceSource {
       metricsAttributeId:
         this.metricsAttributeId ??
         this.metricsAttribute?.id ??
-        // uncomment this 
-        // this.assetTypeCurrentPerformanceSource.metricsAttributeId ??
-        // this.assetTypeCurrentPerformanceSource.metricsAttribute?.id ??
+        this.assetTypeCurrentPerformanceSource.metricsAttributeId ??
+        this.assetTypeCurrentPerformanceSource.metricsAttribute?.id ??
         IsNull(),
     };
     const findCTPLDTO: FindCurrentTelemetryDto = {
