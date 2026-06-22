@@ -8,8 +8,8 @@ export class SseController {
 
     @Sse('stream')
     stream(
-        // @Query('virtualDeviceId') virtualDeviceId: string,
         @Query('assetId') assetId: string,
+        @Query('virtualDeviceId') virtualDeviceId: string,
         // @Query('metricsAttributeId') metricsAttributeId: string,
         // @Query('startTime') startTime?: string,
         // @Query('endTime') endTime?: string,
@@ -18,6 +18,7 @@ export class SseController {
 
         return this.sseService.subscribe(
             assetId,
+            virtualDeviceId,
             // metricsAttributeId,
             // startTime ? Number(startTime) : undefined,
             // endTime ? Number(endTime) : undefined,

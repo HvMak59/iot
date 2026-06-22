@@ -270,9 +270,6 @@ export class AppModule { }
 // → Controller method
 // → Response
 
-// sebi :
-// 1401000207 
-// 717051567
 
 
 // License : 3185254025
@@ -722,6 +719,7 @@ export class AppModule { }
 // curl -N "http://localhost:3002/sse/stream?virtualDeviceId=ChitraFilterPlant:ChitraWS1&metricsAttributeId=SolarIrradiance"
 // new one 
 // curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant"
+// curl -N "http://localhost:3002/sse/stream?assetId=TestAsset"
 
 
 

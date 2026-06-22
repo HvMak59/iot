@@ -228,51 +228,105 @@ export class SseService {
         private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
         private readonly deviceTypeMetricsAttributeService: DeviceTypeMetricsAttributeService,
     ) { }
-    // 
-    // subscribe(virtualDeviceId: string): Observable<MessageEvent> {
-    subscribe(assetId: string): Observable<MessageEvent> {
 
-        let stream = this.streams.get(assetId);
+    private sirDelivered = 4;
+    // subscribe(assetId: string): Observable<MessageEvent> {
 
+    //     let stream = this.streams.get(assetId);
+
+    //     if (!stream) {
+    //         stream = new Subject<MessageEvent>();
+    //         this.streams.set(assetId, stream);
+    //     }
+
+    //     this.logger.debug(`Client subscribed: ${assetId}`);
+
+    //     return stream.pipe(
+    //         finalize(() => {
+
+    //             this.logger.debug(`Client disconnected: ${assetId}`);
+
+    //             if (!stream!.observed) {
+    //                 this.streams.delete(assetId);
+    //                 this.logger.debug(`Removed stream: ${assetId}`);
+    //             }
+    //         }),
+    //     );
+    //     // if (startTime !== undefined && endTime !== undefined) {
+    //     //     const history = from(
+    //     //         this.fetchHistory(
+    //     //             virtualDeviceId,
+    //     //             metricsAttributeId,
+    //     //             startTime,
+    //     //             endTime,
+    //     //         ),
+    //     //     ).pipe(
+    //     //         filter(data => data.length > 0),
+    //     //         map(data =>
+    //     //             this.toSseEvent(
+    //     //                 // 'HISTORY',
+    //     //                 metricsAttributeId,
+    //     //                 data,
+    //     //             ),
+    //     //         ),
+    //     //     );
+    //     //     return concat(history, liveStream);
+    //     // }
+    //     // return liveStream;
+    // }
+
+    subscribe(assetId: string, virtualDeviceId?: string): Observable<MessageEvent> {
+        const key = this.buildKey(assetId, virtualDeviceId);
+
+        let stream = this.streams.get(key);
         if (!stream) {
             stream = new Subject<MessageEvent>();
-            this.streams.set(assetId, stream);
+            this.streams.set(key, stream);
         }
 
-        this.logger.debug(`Client subscribed: ${assetId}`);
+        this.logger.debug(`Client subscribed: ${key}`);
 
         return stream.pipe(
             finalize(() => {
-
-                this.logger.debug(`Client disconnected: ${assetId}`);
-
+                this.logger.debug(`Client disconnected: ${key}`);
                 if (!stream!.observed) {
-                    this.streams.delete(assetId);
-                    this.logger.debug(`Removed stream: ${assetId}`);
+                    this.streams.delete(key);
+                    this.logger.debug(`Removed stream: ${key}`);
                 }
             }),
         );
-        // if (startTime !== undefined && endTime !== undefined) {
-        //     const history = from(
-        //         this.fetchHistory(
-        //             virtualDeviceId,
-        //             metricsAttributeId,
-        //             startTime,
-        //             endTime,
-        //         ),
-        //     ).pipe(
-        //         filter(data => data.length > 0),
-        //         map(data =>
-        //             this.toSseEvent(
-        //                 // 'HISTORY',
-        //                 metricsAttributeId,
-        //                 data,
-        //             ),
-        //         ),
-        //     );
-        //     return concat(history, liveStream);
-        // }
-        // return liveStream;
+    }
+
+    publish(assetId: string, message: MessageEvent, virtualDeviceId?: string) {
+        // always try publishing to the specific assetId+vdId stream
+        if (virtualDeviceId) {
+            const specificKey = this.buildKey(assetId, virtualDeviceId);
+            const specificStream = this.streams.get(specificKey);
+            if (specificStream) {
+                this.logger.debug(`Publishing to specific stream: ${specificKey}`);
+                specificStream.next(message);
+            }
+            else {
+                this.logger.error(`No stream found for this virtualDevice ${virtualDeviceId}`);
+            }
+        }
+
+
+        // always try publishing to the broad assetId-only stream
+        const broadKey = this.buildKey(assetId);
+        const broadStream = this.streams.get(broadKey);
+        if (broadStream) {
+            this.logger.debug(`Publishing to broad stream: ${broadKey}`);
+            broadStream.next(message);
+        }
+
+        if (!virtualDeviceId && !this.streams.get(broadKey)) {
+            this.logger.error(`No stream found for assetId: ${assetId}`);
+        }
+    }
+
+    private buildKey(assetId: string, virtualDeviceId?: string): string {
+        return virtualDeviceId ? `${assetId}:${virtualDeviceId}` : assetId;
     }
 
 
@@ -322,15 +376,18 @@ export class SseService {
 
     // SSE service - now dead simple
 
-    publish(assetId: string, message: MessageEvent) {
-        const stream = this.streams.get(assetId);
-        if (!stream) {
-            this.logger.error('No stream found for assetId:', assetId);
-            return;
-        }
-        stream.next(message);
-    }
 
+    private SirDelivered = 4;
+    // publish(assetId: string, message: MessageEvent) {
+    //     const stream = this.streams.get(assetId);
+    //     if (!stream) {
+    //         this.logger.error(`No stream found for assetId: ${assetId}`);
+    //         return;
+    //     }
+    //     stream.next(message);
+    // }
+
+    private idk = 4;
     // publish(
     //     assetId: string,
     //     payloads: CurrentTelemetryPayload[],
