@@ -123,6 +123,7 @@ export class TelemetryEventsListener {
             // const message = {
             //     data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
             // };
+            //  
 
             // // console.log("Asset", assetId);
             // this.telemetrySseService.publish(assetId!, message);

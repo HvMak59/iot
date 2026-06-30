@@ -311,7 +311,6 @@ export class SseService {
             }
         }
 
-
         // always try publishing to the broad assetId-only stream
         const broadKey = this.buildKey(assetId);
         const broadStream = this.streams.get(broadKey);

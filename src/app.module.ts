@@ -501,10 +501,17 @@ export class AppModule { }
 // Reference Number : 26-0059357808
 
 
+// Hiten : hiten.makwana7698@gmail.com
+// Reference Number : 26-0068088321
+// Reference Number : 26-0068402826
+
+// digilocker : 200259 
+
 
 // good = beneficial,positive,
 // develop = cultivate
 
+// Adhar application number : 27151414700256
 
 
 // {"device_type":"invtr","device_name":"invt","device_id":"2026030006",
@@ -720,6 +727,7 @@ export class AppModule { }
 // new one 
 // curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant"
 // curl -N "http://localhost:3002/sse/stream?assetId=TestAsset"
+// curl -N "http://localhost:3002/sse/stream?assetId=TestAsset&virtualDeviceId=TestAsset:testVd"
 
 
 
@@ -840,4 +848,53 @@ export class AppModule { }
 // 3 Weekly KPIs**
 
 // Metrics I should track every week to measure
+
+
+
+// compressor correct data : 
+
+// {"device_type":"invtr","device_name":"invt","device_id":"I202603006","date":"25/06/2026",
+// "time":"14:02:03","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
+// "software_ver":"SM-1.03.2.D20_4G","signal_strength":"3","valid":true ,"data":{"slave_id":"1",
+// "InGasPrs":7.383,"1StgDscPrs":-0.635,"2StgDscPrs":0.000,"PrtyLnPrs":0.000,"1StgDscTmp":36.491,
+// "2StgDscTmp":-0.043,"OilTnkTmp":34.000,"AvgVltLL":406.000,"AvgCrnt":0.000,"TtlKwh":9536.000,
+// "SctnFlwRt":0.000,"SctnFlwTtl":113664.000,"TtlHr":700.000,"TtlMin":33.000,"TtlSec":23.000,
+// "RdyToStrt":16824,"CmpOn":16824,"CmpOff":16824,"InGsPrsHAl":0,"InGsPrsLAl":1,"InGsPrsHTrp":0,
+// "InGsPrsLTrp":1,"1StgDscTmpHAl":0,"1StgDscTmpLAl":0,"1StgDscTmpHTrp":0,"1StgDscTmpLTrp":0,
+// "1StgDscPrsHAl":0,"1StgDscPrsLAl":0,"1StgDscPrsHTrp":0,"1StgDscPrsLTrp":0,"OilTnkTmpHAl":0,
+// "OilTnkTmpLAl":0,"OilTnkTmpHTrp":0,"OilTnkTmpLTrp":0,"GD1HAl":0,"GD1LAl":0,"GD1HTrp":0,
+// "GD1LTrp":0,"FD1HAl":0,"FD1LAl":0,"FD1HTrp":0,"FD1LTrp":0,"2StgDscTmpHAl":0,"2StgDscTmpLAl":0,
+// "2StgDscTmpHTrp":0,"2StgDscTmpLTrp":0,"2StgDscPrsHAl":0,"2StgDscPrsLAl":0,"2StgDscPrsHTrp":0,
+// "2StgDscPrsLTrp":0,"PrtyMLnPrsHAl":0,"PrtyMLnPrsLAl":0,"PrtyMLnPrsHTrp":0,"PrtyMLnPrsLTrp":0}}
+
+// error 
+// 2ndstgdsc temp  36.34
+// 2nddscprs 2.23
+
+// 37,39,41,43
+
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// "INLET GAS PRESSURE":7.419,
+// "1st STAGE DISCHARGE PRESSURE":-0.622,
+// "2nd STAGE DISCHARGE PRESSURE":0.000,
+// "Priority Line Pressure":0.000,
+// "1st STAGE DISCHARGE TEMPERATURE":37.417,
+// "2nd STAGE DISCHARGE TEMPERATURE":0.014,
+// "OIL TANK TEMPERATURE":34.500,
+// "AvgVltLL":412.000,
+// "AvgCrnt":0.000,
+// "TtlKwh":9536.000,
+// "SctnFlwRt":0.000,
+// "SctnFlwTtl":113664.000,
+// "TtlHr":700.000,"TtlMin":33.000,"TtlSec":23.000
+
+
+
+// for flow meter (data needed) 
+// prs tmp flwrat total flow 
+
+
+
+
+
 

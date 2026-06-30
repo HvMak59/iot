@@ -12,8 +12,6 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 @Injectable()
 export class AlertEventsListener {
     constructor(
-        private readonly alertGateway: AlertGateway,
-        private readonly whatsAppService: WhatsAppService,
         private readonly assetService: AssetService,
         private readonly firebaseService: FirebaseService,
     ) { }
@@ -43,8 +41,7 @@ export class AlertEventsListener {
                 missingAssetIds.push(assetId);
             }
         }
-        // 
-        // const assetOrgIdMap = await this.assetService.findOrgIds(assetIds);
+
         // parentOrg will be handled in that hierarchy function
         const assetOrgIdMap = await this.assetService.findAssetOrgIdMap(missingAssetIds);
 

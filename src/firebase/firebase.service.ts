@@ -199,21 +199,3 @@ export class FirebaseService {
 }
 
 
-
-
-
-
-// if (response.failureCount > 0) {
-//     response.responses.forEach((resp, index) => {
-
-//         if (!resp.success) {
-
-//             const failedMessage = messages[index];
-
-//             this.logger.error(
-//                 `Failed to send notification`,
-//                 resp.error,
-//             );
-//         }
-//     });
-// }
