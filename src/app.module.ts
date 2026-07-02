@@ -455,6 +455,9 @@ export class AppModule { }
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026030006\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 
+// Bapu ata chakki
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026060239 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+
 // for publish : 
 // mosquitto_pub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" -m '{"device_type":"invtr"}'
 
@@ -727,6 +730,8 @@ export class AppModule { }
 // new one 
 // curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant"
 // curl -N "http://localhost:3002/sse/stream?assetId=TestAsset"
+// curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant"
+// curl -N "http://localhost:3002/sse/stream?assetId=Lift"
 // curl -N "http://localhost:3002/sse/stream?assetId=TestAsset&virtualDeviceId=TestAsset:testVd"
 
 
@@ -892,6 +897,12 @@ export class AppModule { }
 
 // for flow meter (data needed) 
 // prs tmp flwrat total flow 
+
+
+
+
+
+
 
 
 

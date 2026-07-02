@@ -199,9 +199,11 @@
 
 
 import { Injectable, MessageEvent } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import _ from 'lodash';
-import { Subject, Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { Subject, Observable, ReplaySubject } from 'rxjs';
+import { finalize, startWith } from 'rxjs/operators';
+import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { AssetCurrentPerformanceSourceService } from 'src/asset-current-performance-source/asset-current-performance-source.service';
 import { AssetCurrentPerformanceSourceRepo } from 'src/asset-current-performance-source/entities/asset-current-performance-source-repo.entity';
@@ -219,7 +221,8 @@ import { getMetricDTO, getTPLV3DTO } from 'src/utils/others';
 export class SseService {
 
     private readonly logger = winstonServerLogger(SseService.name);
-    private readonly streams = new Map<string, Subject<MessageEvent>>();
+    // private readonly streams = new Map<string, Subject<MessageEvent>>();
+    private streams = new Map<string, ReplaySubject<MessageEvent>>();
 
     constructor(
         private readonly telemetryPayloadService: TelemetryPayloadService,
@@ -275,13 +278,18 @@ export class SseService {
     //     // return liveStream;
     // }
 
-    subscribe(assetId: string, virtualDeviceId?: string): Observable<MessageEvent> {
-        const key = this.buildKey(assetId, virtualDeviceId);
+    private sirRequirenment = 'send data immediately after subscrition';
+    async subscribe(assetId: string, virtualDeviceId?: string): Promise<Observable<MessageEvent>> {
+        const key = virtualDeviceId
+            ? this.buildKey(assetId, virtualDeviceId)
+            : this.buildKey(assetId);
 
         let stream = this.streams.get(key);
         if (!stream) {
-            stream = new Subject<MessageEvent>();
+            stream = new ReplaySubject<MessageEvent>(1);
             this.streams.set(key, stream);
+
+            await this.handleTelemetryInserted([{ assetId } as CurrentTelemetryPayload]);
         }
 
         this.logger.debug(`Client subscribed: ${key}`);
@@ -297,29 +305,83 @@ export class SseService {
         );
     }
 
+    private correctWorking = 1;
+    // async subscribe(assetId: string, virtualDeviceId?: string): Promise<Observable<MessageEvent>> {
+    //     // subscribe(assetId: string, virtualDeviceId?: string): Observable<MessageEvent> {
+
+    //     const key = virtualDeviceId
+    //         ? this.buildKey(assetId, virtualDeviceId)
+    //         : this.buildKey(assetId);
+
+    //     let stream = this.streams.get(key);
+    //     if (!stream) {
+    //         stream = new Subject<MessageEvent>();
+    //         this.streams.set(key, stream);
+    //     }
+
+    //     this.logger.debug(`Client subscribed: ${key}`);
+
+    //     // this is for sending the latest data immediately after subscription
+    //     const initialMessage = await this.buildMessage(assetId, virtualDeviceId);
+
+    //     if (initialMessage) {
+    //         return stream.pipe(
+    //             startWith(initialMessage),
+    //             finalize(() => {
+    //                 this.logger.debug(`Client disconnected: ${key}`);
+    //                 if (!stream!.observed) {
+    //                     this.streams.delete(key);
+    //                     this.logger.debug(`Removed stream: ${key}`);
+    //                 }
+    //             }),
+    //         );
+    //     }
+
+    //     return stream.pipe(
+    //         finalize(() => {
+    //             this.logger.debug(`Client disconnected: ${key}`);
+    //             if (!stream!.observed) {
+    //                 this.streams.delete(key);
+    //                 this.logger.debug(`Removed stream: ${key}`);
+    //             }
+    //         }),
+    //     );
+
+    //     // return stream.pipe(
+    //     //     startWith(initialMessage!),  // this is also for immediately send data
+    //     //     // ...(initialMessage ? [startWith(initialMessage)] : []) 
+    //     //     finalize(() => {
+    //     //         this.logger.debug(`Client disconnected: ${key}`);
+    //     //         if (!stream!.observed) {
+    //     //             this.streams.delete(key);
+    //     //             this.logger.debug(`Removed stream: ${key}`);
+    //     //         }
+    //     //     }),
+    //     // );
+    // }
+
     publish(assetId: string, message: MessageEvent, virtualDeviceId?: string) {
-        // always try publishing to the specific assetId+vdId stream
         if (virtualDeviceId) {
-            const specificKey = this.buildKey(assetId, virtualDeviceId);
-            const specificStream = this.streams.get(specificKey);
-            if (specificStream) {
-                this.logger.debug(`Publishing to specific stream: ${specificKey}`);
-                specificStream.next(message);
+            const assetVDKey = this.buildKey(assetId, virtualDeviceId);
+            const assetVDStream = this.streams.get(assetVDKey);
+
+            if (assetVDStream) {
+                this.logger.debug(`Publishing to stream: ${assetVDKey}`);
+                assetVDStream.next(message);
             }
             else {
                 this.logger.error(`No stream found for this virtualDevice ${virtualDeviceId}`);
             }
+            return;
         }
 
-        // always try publishing to the broad assetId-only stream
-        const broadKey = this.buildKey(assetId);
-        const broadStream = this.streams.get(broadKey);
-        if (broadStream) {
-            this.logger.debug(`Publishing to broad stream: ${broadKey}`);
-            broadStream.next(message);
+        const assetKey = this.buildKey(assetId);
+        const assetStream = this.streams.get(assetKey);
+        if (assetStream) {
+            this.logger.debug(`Publishing to stream: ${assetStream}`);
+            assetStream.next(message);
         }
-
-        if (!virtualDeviceId && !this.streams.get(broadKey)) {
+        else {
             this.logger.error(`No stream found for assetId: ${assetId}`);
         }
     }
@@ -328,6 +390,158 @@ export class SseService {
         return virtualDeviceId ? `${assetId}:${virtualDeviceId}` : assetId;
     }
 
+    hasStream(assetId: string, virtualDeviceId?: string): boolean {
+        const key = virtualDeviceId
+            ? this.buildKey(assetId, virtualDeviceId)
+            : this.buildKey(assetId);
+
+        return this.streams.has(key);
+    }
+
+    @OnEvent('telemetry.inserted')
+    async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
+        const fnName = this.handleTelemetryInserted.name;
+        if (!payloads || payloads.length === 0) return;
+
+        const assetIds = _.uniq(payloads.map(p => p.assetId).filter(Boolean));
+
+        for (const assetId of assetIds) {
+            const aCPSs = await this.aCPSService.findByAssetID(assetId!);
+
+            if (_.isNil(aCPSs) || aCPSs.length === 0) {
+                this.logger.warn(`${fnName} No ACPS found for asset ${assetId}, skipping`);
+                continue;
+            }
+
+            this.logger.debug(`${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`);
+
+            const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+            const deviceTypeIDSet = new Set<string>();
+
+            for (const aCPS of aCPSs) {
+                console.log("in acps loop");
+                const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+                aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+                if (aCPSObj.virtualDevice?.deviceTypeId) {
+                    deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+                }
+            }
+
+            // after building aCPSByKey
+            const aCPSByVD = new Map<string, Map<string, AssetCurrentPerformanceSource>>();
+            for (const [k, v] of aCPSByKey.entries()) {
+                const vdId = v.virtualDeviceId ?? '';
+                if (!aCPSByVD.has(vdId)) {
+                    // 
+                    aCPSByVD.set(vdId, new Map());
+                }
+                aCPSByVD.get(vdId)!.set(k, v);
+            }
+
+            let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
+            if (deviceTypeIDSet.size > 0) {
+                dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+                    { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
+                    false,
+                    true,
+                );
+            }
+            const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+            const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+            const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
+
+            const cTPLsByVD = _.groupBy(cTPLs, (c) => c.virtualDeviceId);
+
+            for (const [virtualDeviceId, vdCTPLs] of Object.entries(cTPLsByVD)) {
+
+                if (!this.hasStream(assetId!, virtualDeviceId)) {
+                    this.logger.debug(`No stream found for virtualDevice: ${virtualDeviceId}`);
+                    continue;
+                }
+
+                // const vdACPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+                // for (const [key, acps] of aCPSByKey.entries()) {
+                //     if (acps.virtualDeviceId === virtualDeviceId) {
+                //         vdACPSByKey.set(key, acps);
+                //     }
+                // }
+
+                // O(1) lookup instead of O(n) filter loop every iteration
+                const vdACPSByKey = aCPSByVD.get(virtualDeviceId) ?? new Map();
+
+
+                const vdMessage = {
+                    data: getTPLV3DTO(vdCTPLs, vdACPSByKey, CurrentTelemetryPayload, dTMAByKey),
+                };
+
+                this.publish(assetId!, vdMessage, virtualDeviceId);
+            }
+
+            if (this.hasStream(assetId!)) {
+                const message = { data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey) };
+                this.publish(assetId!, message);
+            }
+            else {
+                this.logger.debug(`No stream found for assetId: ${assetId}`);
+            }
+        }
+    }
+
+
+
+
+
+
+    private wokring = 4;
+    private async buildMessage(assetId: string, virtualDeviceId?: string) {
+        const aCPSs = await this.aCPSService.findByAssetID(assetId);
+
+        if (_.isNil(aCPSs) || aCPSs.length === 0) {
+            this.logger.error(`buildMessage: No ACPS found for asset ${assetId}`);
+            return null;
+        }
+
+        const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+        const deviceTypeIDSet = new Set<string>();
+
+        for (const aCPS of aCPSs) {
+            const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+            aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+            if (aCPSObj.virtualDevice?.deviceTypeId) {
+                deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+            }
+        }
+
+        let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
+        if (deviceTypeIDSet.size > 0) {
+            dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+                { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
+                false,
+                true,
+            );
+        }
+
+        const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+        const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+        const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
+
+        if (!cTPLs || cTPLs.length === 0) return null;
+
+        // if virtualDeviceId given -> build VD-scoped message
+        if (virtualDeviceId) {
+            const vdCTPLs = cTPLs.filter(c => c.virtualDeviceId === virtualDeviceId);
+            const vdACPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+            for (const [k, v] of aCPSByKey.entries()) {
+                if (v.virtualDeviceId === virtualDeviceId) {
+                    vdACPSByKey.set(k, v);
+                }
+            }
+            return { data: getTPLV3DTO(vdCTPLs, vdACPSByKey, CurrentTelemetryPayload, dTMAByKey) };
+        }
+
+        // no virtualDeviceId -> build full asset snapshot
+        return { data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey) };
+    }
 
     // publish(
     //     virtualDeviceId: string,
@@ -431,64 +645,65 @@ export class SseService {
     //     };
     // }
 
-    async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
-        // async handleTelemetryInserted(assetId: string) {
-        const fnName = this.handleTelemetryInserted.name;
+    private idk2 = 4;
+    // async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
+    //     // async handleTelemetryInserted(assetId: string) {
+    //     const fnName = this.handleTelemetryInserted.name;
 
-        if (!payloads || payloads.length === 0) {
-            this.logger.error(`Empty payloads`);
-            return;
-        }
+    //     if (!payloads || payloads.length === 0) {
+    //         this.logger.error(`Empty payloads`);
+    //         return;
+    //     }
 
-        const assetIds = _.uniq(payloads.map(p => p.assetId).filter(Boolean));
+    //     const assetIds = _.uniq(payloads.map(p => p.assetId).filter(Boolean));
 
-        for (const assetId of assetIds) {
-            const aCPSs = await this.aCPSService.findByAssetID(assetId!);
-            // console.log('assets', aCPSs);
+    //     for (const assetId of assetIds) {
+    //         const aCPSs = await this.aCPSService.findByAssetID(assetId!);
+    //         // console.log('assets', aCPSs);
 
-            if (_.isNil(aCPSs) || aCPSs.length === 0) {
-                this.logger.warn(`${fnName} No ACPS found for asset ${assetId}, skipping`);
-                continue;
-            }
-            else {
-                this.logger.debug(`${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`);
+    //         if (_.isNil(aCPSs) || aCPSs.length === 0) {
+    //             this.logger.warn(`${fnName} No ACPS found for asset ${assetId}, skipping`);
+    //             continue;
+    //         }
+    //         else {
+    //             this.logger.debug(`${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`);
 
-                const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
-                const deviceTypeIDSet = new Set<string>();
+    //             const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+    //             const deviceTypeIDSet = new Set<string>();
 
-                for (const aCPS of aCPSs) {
-                    const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
-                    aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+    //             for (const aCPS of aCPSs) {
+    //                 const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+    //                 aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
 
-                    if (aCPSObj.virtualDevice?.deviceTypeId) {
-                        deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
-                    }
-                }
-                console.log(deviceTypeIDSet.size);
+    //                 if (aCPSObj.virtualDevice?.deviceTypeId) {
+    //                     deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+    //                 }
+    //             }
+    //             console.log(deviceTypeIDSet.size);
 
-                let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
-                if (deviceTypeIDSet.size > 0) {
-                    dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
-                        { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
-                        false,
-                        true,
-                    );
-                }
+    //             let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
+    //             if (deviceTypeIDSet.size > 0) {
+    //                 dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+    //                     { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
+    //                     false,
+    //                     true,
+    //                 );
+    //             }
 
-                console.log("keys", dTMAByKey);
+    //             console.log("keys", dTMAByKey);
 
-                const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
-                const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
-                const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
+    //             const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+    //             const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+    //             const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
 
-                const message = {
-                    data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
-                };
+    //             const message = {
+    //                 data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
+    //             };
 
-                this.publish(assetId!, message);
-            }
-        }
-    }
+    //             this.publish(assetId!, message);
+    //         }
+    //     }
+    // }
 
 }
 

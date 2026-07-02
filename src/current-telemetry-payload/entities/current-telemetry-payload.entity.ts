@@ -110,7 +110,7 @@ export class CurrentTelemetryPayload {
     return (
       (this.assetId ?? this.asset?.id ?? '') +
       KEY_SEPARATOR +
-      this.virtualDeviceId +
+      // this.virtualDeviceId +
       (this.virtualDeviceId ?? this.virtualDevice?.id ?? '') +
       KEY_SEPARATOR +
       this.metric.metricsAttributeId
