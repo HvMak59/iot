@@ -4,6 +4,7 @@ import { PartialType } from '@nestjs/mapped-types';
 // import { FindAssetPerformanceTelemetry } from 'src/iot-server/dto/find-asset-performance-telemetry';
 import { Metric } from 'src/metrics/entities/metric.entity';
 import { TelemetryPayload } from '../entities/telemetry-payload.entity';
+import { FindAssetPerformanceTelemetry } from 'src/iot-server/dto/find-asset-performance-telemetry';
 
 export class FindTelemetryPayloadForAPeriod extends PartialType(
   TelemetryPayload,
@@ -29,7 +30,23 @@ export class FindTelemetryPayloadForAPeriod extends PartialType(
   //     metricsAttributeId: assetCurrentPerformanceSource.metricsAttributeId,
   //   });
   // }
-
+  static createFromFindAssetPerformanceTelemetry(
+    findAssetPerformanceTelemetry: FindAssetPerformanceTelemetry,
+  ) {
+    const newObj = new FindTelemetryPayloadForAPeriod({
+      assetId: findAssetPerformanceTelemetry.assetId,
+      virtualDeviceId: findAssetPerformanceTelemetry.virtualDeviceId,
+      /* isDeviceGroup: findAssetPerformanceTelemetry.isDeviceGroup
+        ? findAssetPerformanceTelemetry.isDeviceGroup
+        : undefined, */
+      metricsAttributeId: findAssetPerformanceTelemetry.metricsAttributeId,
+    });
+    newObj.updateTimeRange(
+      findAssetPerformanceTelemetry.startTime,
+      findAssetPerformanceTelemetry.endTime,
+    );
+    return newObj;
+  }
   // static createFromFindAssetPerformanceTelemetry(
   //   findAssetPerformanceTelemetry: FindAssetPerformanceTelemetry,
   // ) {

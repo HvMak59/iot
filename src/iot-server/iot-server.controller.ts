@@ -80,7 +80,7 @@ export class IotServerController {
   getPerformanceTelemetry(
     @Query() searchCriteria: FindDevicesPerformanceTelemetryDto,
   ) {
-    // return this.iotServerService.getDevicesPerformanceTelemetry(searchCriteria);
+    return this.iotServerService.getDevicesPerformanceTelemetry(searchCriteria);
   }
 
   @Get('current-open-alerts')
@@ -283,6 +283,37 @@ export class IotServerController {
     this.logger.debug('Landed in ' + this.saveTelemetryMetrics.name);
     return this.iotServerService.saveTelemetryMetrics(telemetryMetrics);
   }
+
+
+  @Get('dated-asset-current-performance-telemetry')
+  async getDatedAssetCurrentPerformanceTelemetry(
+    @Query('assetId') assetId: string,
+    @Query('inputDateInEpoch') inputDateInEpoch: number,
+  ) {
+    // return await this.iotServerService.getDatedAssetCurrentPerformanceTelemetry(
+    //   assetId,
+    //   inputDateInEpoch,
+    // );
+  }
+
+  @Get('dated-vd')
+  async getDatedVirtualDeviceCurrentPerformanceTelemetry(
+    @Query('assetID') assetId: string,
+    @Query('virtualDeviceID') virtualDeviceId: string,
+    @Query('deviceTypeID') deviceTypeId: string,
+    @Query('inputDateInEpoch') inputDateInEpoch: number,
+  ) {
+    // return await this.iotServerService.getDatedVirtualDeviceCurrentPerformanceTelemetr(
+    //   virtualDeviceId,
+    //   inputDateInEpoch,
+    // );
+    console.log(assetId, virtualDeviceId, deviceTypeId);
+    return await this.iotServerService.getDatedDeviceCurrentTelemetry(
+      assetId, virtualDeviceId, deviceTypeId, inputDateInEpoch
+    )
+
+  }
+
 
   // @Public()
   // @Post('telemetryAlerts')

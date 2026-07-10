@@ -39,6 +39,7 @@ import { diffToEndOfDayThreshold, KEY_SEPARATOR } from 'src/app_config/constants
 import { convertpossibleStringTypeToInt, getTryCatchErrorStr } from 'src/utils/others';
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { IotServerService } from 'src/iot-server/iot-server.service';
+import _ from 'lodash';
 
 @Injectable()
 export class CurrentTelemetryPayloadService {
@@ -549,6 +550,55 @@ export class CurrentTelemetryPayloadService {
     return Array.from(latestByVirtualDevice.values());
   }
 
+
+  async findByMultipleConditionsGroupByTime(
+    searchCriteria: FindCurrentTelemetryDto[],
+  ) {
+    const fnName = this.findByMultipleConditionsGroupByTime.name;
+    this.logger.debug(`${fnName} : Start`);
+    this.logger.debug(
+      `${fnName} : No of input conditions : ${searchCriteria.length}`,
+    );
+    const cTPLs = await this.repo.find({
+      select: {
+        //id: true,
+        assetId: true,
+        virtualDeviceId: true,
+        deviceId: true,
+        virtualDevice: {
+          name: true,
+          // displayNumber: true,  // uncomnnt this 
+          deviceTypeId: true,
+        },
+        metric: {
+          metricsAttributeId: true,
+          measure: true,
+          txnCaptureTime: true,
+          txnCapturePeriod: true,
+          frequency: true,
+          unit: true,
+        },
+      },
+      where: searchCriteria,
+      relations: {
+        virtualDevice: true,
+        metric: true,
+      },
+    });
+    const cTPLsByTime = _.groupBy(cTPLs, (ctpl) =>
+      new Date(ctpl.metric!.txnCaptureTime).valueOf(),
+    );
+    return cTPLsByTime;
+  }
+
+
+
+
+
+
+
+
+
   // async findOfflineRmu(token: string) {
   //   const cutoffTime = new Date(Date.now() - 20 * 60 * 1000);
 
@@ -841,41 +891,41 @@ export class CurrentTelemetryPayloadService {
   //     }
   //   }
 
-  //   findByMultipleIDs(searchCriteria: FindCurrentTelemetryPayloadsByMultipleIDs) {
-  //     const fnName = this.findByMultipleIDs.name;
-  //     //const input = `Input : ${JSON.stringify(searchCriteria)}`;
-  //     this.logger.debug(`${fnName} : Start`);
-  //     //this.logger.debug(input);
-  //     const assetIDs = searchCriteria.csvAssetIDs?.split(',');
-  //     const deviceIDs = searchCriteria.csvDeviceIDs?.split(',');
-  //     const virtualDeviceIDs =
-  //       searchCriteria.csvVirtualDeviceIDs?.split(',') ?? null;
-  //     const attributes = searchCriteria.csvMetricsAttributeIDs?.split(',');
-  //     const searchObject: FindCurrentTelemetryDto = {};
-  //     if (assetIDs) {
-  //       searchObject.virtualDevice = {
-  //         assetId: In(_.uniq(assetIDs)),
-  //       };
-  //     }
-  //     if (deviceIDs) {
-  //       searchObject.deviceId = In(_.uniq(deviceIDs));
-  //     }
-  //     if (virtualDeviceIDs) {
-  //       searchObject.virtualDeviceId = In(_.uniq(virtualDeviceIDs));
-  //     } /* else {
-  //       searchObject.virtualDeviceId = IsNull();
-  //     } */
-  //     if (attributes) {
-  //       searchObject.metric = {
-  //         metricsAttributeId: In(_.uniq(attributes)),
-  //       };
-  //     }
-  //     this.logger.debug(
-  //       `${fnName} : searchObject is : ${JSON.stringify(searchObject)}`,
-  //     );
-  //     const result = this.repo.findBy(searchObject);
-  //     return result;
+  // findByMultipleIDs(searchCriteria: FindCurrentTelemetryPayloadsByMultipleIDs) {
+  //   const fnName = this.findByMultipleIDs.name;
+  //   //const input = `Input : ${JSON.stringify(searchCriteria)}`;
+  //   this.logger.debug(`${fnName} : Start`);
+  //   //this.logger.debug(input);
+  //   const assetIDs = searchCriteria.csvAssetIDs?.split(',');
+  //   const deviceIDs = searchCriteria.csvDeviceIDs?.split(',');
+  //   const virtualDeviceIDs =
+  //     searchCriteria.csvVirtualDeviceIDs?.split(',') ?? null;
+  //   const attributes = searchCriteria.csvMetricsAttributeIDs?.split(',');
+  //   const searchObject: FindCurrentTelemetryDto = {};
+  //   if (assetIDs) {
+  //     searchObject.virtualDevice = {
+  //       assetId: In(_.uniq(assetIDs)),
+  //     };
   //   }
+  //   if (deviceIDs) {
+  //     searchObject.deviceId = In(_.uniq(deviceIDs));
+  //   }
+  //   if (virtualDeviceIDs) {
+  //     searchObject.virtualDeviceId = In(_.uniq(virtualDeviceIDs));
+  //   } /* else {
+  //     searchObject.virtualDeviceId = IsNull();
+  //   } */
+  //   if (attributes) {
+  //     searchObject.metric = {
+  //       metricsAttributeId: In(_.uniq(attributes)),
+  //     };
+  //   }
+  //   this.logger.debug(
+  //     `${fnName} : searchObject is : ${JSON.stringify(searchObject)}`,
+  //   );
+  //   const result = this.repo.findBy(searchObject);
+  //   return result;
+  // }
 
   findByMultipleConditions(searchCriteria: FindCurrentTelemetryDto[]) {
     const fnName = this.findByMultipleConditions.name;
@@ -1020,6 +1070,68 @@ export class CurrentTelemetryPayloadService {
       this.logger.debug(`End`);
     }
   }
+
+
+  // async getLatestTelemetry(
+  //   virtualDeviceIds: string[],
+  // ): Promise<Map<string, CurrentTelemetryPayload>> {
+
+  //   const fnName = 'getLatestTelemetry()';
+
+  //   this.logger.debug(`${fnName} : Start`);
+
+  //   if (!virtualDeviceIds.length) {
+  //     return new Map();
+  //   }
+
+  //   const currTeleMPylds = await this.repo.find({
+  //     where: {
+  //       virtualDeviceId: In(virtualDeviceIds),
+  //     },
+  //   });
+
+  //   this.logger.debug(
+  //     `${fnName} : ${currTeleMPylds.length} CurrentTelemetryPayload records fetched`,
+  //   );
+
+  //   const telemetryMap = new Map<string, CurrentTelemetryPayload>();
+
+  //   for (const currTeleMPyld of currTeleMPylds) {
+
+  //     const key =
+  //       currTeleMPyld.virtualDeviceId +
+  //       KEY_SEPARATOR +
+  //       currTeleMPyld.metric.metricsAttributeId;
+
+  //     telemetryMap.set(key, currTeleMPyld);
+  //   }
+
+  //   return telemetryMap;
+  // }
+
+  async getLatestTelemetry(
+    virtualDeviceIds: string[],
+    metricsAttributeIds: string[],
+  ) {
+    if (!virtualDeviceIds.length || !metricsAttributeIds.length) return [];
+    return this.repo.find({
+      where: {
+        virtualDeviceId: In(virtualDeviceIds),
+        metric: { metricsAttributeId: In(metricsAttributeIds) },
+      },
+    });
+  }
+
+  async saveMany(payloads: CurrentTelemetryPayload[]): Promise<CurrentTelemetryPayload[]> {
+    // repo.save upserts by primary key (id = getKey(), set in the constructor),
+    // so this correctly overwrites the "current" value the same way live
+    // telemetry inserts already do.
+    return this.repo.save(payloads);
+  }
+
+
+
+
 
   //   softDelete(id: string) {
   //     const msgTemplate = 'Soft delete ' + this.serviceName;

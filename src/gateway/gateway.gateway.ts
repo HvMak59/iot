@@ -233,11 +233,11 @@ export class GatewayGateway implements OnModuleInit {
       const cTPLs = await this.cTPLService.findByMultipleConditions(
         findCTPLDTOs,
       );
-      const cTPLDTOsV3 = new CurrentTelemetryPayloadsRepo(cTPLs).getCTPLDTOV3(
-        assetCurrPerfSrcByKey,
-        dTMAsByKey,
-      );
-      socket.emit('newCTPLs', cTPLDTOsV3);
+      // const cTPLDTOsV3 = new CurrentTelemetryPayloadsRepo(cTPLs).getCTPLDTOV3(
+      //   assetCurrPerfSrcByKey,
+      // dTMAsByKey,
+      // );
+      // socket.emit('newCTPLs', cTPLDTOsV3);
       this.logger.debug(
         `${fnName} Emitted new CTPLs for asset ${assetId} to socket ${socketId}`,
       );

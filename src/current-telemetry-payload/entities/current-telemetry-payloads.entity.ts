@@ -2,15 +2,16 @@ import _ from 'lodash';
 import { FindMetricDto } from 'src/metrics/dto/find-metric.dto';
 import { IsNull } from 'typeorm';
 import { CreateCurrentTelemetryDto } from '../dto/create-current-telemetry.dto';
-import { FindCurrentTelemetryDto } from '../dto/find-current-telemetry.dto';
+// import { FindCurrentTelemetryDto } from '../dto/find-current-telemetry-payload.dto';
 import { CurrentTelemetryPayload } from './current-telemetry-payload.entity';
 import { TelemetryDevice } from 'src/iot-server/dto/telemetry-device.dto';
 import { Metric } from 'src/metrics/entities/metric.entity';
 import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
 import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { CurrentTelemetryPayloadDTOV2 } from '../dto/current-telemetry-payload-v2.dto';
-import { getMetricDTO, getTPLV3DTO } from 'src/utils/others';
+import { getMetricDTO, getTPLV3DTO, getTPLV3DTOFOrDevice } from 'src/utils/others';
 import { TelemetryPayloadV3DTO } from 'src/iot-server/dto/telemetry-payload-v3.dto';
+import { FindCurrentTelemetryDto, TelemetryPayloadOptions } from '../dto/find-current-telemetry.dto';
 
 export class CurrentTelemetryPayloadsRepo {
   currentTelemetryPayloads: (
@@ -100,14 +101,35 @@ export class CurrentTelemetryPayloadsRepo {
     return cTPLDTOsV2;
   }
 
+  // getCTPLDTOV3(
+  //   aCPSByKey: Map<string, AssetCurrentPerformanceSource>,
+  //   //aCPSByKey: _.Dictionary<AssetCurrentPerformanceSource[]>,
+  //   dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+  // ): TelemetryPayloadV3DTO[] {
+  //   return getTPLV3DTO(   // this is in others 
+  //     this.currentTelemetryPayloads as CurrentTelemetryPayload[],
+  //     aCPSByKey,
+  //     CurrentTelemetryPayload,
+  //     dTMAByKey,
+  //   );
+  // }
+
+
   getCTPLDTOV3(
-    aCPSByKey: Map<string, AssetCurrentPerformanceSource>,
-    //aCPSByKey: _.Dictionary<AssetCurrentPerformanceSource[]>,
+    options: TelemetryPayloadOptions,
+  ): TelemetryPayloadV3DTO[] {
+    return getTPLV3DTO<CurrentTelemetryPayload>(
+      this.currentTelemetryPayloads as CurrentTelemetryPayload[],
+      CurrentTelemetryPayload,
+      options,
+    );
+  }
+
+  getCTPLDTOV3ForDevice(
     dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
   ): TelemetryPayloadV3DTO[] {
-    return getTPLV3DTO(   // this is in others 
+    return getTPLV3DTOFOrDevice<CurrentTelemetryPayload>(
       this.currentTelemetryPayloads as CurrentTelemetryPayload[],
-      aCPSByKey,
       CurrentTelemetryPayload,
       dTMAByKey,
     );

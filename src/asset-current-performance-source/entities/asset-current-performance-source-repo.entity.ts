@@ -5,7 +5,7 @@ import { FindCurrentTelemetryDto } from 'src/current-telemetry-payload/dto/find-
 export class AssetCurrentPerformanceSourceRepo {
   constructor(
     private readonly assetCurrentPerformanceSources: AssetCurrentPerformanceSource[],
-  ) {}
+  ) { }
 
   getACPSsByPK() {
     return _.groupBy(this.assetCurrentPerformanceSources, (acps) =>

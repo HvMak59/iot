@@ -59,6 +59,75 @@ export class VirtualDeviceGroupService {
     // return this.repo.find(options);
     return this.repo.find({ where: options })
   }
+
+  // async getGroupsByParentVirtualDevice(
+  //   childVirtualDeviceIds: string[],
+  // ): Promise<VirtualDeviceGroup[]> {
+
+  //   const fnName = 'getGroupsByParentVirtualDevice()';
+
+  //   try {
+
+  //     this.logger.debug(`${fnName} : Start`);
+
+  //     if (!childVirtualDeviceIds.length) {
+  //       return [];
+  //     }
+
+  //     const virtualDeviceGroups = await this.repo.find({
+
+  //       where: {
+  //         virtualDeviceId: In(childVirtualDeviceIds),
+  //       },
+
+  //       relations: {
+
+  //         group: {
+
+  //           groupMetricsAttributeAggregations: {
+
+  //             metricsAttributeAggregation: true,
+
+  //           },
+
+  //         },
+
+  //       },
+
+  //     });
+
+  //     this.logger.debug(
+  //       `${fnName} : ${virtualDeviceGroups.length} VirtualDeviceGroups Found`,
+  //     );
+
+  //     return virtualDeviceGroups;
+
+  //   } catch (error) {
+
+  //     this.logger.error(
+  //       `${fnName} : ${error.message}`,
+  //     );
+
+  //     throw error;
+
+  //   } finally {
+
+  //     this.logger.debug(`${fnName} : End`);
+
+  //   }
+
+  // }
+
+
+
+
+
+  async findByVirtualDevice(parentVirtualDeviceId: string): Promise<VirtualDeviceGroup[]> {
+    return this.repo.find({ where: { virtualDeviceId: parentVirtualDeviceId } });
+  }
+
+
+
   // findOne(
   //   searchCriteria: FindVirtualDeviceGroupDto,
   //   relationsRequired: boolean = false,

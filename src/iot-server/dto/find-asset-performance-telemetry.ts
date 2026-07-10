@@ -1,5 +1,6 @@
 // import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
-import { DisplayPriority, MetricsFrequency } from 'src/utils/enums';
+import { MetricsFrequency } from 'src/common';
+import { DisplayPriority } from 'src/utils/enums';
 
 export class FindAssetPerformanceTelemetry {
   assetTypeId?: string;

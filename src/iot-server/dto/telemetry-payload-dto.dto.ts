@@ -9,7 +9,8 @@ export class TelemetryPayloadDto {
   //telemetryMeasures: Metrics[];
   constructor(
     public telemetryDevice: TelemetryDevice,
-    public metrics: Partial<MetricDto>[],
+    // public metrics: Partial<MetricDto>[],
+    public metrics: Partial<Metric>[],
     public telemetryDisplayProperty?: TelemetryDisplayProperty,
   ) {
     this.telemetryDevice = telemetryDevice;

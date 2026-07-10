@@ -70,7 +70,7 @@ export class TelemetryEventsListener {
             const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
 
             const message = {
-                data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
+                // data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey),
             };
 
             // this.telemetrySseService.publish(assetId!, message);

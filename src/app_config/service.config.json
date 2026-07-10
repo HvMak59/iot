@@ -66,5 +66,13 @@
       "quotations",
       "ticketMedias"
     ]
+  },
+  "deviceTypeMetricsAttribute": {
+    "serviceName": "deviceTypeMetricsAttribute",
+    "relations": [
+      "metricsAttributeAdaptors",
+      "metricsAttribute",
+      "deviceType"
+    ]
   }
 }

@@ -27,6 +27,7 @@ import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { TelemetryDevice } from 'src/iot-server/dto/telemetry-device.dto';
 import { TelemetryPayloadV3DTO } from 'src/iot-server/dto/telemetry-payload-v3.dto';
 import { MetricWithDisplayProperty } from 'src/iot-server/dto/metric_with_display_property.dto';
+import { TelemetryPayloadOptions } from 'src/current-telemetry-payload/dto/find-current-telemetry.dto';
 // import { MetricsFrequency } from 'common';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Metric } from 'metrics/entities/metric.entity';
@@ -307,7 +308,29 @@ export function getAssetID(asset: Asset) {
   return asset.id;
 }
 
-export function getMetricDTO(metric: Partial<Metric>) {
+
+
+export function startOfDate(givenDate: Date): Date {
+  return new Date(
+    givenDate.getFullYear(),
+    givenDate.getMonth(),
+    givenDate.getDate(),
+  );
+}
+
+export function endOfDate(givenDate: Date): Date {
+  return new Date(
+    givenDate.getFullYear(),
+    givenDate.getMonth(),
+    givenDate.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+}
+
+export function getMetricDTOMy(metric: Partial<Metric>) {
   // const { txnCaptureTime, frequency, metricsAttributeId, unit, ...metricDto } =
   const { txnCaptureTime, txnCapturePeriod, txnCaptureTimeInEpoch, txnCapturePeriodInEpoch, isCalculated, ...metricDto } =
     metric;
@@ -319,68 +342,172 @@ export function getMetricDTO(metric: Partial<Metric>) {
   // return metricDto;
 }
 
-const uncommentThis = 4
+export function getMetricDTOMy2(metric: Partial<Metric>) {
+  return {
+    metricsAttributeId: metric.metricsAttributeId,
+    measure: metric.measure,
+    unit: metric.unit,
+    frequency: metric.frequency,
+    txnCaptureTime: metric.txnCaptureTime
+      ? new Date(metric.txnCaptureTime).valueOf()
+      : null,
+    txnCapturePeriod: metric.txnCapturePeriod
+      ? new Date(metric.txnCapturePeriod).valueOf()
+      : null,
+  };
+}
+
+export function getMetricDTO(metric: Partial<Metric>) {
+  const { frequency, metricsAttributeId, unit, ...metricDto } = metric;
+  return metricDto;
+}
+
+const uncommentThis = 4 // this is sir code 
+// export function getTPLV3DTO<
+//   T extends CurrentTelemetryPayload | TelemetryPayload,
+// >(
+//   payloads: T[],
+//   // aCPSByKey: _.Dictionary<AssetCurrentPerformanceSource[]>,
+//   aCPSByKey: Map<string, AssetCurrentPerformanceSource>, // last
+//   PayloadCtor: new (payload: any) => CurrentTelemetryPayload | TelemetryPayload,
+//   dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+// ) {
+//   const logger = winstonServerLogger(getTPLV3DTO.name);
+//   const tPLV3DTOs: TelemetryPayloadV3DTO[] = [];
+//   /* const cTPLsByPK = _.groupBy(payloads, (ctpl) =>
+//     new PayloadCtor(ctpl).getVDKey(),
+//   ); */
+//   const cTPLsByPK = _.groupBy(payloads, (ctpl) => {
+//     return new PayloadCtor(ctpl).getVDKey();
+//   });
+//   for (const [pK, dTMA] of Object.entries(dTMAByKey)) {
+//     logger.debug(
+//       `${getTPLV3DTO.name} : dTMAByKey entry : ${pK} : ${JSON.stringify(dTMA)}`,
+//     );
+//   }
+//   //  
+//   for (const [pk, cTPLs] of Object.entries(cTPLsByPK)) {
+//     const telemetryDevice = TelemetryDevice.createFromTelemetry(cTPLs[0]);
+//     const metricsWithDisplayProperty: MetricWithDisplayProperty[] = [];
+//     for (const cTPL of cTPLs) {
+//       const aCPS = aCPSByKey.get(new PayloadCtor(cTPL).getAssetVDMetricKey());
+//       const dTMAKey = `${cTPL.virtualDevice?.deviceTypeId ?? ''
+//         }${KEY_SEPARATOR}${cTPL.metric?.metricsAttributeId ?? ''}`;
+//       logger.debug(
+//         `${getTPLV3DTO.name} : dTMAKey is : ${dTMAKey} for metric ${cTPL.metric?.metricsAttributeId} and deviceTypeId ${cTPL.virtualDevice?.deviceTypeId}`,
+//       );
+//       logger.debug(
+//         `${getTPLV3DTO.name} : dTMAByKey is : ${JSON.stringify(
+//           dTMAByKey[dTMAKey],
+//         )}`,
+//       );
+//       // added this const metric obejct just to remove expra period in returned json          
+//       const {
+//         txnCaptureTimeInEpoch,
+//         txnCapturePeriodInEpoch,
+//         ...metric
+//       } = cTPL.metric!;
+
+
+//       // console.log("Metric23", metric);
+
+//       const metricWithDisplayProperty = new MetricWithDisplayProperty({
+//         // metric: cTPL.metric!,
+//         metric: {
+//           ...metric,
+//           txnCaptureTime: cTPL.metric!.txnCaptureTime.valueOf(),
+//           txnCapturePeriod: cTPL.metric!.txnCapturePeriod.valueOf(),
+//         } as any,
+//         telemetryDisplayProperty: {
+//           metricsAttributeId:
+//             cTPL.metric?.metricsAttributeId ??
+//             // aCPS?.assetTypeCurrentPerformanceSource.label ?? // uncoment
+//             '',
+//           frequency: cTPL.metric?.frequency ?? MetricsFrequency.INSTANT,
+//           displayName:
+//             // aCPS?.assetTypeCurrentPerformanceSource.label ??  // uncomment
+//             cTPL.metric?.metricsAttributeId ??
+//             '', //currTelemetryPayloadObj.metric.metricsAttributeId,
+//           // displayPriority: // uncomment
+//           //   aCPS?.assetTypeCurrentPerformanceSource.displayPriority,
+//           displayOrder:
+//             dTMAByKey[dTMAKey]?.[0]?.displayOrder ??
+//             aCPS?.assetTypeCurrentPerformanceSource.displayOrder,
+//           unit: cTPL.metric?.unit,
+//         },
+//       });
+//       metricsWithDisplayProperty.push(metricWithDisplayProperty);
+//     }
+//     tPLV3DTOs.push(
+//       new TelemetryPayloadV3DTO({
+//         telemetryDevice,
+//         metricsWithDisplayProperties: metricsWithDisplayProperty,
+//       }),
+//     );
+//   }
+//   return tPLV3DTOs;
+// }
+
 export function getTPLV3DTO<
   T extends CurrentTelemetryPayload | TelemetryPayload,
 >(
   payloads: T[],
-  //aCPSByKey: _.Dictionary<AssetCurrentPerformanceSource[]>,
-  aCPSByKey: Map<string, AssetCurrentPerformanceSource>,
   PayloadCtor: new (payload: any) => CurrentTelemetryPayload | TelemetryPayload,
-  dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+  options: TelemetryPayloadOptions = {},
 ) {
   const logger = winstonServerLogger(getTPLV3DTO.name);
+
+  const { dTMAsByKey = {}, aCPSByKey } = options;
+
   const tPLV3DTOs: TelemetryPayloadV3DTO[] = [];
-  /* const cTPLsByPK = _.groupBy(payloads, (ctpl) =>
+
+  const cTPLsByPK = _.groupBy(payloads, (ctpl) =>
     new PayloadCtor(ctpl).getVDKey(),
-  ); */
-  const cTPLsByPK = _.groupBy(payloads, (ctpl) => {
-    return new PayloadCtor(ctpl).getVDKey();
-  });
-  for (const [pK, dTMA] of Object.entries(dTMAByKey)) {
-    logger.debug(
-      `${getTPLV3DTO.name} : dTMAByKey entry : ${pK} : ${JSON.stringify(dTMA)}`,
-    );
-  }
-  //  
+  );
+
   for (const [pk, cTPLs] of Object.entries(cTPLsByPK)) {
     const telemetryDevice = TelemetryDevice.createFromTelemetry(cTPLs[0]);
+
     const metricsWithDisplayProperty: MetricWithDisplayProperty[] = [];
+
     for (const cTPL of cTPLs) {
-      const aCPS = aCPSByKey.get(new PayloadCtor(cTPL).getAssetVDMetricKey());
-      const dTMAKey = `${cTPL.virtualDevice?.deviceTypeId ?? ''
-        }${KEY_SEPARATOR}${cTPL.metric?.metricsAttributeId ?? ''}`;
-      logger.debug(
-        `${getTPLV3DTO.name} : dTMAKey is : ${dTMAKey} for metric ${cTPL.metric?.metricsAttributeId} and deviceTypeId ${cTPL.virtualDevice?.deviceTypeId}`,
+      const aCPS = aCPSByKey?.get(
+        new PayloadCtor(cTPL).getAssetVDMetricKey(),
       );
-      logger.debug(
-        `${getTPLV3DTO.name} : dTMAByKey is : ${JSON.stringify(
-          dTMAByKey[dTMAKey],
-        )}`,
+
+      const dTMAKey = `${cTPL.virtualDevice?.deviceTypeId ?? ''}${KEY_SEPARATOR}${cTPL.metric?.metricsAttributeId ?? ''
+        }`;
+
+      const {
+        txnCaptureTimeInEpoch,
+        txnCapturePeriodInEpoch,
+        ...metric
+      } = cTPL.metric!;
+
+      metricsWithDisplayProperty.push(
+        new MetricWithDisplayProperty({
+          metric: {
+            ...metric,
+            txnCaptureTime: cTPL.metric!.txnCaptureTime.valueOf(),
+            txnCapturePeriod: cTPL.metric!.txnCapturePeriod.valueOf(),
+          } as any,
+          telemetryDisplayProperty: {
+            metricsAttributeId:
+              cTPL.metric?.metricsAttributeId ?? '',
+            frequency:
+              cTPL.metric?.frequency ?? MetricsFrequency.INSTANT,
+            displayName:
+              cTPL.metric?.metricsAttributeId ?? '',
+            displayOrder:
+              dTMAsByKey[dTMAKey]?.[0]?.displayOrder ??
+              aCPS?.assetTypeCurrentPerformanceSource.displayOrder ??
+              1000,
+            unit: cTPL.metric?.unit,
+          },
+        }),
       );
-      //                                                                                                                                                                           
-      const metricWithDisplayProperty = new MetricWithDisplayProperty({
-        metric: cTPL.metric!,
-        telemetryDisplayProperty: {
-          metricsAttributeId:
-            cTPL.metric?.metricsAttributeId ??
-            aCPS?.assetTypeCurrentPerformanceSource.label ??
-            '',
-          frequency: cTPL.metric?.frequency ?? MetricsFrequency.INSTANT,
-          displayName:
-            aCPS?.assetTypeCurrentPerformanceSource.label ??
-            cTPL.metric?.metricsAttributeId ??
-            '', //currTelemetryPayloadObj.metric.metricsAttributeId,
-          displayPriority:
-            aCPS?.assetTypeCurrentPerformanceSource.displayPriority,
-          displayOrder:
-            dTMAByKey[dTMAKey]?.[0]?.displayOrder ??
-            aCPS?.assetTypeCurrentPerformanceSource.displayOrder,
-          unit: cTPL.metric?.unit,
-        },
-      });
-      metricsWithDisplayProperty.push(metricWithDisplayProperty);
     }
+
     tPLV3DTOs.push(
       new TelemetryPayloadV3DTO({
         telemetryDevice,
@@ -388,6 +515,71 @@ export function getTPLV3DTO<
       }),
     );
   }
+
+  return tPLV3DTOs;
+}
+
+
+export function getTPLV3DTOFOrDevice<
+  T extends CurrentTelemetryPayload | TelemetryPayload,
+>(
+  payloads: T[],
+  PayloadCtor: new (payload: any) => CurrentTelemetryPayload | TelemetryPayload,
+  dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]>,
+): TelemetryPayloadV3DTO[] {
+  const tPLV3DTOs: TelemetryPayloadV3DTO[] = [];
+
+  const cTPLsByPK = _.groupBy(payloads, (ctpl) =>
+    new PayloadCtor(ctpl).getVDKey(),
+  );
+
+  for (const [pk, cTPLs] of Object.entries(cTPLsByPK)) {
+    const telemetryDevice = TelemetryDevice.createFromTelemetry(cTPLs[0]);
+
+    const metricsWithDisplayProperty: MetricWithDisplayProperty[] = [];
+
+    for (const cTPL of cTPLs) {
+      const dTMAKey =
+        `${cTPL.virtualDevice?.deviceTypeId ?? ''}` +
+        `${KEY_SEPARATOR}` +
+        `${cTPL.metric?.metricsAttributeId ?? ''}`;
+
+      const {
+        txnCaptureTimeInEpoch,
+        txnCapturePeriodInEpoch,
+        ...metric
+      } = cTPL.metric!;
+
+      metricsWithDisplayProperty.push(
+        new MetricWithDisplayProperty({
+          metric: {
+            ...metric,
+            txnCaptureTime: cTPL.metric!.txnCaptureTime.valueOf(),
+            txnCapturePeriod: cTPL.metric!.txnCapturePeriod.valueOf(),
+          } as any,
+          telemetryDisplayProperty: {
+            metricsAttributeId:
+              cTPL.metric?.metricsAttributeId ?? '',
+            frequency:
+              cTPL.metric?.frequency ?? MetricsFrequency.INSTANT,
+            displayName:
+              cTPL.metric?.metricsAttributeId ?? '',
+            displayOrder:
+              dTMAByKey[dTMAKey]?.[0]?.displayOrder,
+            unit: cTPL.metric?.unit,
+          },
+        }),
+      );
+    }
+
+    tPLV3DTOs.push(
+      new TelemetryPayloadV3DTO({
+        telemetryDevice,
+        metricsWithDisplayProperties: metricsWithDisplayProperty,
+      }),
+    );
+  }
+
   return tPLV3DTOs;
 }
 

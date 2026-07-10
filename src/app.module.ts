@@ -484,7 +484,7 @@ export class AppModule { }
 // "PrtyMLnPrsLTrp":0}}
 
 // 9328152924
-
+  
 
 // Standalone Script :
 // npx ts-node -r tsconfig-paths/register src/telemetry-payload/update_telemetry_script.ts
@@ -533,6 +533,7 @@ export class AppModule { }
 // Jyotindra 
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010008\")"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" 
 
 // {"device_type":"invtr1","device_name":"huwai","device_id":"2026030003","date":"22/04/2026",
 // "time":"09:40:28","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
@@ -733,6 +734,7 @@ export class AppModule { }
 // curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant"
 // curl -N "http://localhost:3002/sse/stream?assetId=Lift"
 // curl -N "http://localhost:3002/sse/stream?assetId=TestAsset&virtualDeviceId=TestAsset:testVd"
+// curl -N "http://localhost:3002/sse/stream?assetId=ChitraFilterPlant&virtualDeviceId=ChitraFilterPlant:ChitraWS1"
 
 
 
@@ -902,10 +904,17 @@ export class AppModule { }
 
 
 
+// startOfDate, endOfDate = others 
+
+// await this.telemetryPayloadService.findLatestTPLForATimePeriod
+// await this.telemetryPayloadService.findForATimePeriodInAsc
+
+// TelemetryPayloadsRepo(tPLs).getCTPLDTOV3
 
 
 
 
+// chat.atxp.ai 
 
 
 

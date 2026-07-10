@@ -3,17 +3,21 @@ import { CurrentTelemetryPayloadService } from 'src/current-telemetry-payload/cu
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { IotServerService } from 'src/iot-server/iot-server.service';
 import { RMU_OFFLINE, RMU_OFFLINE_THRESHOLD } from 'src/app_config/constants';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PeriodTelemetryPayloadAuditService } from 'src/period-telemetry-payload-audit/period-telemetry-payload-audit.service';
 import { TelemetryPayloadService } from 'src/telemetry-payload/telemetry-payload.service';
 import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
 import { MetricsFrequency } from 'src/common';
+// import { AggregationService } from './aggregation.service';
 
 @Injectable()
 export class CronJobsService {
+    private isRunning = false;   // ← add this line
+
     constructor(
         private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
         private readonly iotServerService: IotServerService,
+        // private readonly aggregationService: AggregationService
     ) { }
 
 
@@ -131,4 +135,19 @@ export class CronJobsService {
     ) {
         return await this.iotServerService.processMaxTelemetryAggregation(inputDate, metricsFrequency, isCalculationForced);
     }
+
+
+    // @Cron(CronExpression.EVERY_5_MINUTES)
+    // async handleCron() {
+    //     if (this.isRunning) {
+    //         console.log('Previous aggregation run still in progress — skipping this tick');
+    //         return;
+    //     }
+    //     this.isRunning = true;
+
+    //     await this.aggregationService.processScheduledAggregation();
+
+    // }
+
 }
+

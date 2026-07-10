@@ -184,6 +184,14 @@ export class VirtualDevice {
     @Column({ nullable: true })
     searchTerm?: string;
 
+    @Column({
+        default: false,
+    })
+    needsAggregation: boolean;
+
+    @Column({ nullable: true })
+    displayNumber: Number;
+
     @BeforeInsert()
     @BeforeUpdate()
     setSearchTerm() {

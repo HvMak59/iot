@@ -20,8 +20,8 @@ import _ from 'lodash';
 
 @Injectable()
 export class DeviceTypeMetricsAttributeService {
-  // private relations = serviceConfig.deviceTypeMetricsAttribute.relations;
-  private relations = [];
+  private relations = serviceConfig.deviceTypeMetricsAttribute.relations;
+  // private relations = [];
   private logger = winstonServerLogger(DeviceTypeMetricsAttributeService.name);
   constructor(
     @InjectRepository(DeviceTypeMetricsAttribute)
@@ -98,6 +98,7 @@ export class DeviceTypeMetricsAttributeService {
   ) {
     /* const event = `Input : ${JSON.stringify(searchCriteria)}`;
     const msgTemplate = 'Find ' + this.serviceName + 's'; */
+    // let relations = relationsRequired ? ['metricsAttribute'] : ['metricsAttribute'];
     let relations = relationsRequired ? this.relations : ['metricsAttribute'];
 
     const whereCriteria: FindDeviceTypeMetricsAttributeDto = {
@@ -143,7 +144,7 @@ export class DeviceTypeMetricsAttributeService {
       relationsRequired,
       forDisplay,
     );
-    console.log('dtma', dTMAs);
+    // console.log('dtma', dTMAs);
     const dTMAByKey: _.Dictionary<DeviceTypeMetricsAttribute[]> = _.groupBy(
       dTMAs,
       (dTMA) => new DeviceTypeMetricsAttribute(dTMA).getKey(),
@@ -170,6 +171,8 @@ export class DeviceTypeMetricsAttributeService {
       displayOrder: Not(IsNull()),
     }; */
 
+    // console.log("wehre", whereCriteria);
+    // console.log("in multipleid");
     const response = await this.repo.find({
       where: whereCriteria,
       relations: relations,
@@ -179,6 +182,8 @@ export class DeviceTypeMetricsAttributeService {
       },
     });
 
+    // console.log("after");
+    // console.log("response", response);
     this.logger.debug(`No of records found : ${response.length}`);
 
     return response;

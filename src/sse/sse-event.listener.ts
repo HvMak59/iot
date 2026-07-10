@@ -115,16 +115,16 @@ export class TelemetryEventsListener {
                     }
                 }
 
-                const vdMessage = {
-                    data: getTPLV3DTO(vdCTPLs, vdACPSByKey, CurrentTelemetryPayload, dTMAByKey),
-                };
+                // const vdMessage = {
+                //     data: getTPLV3DTO(vdCTPLs, vdACPSByKey, CurrentTelemetryPayload, dTMAByKey),
+                // };
 
-                this.telemetrySseService.publish(assetId!, vdMessage, virtualDeviceId);
+                // this.telemetrySseService.publish(assetId!, vdMessage, virtualDeviceId);
             }
 
             if (this.telemetrySseService.hasStream(assetId!)) {
-                const message = { data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey) };
-                this.telemetrySseService.publish(assetId!, message);
+                // const message = { data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey) };
+                // this.telemetrySseService.publish(assetId!, message);
             }
             else {
                 this.logger.error(`No stream found for assetId: ${assetId}`);

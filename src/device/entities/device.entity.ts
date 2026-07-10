@@ -144,11 +144,11 @@ export class Device {
   })
   currentTelemetryPayloads?: CurrentTelemetryPayload[];
 
-  // @OneToMany(() => TelemetryPayload, (cTP) => cTP.device, {
-  //   nullable: true,
-  //   cascade: true,
-  // })
-  // telemetryPayloads?: TelemetryPayload[];
+  @OneToMany(() => TelemetryPayload, (cTP) => cTP.device, {
+    nullable: true,
+    cascade: true,
+  })
+  telemetryPayloads?: TelemetryPayload[];
 
   //deviceState: DeviceState;
 

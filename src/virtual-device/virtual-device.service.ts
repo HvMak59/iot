@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-import { In, Repository, TreeRepository } from 'typeorm';
+import { In, IsNull, Repository, TreeRepository } from 'typeorm';
 // import {
 //   deleteRec,
 //   findAll,
@@ -501,6 +501,142 @@ export class VirtualDeviceService {
 
   // virtual-device.service.ts
 
+
+  // async findParentsNeedingAggregation() {
+  //   return this.repo.find({ where: { needsAggregation: true } });
+  // }
+
+  // Atomic claim via repo.update with a compound where — succeeds only if the
+  // flag was still true at the moment of the update. This is what prevents
+  // lost updates (telemetry arriving mid-run) and double-processing.
+  // async claimForAggregation(parentVirtualDeviceId: string) {
+  //   const result = await this.repo.update(
+  //     { id: parentVirtualDeviceId, needsAggregation: true },
+  //     { needsAggregation: false },
+  //   );
+  //   return (result.affected ?? 0) > 0;
+  // }
+
+  // async markNeedsAggregation(parentVirtualDeviceId: string) {
+  //   await this.repo.update({ id: parentVirtualDeviceId }, { needsAggregation: true });
+  // }
+
+  // async getChildren(parentVirtualDeviceId: string) {
+  //   const parent = await this.repo.findOne({
+  //     where: { id: parentVirtualDeviceId },
+  //     relations: ['children'],
+  //   });
+  //   return parent?.children ?? [];
+  // }
+
+
+
+  async findParentsNeedingAggregation(): Promise<VirtualDevice[]> {
+
+    const fnName = this.findParentsNeedingAggregation.name;
+
+    this.logger.debug(`${fnName} : Start`);
+
+    const parents = await this.repo.find({
+      where: {
+        needsAggregation: true,
+      },
+    });
+
+    this.logger.debug(
+      `${fnName} : ${parents.length} parents found`,
+    );
+
+    return parents;
+
+  }
+
+
+  async getChildren(parentVirtualDeviceId: string) {
+
+    // const treeRepo = this.repo.manager.getTreeRepository(VirtualDevice);
+
+    const parent = await this.repo.findOne({
+      // const parent = await treeRepo.findOne({
+      where: { id: parentVirtualDeviceId },
+    });
+
+    if (!parent) {
+      return [];
+    }
+
+    const descendants = await this.repo.findDescendants(parent);
+
+    return descendants.filter(vd => vd.id !== parent.id);
+  }
+
+  async claimForAggregation(
+    parentVirtualDeviceId: string,
+  ) {
+
+    const fnName = this.claimForAggregation.name;
+
+    this.logger.debug(
+      `${fnName} : ${parentVirtualDeviceId}`,
+    );
+
+    const result = await this.repo.update(
+      {
+        id: parentVirtualDeviceId,
+        needsAggregation: true,
+      },
+      {
+        needsAggregation: false,
+      },
+    );
+
+    return (result.affected ?? 0) > 0;
+
+  }
+
+  async clearAggregationPending(
+    parentVirtualDeviceId: string,
+  ): Promise<void> {
+
+    const fnName = 'clearAggregationPending()';
+
+    this.logger.debug(
+      `${fnName} : ${parentVirtualDeviceId}`,
+    );
+
+    await this.repo.update(
+      {
+        id: parentVirtualDeviceId,
+      },
+      {
+        needsAggregation: false,
+      },
+    );
+  }
+
+
+  async markNeedsAggregation(
+    parentVirtualDeviceId: string,
+  ): Promise<void> {
+
+    const fnName = 'markNeedsAggregation()';
+
+    this.logger.debug(
+      `${fnName} : ${parentVirtualDeviceId}`,
+    );
+
+    await this.repo.update(
+      {
+        id: parentVirtualDeviceId,
+      },
+      {
+        needsAggregation: true,
+      },
+    );
+
+  }
+
+
   async findOne(options: any) {
     // return this.repo.findOne(options);
   }
@@ -717,6 +853,11 @@ export class VirtualDeviceService {
 
   //   return recordSetC;
   // }
+
+
+
+
+
 
 
   private sirShownCorrect = 5;

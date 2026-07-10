@@ -31,19 +31,21 @@ import { start } from 'repl';
 import { TelemetryPayloadsRepo } from './entities/telemetry-payload_repo.entity';
 import { FindMetricDto } from 'src/metrics/dto/find-metric.dto';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-import { convertpossibleStringTypeToInt, getTryCatchErrorStr, hasPeriodTelemetryIncreased } from 'src/utils/others';
+import { convertInputToDate, convertpossibleStringTypeToInt, getTryCatchErrorStr, hasPeriodTelemetryIncreased } from 'src/utils/others';
 import _ from 'lodash';
 import { KEY_SEPARATOR, NO_RECORD, SEPARATOR } from 'src/app_config/constants';
 import { on } from 'events';
 import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/entities/period-telemetry-payload-audit.entity';
 import { MetricsFrequency } from 'src/common';
+import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
+import { FindDevicesPerformanceTelemetryDto } from 'src/iot-server/dto/find-devices-performance-telemetry.dto';
 
 @Injectable()
 export class TelemetryPayloadService {
   private readonly logger = winstonServerLogger(TelemetryPayloadService.name);
   // private readonly serviceName = serviceConfig.telemetryPayload.serviceName;
-  // private readonly eagerRelations =
-  //   serviceConfig.telemetryPayload.eagerRelations;
+  private readonly eagerRelations = [];
+  // serviceConfig.telemetryPayload.eagerRelations;
   // private readonly relations = serviceConfig.telemetryPayload.relations;
   // private allRelations = _.union(this.eagerRelations, this.relations);
 
@@ -310,49 +312,49 @@ export class TelemetryPayloadService {
     });
   }
 
-  //   findForMultipleDevicesForATimePeriod(
-  //     searchCriteria: FindDevicesPerformanceTelemetryDto,
-  //   ) {
-  //     const event = `Input : ${JSON.stringify(searchCriteria)}`;
-  //     const msgTemplate = 'Find ' + this.serviceName + ` ${event}`;
+  findForMultipleDevicesForATimePeriod(
+    searchCriteria: FindDevicesPerformanceTelemetryDto,
+  ) {
+    const event = `Input : ${JSON.stringify(searchCriteria)}`;
+    // const msgTemplate = 'Find ' + this.serviceName + ` ${event}`;
 
-  //     this.logger.debug(`${msgTemplate} : Start`);
-  //     const startTime =
-  //       typeof searchCriteria.startTime == 'string'
-  //         ? Number(searchCriteria.startTime).valueOf()
-  //         : searchCriteria.startTime;
-  //     const endTime =
-  //       typeof searchCriteria.endTime == 'string'
-  //         ? Number(searchCriteria.endTime).valueOf()
-  //         : searchCriteria.endTime;
-  //     this.logger.debug(`Printing start time : ${startTime}`);
+    this.logger.debug(`Start`);
+    const startTime =
+      typeof searchCriteria.startTime == 'string'
+        ? Number(searchCriteria.startTime).valueOf()
+        : searchCriteria.startTime;
+    const endTime =
+      typeof searchCriteria.endTime == 'string'
+        ? Number(searchCriteria.endTime).valueOf()
+        : searchCriteria.endTime;
+    this.logger.debug(`Printing start time : ${startTime}`);
 
-  //     const telemetryPayloadSearchObject: FindOptionsWhere<TelemetryPayload> = {
-  //       virtualDeviceId: In(searchCriteria.csvVirtualDeviceIDs.split(',')),
-  //       metric: {
-  //         metricsAttributeId: searchCriteria.metricsAttributeId,
-  //         txnCapturePeriod: Between<Date>(new Date(startTime), new Date(endTime)),
-  //       },
-  //     };
+    const telemetryPayloadSearchObject: FindOptionsWhere<TelemetryPayload> = {
+      virtualDeviceId: In(searchCriteria.csvVirtualDeviceIDs.split(',')),
+      metric: {
+        metricsAttributeId: searchCriteria.metricsAttributeId,
+        txnCapturePeriod: Between<Date>(new Date(startTime), new Date(endTime)),
+      },
+    };
 
-  //     searchCriteria.csvAssetIDs && searchCriteria.csvAssetIDs.length > 0
-  //       ? (telemetryPayloadSearchObject.assetId = In(
-  //           searchCriteria.csvAssetIDs.split(','),
-  //         ))
-  //       : null;
+    searchCriteria.csvAssetIDs && searchCriteria.csvAssetIDs.length > 0
+      ? (telemetryPayloadSearchObject.assetId = In(
+        searchCriteria.csvAssetIDs.split(','),
+      ))
+      : null;
 
-  //     return this.repo.find({
-  //       where: telemetryPayloadSearchObject,
-  //       relations: this.eagerRelations,
-  //       order: {
-  //         //assetId: 'ASC',
-  //         //virtualDeviceId: 'ASC',
-  //         metric: {
-  //           txnCaptureTime: 'ASC',
-  //         },
-  //       },
-  //     });
-  //   }
+    return this.repo.find({
+      where: telemetryPayloadSearchObject,
+      relations: this.eagerRelations,
+      order: {
+        //assetId: 'ASC',
+        //virtualDeviceId: 'ASC',
+        metric: {
+          txnCaptureTime: 'ASC',
+        },
+      },
+    });
+  }
 
   //   findAllWthRelations() {
   //     const msgTemplate = 'Find ' + this.serviceName + 's' + ' with relations';
@@ -847,6 +849,216 @@ export class TelemetryPayloadService {
     });
   }
 
+
+
+
+
+
+
+
+  async findLatestTPLForATimePeriod(
+    // searchCriterias: Partial<AssetCurrentPerformanceSource>[],
+    searchCriterias: FindCurrentTelemetryDto[], // updated by hiten
+    startTimeInEpoch: number | string,
+    endTimeInEpoch: number | string,
+  ): Promise<TelemetryPayload[]> {
+    const fnName = this.findLatestTPLForATimePeriod.name;
+    const startTimeToProcess = new Date();
+    this.logger.debug(
+      `${fnName} : Start : startTimeToProcess : ${startTimeToProcess}`,
+    );
+    this.logger.debug(
+      `${fnName} : Input : No of searchCriterias : ${searchCriterias.length}, ${startTimeInEpoch}, ${endTimeInEpoch}`,
+    );
+    const startTime = convertInputToDate(startTimeInEpoch);
+    const endTime = convertInputToDate(endTimeInEpoch);
+    this.logger.debug(
+      `${fnName} : Converted startTime : ${startTime}, endTime : ${endTime}`,
+    );
+    const assetIDSet = new Set<string>();
+    const virtualDeviceIDSet = new Set<string | null>();
+    const metricsAttributeIDSet = new Set<string>();
+    searchCriterias.forEach((searchCriteria) => {
+      assetIDSet.add((searchCriteria.assetId as string)!);
+
+      virtualDeviceIDSet.add(
+        (searchCriteria.virtualDeviceId as string | null) ?? null,
+      );
+      metricsAttributeIDSet.add(searchCriteria.metricsAttributeId!);
+    });
+    const assetIDs = Array.from(assetIDSet);
+    const virtualDeviceIDs = Array.from(virtualDeviceIDSet);
+    const metricsAttributeIDs = Array.from(metricsAttributeIDSet);
+    this.logger.debug(
+      `${fnName} : assetIDs : ${[...assetIDs]}, virtualDeviceIDs : ${[
+        ...virtualDeviceIDs,
+      ]}, metricsAttributeIDs : ${[...metricsAttributeIDs]}`,
+    );
+
+    const virtualDeviceIDsWithoutNull = virtualDeviceIDs.filter(
+      (vdId): vdId is string => vdId != null,
+    );
+    const includeNullVirtualDeviceId =
+      virtualDeviceIDs.length > 0 &&
+      virtualDeviceIDs.some((vdId) => vdId == null);
+
+    const subQueryBuilder = this.repo
+      .createQueryBuilder('tp')
+      .select('tp.assetId', 'assetid')
+      .addSelect('tp.virtualDeviceId', 'virtualdeviceid')
+      .addSelect('tp.metric.metricsAttributeId', 'metricsattributeid')
+      .addSelect('MAX(tp.metric.txnCapturePeriod)', 'latesttxncaptureperiod')
+      .where('tp.assetId IN (:...assetIDs)', { assetIDs })
+      .andWhere('tp.metric.txnCapturePeriod BETWEEN :startTime AND :endTime', {
+        startTime,
+        endTime,
+      });
+
+    if (virtualDeviceIDsWithoutNull.length > 0 && includeNullVirtualDeviceId) {
+      subQueryBuilder.andWhere(
+        '(tp.virtualDeviceId IN (:...virtualDeviceIDs) OR tp.virtualDeviceId IS NULL)',
+        { virtualDeviceIDs: virtualDeviceIDsWithoutNull },
+      );
+    } else if (virtualDeviceIDsWithoutNull.length > 0) {
+      subQueryBuilder.andWhere('tp.virtualDeviceId IN (:...virtualDeviceIDs)', {
+        virtualDeviceIDs: virtualDeviceIDsWithoutNull,
+      });
+    } else if (includeNullVirtualDeviceId) {
+      subQueryBuilder.andWhere('tp.virtualDeviceId IS NULL');
+    }
+
+    subQueryBuilder
+      .andWhere('tp.metric.metricsAttributeId IN (:...metricsAttributeIDs)', {
+        metricsAttributeIDs,
+      })
+      .groupBy('tp.assetId')
+      .addGroupBy('tp.virtualDeviceId')
+      .addGroupBy('tp.metric.metricsAttributeId');
+
+    //this.logger.debug(`${fnName} : Subquery : ${subQueryBuilder.getQuery()}`);
+
+    const result = await subQueryBuilder.getRawMany();
+    const endTimeForSubQuery = new Date();
+    this.logger.debug(
+      `${fnName} : End of subquery execution : endTimeForSubQuery : ${endTimeForSubQuery}, time taken in seconds : ${(endTimeForSubQuery.getTime() - startTimeToProcess.getTime()) / 1000
+      }`,
+    );
+    const findTelemetryPayloadDTOs: FindOptionsWhere<TelemetryPayload>[] = [];
+    for (const record of result) {
+      for (const [key, value] of Object.entries(record)) {
+        /* this.logger.debug(
+          `${fnName} : Subquery result ${key} : ${JSON.stringify(value)}`,
+        ); */
+        const findTelemetryPayloadDTO: FindTelemetryPayloadDto = {
+          assetId: record['assetid'],
+          virtualDeviceId: record['virtualdeviceid'] ?? IsNull(),
+          metric: {
+            metricsAttributeId: record['metricsattributeid'],
+            txnCapturePeriod: record['latesttxncaptureperiod'],
+          } as FindMetricDto,
+        };
+        findTelemetryPayloadDTOs.push(findTelemetryPayloadDTO);
+      }
+    }
+    const result2 = await this.findByMultipleConditions(
+      findTelemetryPayloadDTOs,
+    );
+    const findEndTime = new Date();
+    this.logger.debug(
+      `${fnName} : End of findByMultipleConditions execution : findEndTime : ${findEndTime}, time taken in seconds : ${(findEndTime.getTime() - endTimeForSubQuery.getTime()) / 1000
+      }`,
+    );
+    return result2;
+  }
+
+
+  findByMultipleConditions(
+    searchCriterias: FindTelemetryPayloadDto[],
+  ): Promise<TelemetryPayload[]> {
+    return this.repo.find({
+      select: {
+        assetId: true,
+        virtualDeviceId: true,
+        deviceId: true,
+        virtualDevice: {
+          name: true,
+          displayOrder: true,
+          deviceTypeId: true,
+        },
+        metric: {
+          metricsAttributeId: true,
+          frequency: true,
+          measure: true,
+          unit: true,
+          txnCaptureTime: true,
+          txnCapturePeriod: true,
+        },
+      },
+      where: searchCriterias,
+      relations: {
+        virtualDevice: true,
+        metric: true,
+      },
+    });
+  }
+
+
+
+  findForATimePeriodInAsc(searchCriteria: FindTelemetryPayloadForAPeriod) {
+    const fnName = this.findForATimePeriodInAsc.name;
+
+    const startTime = convertInputToDate(searchCriteria.startTime);
+    const endTime = convertInputToDate(searchCriteria.endTime);
+
+    /* const startTime =
+      typeof searchCriteria.startTime == 'string'
+        ? Number(searchCriteria.startTime).valueOf()
+        : searchCriteria.startTime;
+    const endTime =
+      typeof searchCriteria.endTime == 'string'
+        ? Number(searchCriteria.endTime).valueOf()
+        : searchCriteria.endTime; */
+
+    this.logger.debug(
+      `${fnName} : search criteria : ${JSON.stringify(searchCriteria)}`,
+    );
+
+    return this.repo.find({
+      where: {
+        assetId: searchCriteria.assetId,
+        virtualDeviceId: searchCriteria.virtualDeviceId ?? IsNull(),
+        metric: {
+          metricsAttributeId: searchCriteria.metricsAttributeId,
+          txnCapturePeriod: Between<Date>(startTime, endTime),
+        },
+      },
+      relations: this.eagerRelations,
+      order: {
+        metric: {
+          txnCaptureTime: 'ASC',
+        },
+      },
+    });
+    /* return this.repo.find({
+      where: {
+        assetId: searchCriteria.assetId,
+        virtualDeviceId: searchCriteria.virtualDeviceId ?? IsNull(),
+        metric: {
+          metricsAttributeId: searchCriteria.metricsAttributeId,
+          txnCapturePeriod: Between<Date>(
+            new Date(startTime),
+            new Date(endTime),
+          ),
+        },
+      },
+      relations: this.eagerRelations,
+      order: {
+        metric: {
+          txnCaptureTime: 'ASC',
+        },
+      },
+    }); */
+  }
 
 
 

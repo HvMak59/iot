@@ -1,0 +1,125 @@
+                 Telemetry Arrival
+                        │
+                        |
+          Save TelemetryPayload (History)
+                        │
+                        |
+     Update CurrentTelemetryPayload (Latest)
+                        │
+                        |
+        Find Root Parent Virtual Device
+                        │
+                        |
+ Set isGroupAggregationPending = true (if not already)
+                        │
+                        |
+                       END
+
+
+In virtualDevice : 
+@Column({ default: false })
+needsAggregation: boolean;
+
+@Column({ default: false })
+aggregationInProgress: boolean;
+
+
+
+
+
+
+
+                
+Cron flowchart : 
+
+                   
+        │
+        ▼
+Find Parent VDs
+WHERE
+needsAggregation = true
+AND
+aggregationInProgress = false
+        │
+        ▼
+For Each Parent
+        │
+        ▼
+aggregationInProgress = true
+        │
+        ▼
+needsAggregation = false
+        │
+        ▼
+Aggregate
+        │
+        ▼
+aggregationInProgress = false
+        │
+        ▼
+END
+
+
+
+
+
+
+Database Flow : 
+
+TelemetryPayload
+        │
+        |
+CurrentTelemetryPayload
+        │
+        |
+Cron
+        │
+        |
+Child Virtual Devices
+        │
+        |
+VirtualDeviceGroup
+        │
+        |
+GroupAggregationRules
+        │
+        |
+Aggregate
+        │
+        |
+TelemetryPayload
+        │
+        |
+CurrentTelemetryPayload
+        │
+        |
+Update Parent.lastAggregationTime
+
+
+
+
+
+
+AggregationCron
+        │
+        ▼
+AggregationService.processScheduledAggregation()
+        │
+        ├── VirtualDeviceService
+        │       ├── findRootParents()
+        │       └── getChildren()
+        │
+        ├── CurrentTelemetryPayloadService
+        │       └── getLatestTelemetry()
+        │
+        ├── VirtualDeviceGroupService
+        │       └── findByVirtualDevice()
+        │
+        ├── GroupMetricsAttributeAggregationService
+        │       └── findByGroup()
+        │
+        ├── Existing Aggregation Logic
+        │       └── calculateMetrics()
+        │
+        └── VirtualDeviceService
+                └── updateLastAggregationTime()

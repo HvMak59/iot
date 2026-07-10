@@ -126,8 +126,8 @@ export class MetricsAttributeAdaptor {
   @Column({ nullable: true })
   deletedBy?: string;
 
-  @DeleteDateColumn()
-  deletedAt?: number;
+  // @DeleteDateColumn()
+  // deletedAt?: number;
 
   @Column({ nullable: true })
   searchTerm: string;

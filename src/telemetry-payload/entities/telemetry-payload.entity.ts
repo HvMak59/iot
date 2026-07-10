@@ -14,6 +14,7 @@ import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { Metric } from 'src/metrics/entities/metric.entity';
 import { Asset } from 'src/asset/entities/asset.entity';
+import { Device } from 'src/device/entities/device.entity';
 
 // @Entity()
 // @Index(
@@ -78,6 +79,14 @@ export class TelemetryPayload {
     { nullable: true },
   )
   virtualDevice?: VirtualDevice;
+
+  @Column({ nullable: true })
+  deviceId?: string;
+
+  @ManyToOne(() => Device, (device) => device.telemetryPayloads, {
+    nullable: true,
+  })
+  device?: Device;
 
   @Column(() => Metric)
   metric: Metric;

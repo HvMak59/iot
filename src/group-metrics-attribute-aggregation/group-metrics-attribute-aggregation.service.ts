@@ -73,6 +73,63 @@ export class GroupMetricsAttributeAggregationService {
     }
   }
 
+  async findByGroupIds(groupIds: string[]): Promise<GroupMetricsAttributeAggregation[]> {
+    if (!groupIds.length) return [];
+    return this.repo.find({
+      where: { groupId: In(groupIds) },
+      relations: ['metricsAttributeAggregation'],
+    });
+  }
+
+
+
+
+
+  async getAggregationRules(
+    groupId: string,
+  ): Promise<GroupMetricsAttributeAggregation[]> {
+
+    const fnName = 'getAggregationRules()';
+
+    try {
+
+      this.logger.debug(`${fnName} : Start`);
+
+      const rules = await this.repo.find({
+
+        where: {
+          groupId,
+        },
+
+        relations: {
+          metricsAttributeAggregation: true,
+        },
+
+      });
+
+      this.logger.debug(
+        `${fnName} : ${rules.length} aggregation rules found`,
+      );
+
+      return rules;
+
+    } catch (error) {
+
+      this.logger.error(
+        `${fnName} : ${error.message}`,
+      );
+
+      throw error;
+
+    } finally {
+
+      this.logger.debug(`${fnName} : End`);
+
+    }
+
+  }
+
+
   createBulk(
     createGroupMetricsAttributeAggregationDTOs: CreateGroupMetricsAttributeAggregationDto[],
   ) {

@@ -10,6 +10,9 @@ import { CurrentTelemetryPayloadModule } from 'src/current-telemetry-payload/cur
 import { TelemetryPayloadModule } from 'src/telemetry-payload/telemetry-payload.module';
 import { PeriodTelemetryPayloadAuditModule } from 'src/period-telemetry-payload-audit/period-telemetry-payload-audit.module';
 import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
+import { AssetCurrentPerformanceSourceModule } from 'src/asset-current-performance-source/asset-current-performance-source.module';
+import { AssetTypeCurrentPerformanceSourceModule } from 'src/asset-type-current-performance-source/asset-type-current-performance-source.module';
+import { DeviceTypeMetricsAttributeModule } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.module';
 // import { AssetCurrentPerformanceSourceModule } from 'src/asset-current-performance-source/asset-current-performance-source.module';
 // import { CurrentTelemetryPayloadModule } from 'src/current-telemetry-payload/current-telemetry-payload.module';
 // import { TelemetryPayloadModule } from 'src/telemetry-payload/telemetry-payload.module';
@@ -30,8 +33,8 @@ import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
 
 @Module({
   imports: [
-    // AssetCurrentPerformanceSourceModule,
-    // AssetTypeCurrentPerformanceSourceModule,
+    AssetCurrentPerformanceSourceModule,
+    AssetTypeCurrentPerformanceSourceModule,
     CurrentTelemetryPayloadModule,
     TelemetryPayloadModule,
     HttpModule,
@@ -43,7 +46,7 @@ import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
     // DeviceModelModule,
     DeviceModule,
     AlertModule,
-    // DeviceTypeMetricsAttributeModule,
+    DeviceTypeMetricsAttributeModule,
     // DeviceModelAlertModule,
     // TodayTelemetryPayloadModule,
     PeriodTelemetryPayloadAuditModule,
