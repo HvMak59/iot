@@ -40,6 +40,7 @@ import { convertpossibleStringTypeToInt, getTryCatchErrorStr } from 'src/utils/o
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { IotServerService } from 'src/iot-server/iot-server.service';
 import _ from 'lodash';
+import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
 
 @Injectable()
 export class CurrentTelemetryPayloadService {
@@ -51,6 +52,7 @@ export class CurrentTelemetryPayloadService {
     @InjectRepository(CurrentTelemetryPayload)
     private readonly repo: Repository<CurrentTelemetryPayload>,
     private eventEmitter: EventEmitter2,
+    private virtualDeviceService: VirtualDeviceService,
     // private iotServerService: IotServerService,
   ) { }
 
@@ -280,6 +282,7 @@ export class CurrentTelemetryPayloadService {
           createCurrTelemetryPyld.metric = new Metric(
             createCurrTelemetryPyld.metric,
           );
+
           const newCreateCurrTelemetryPyld = new CurrentTelemetryPayload(
             createCurrTelemetryPyld,
           );
@@ -296,6 +299,18 @@ export class CurrentTelemetryPayloadService {
         `${fName} : No of records to be upserted : ${arrivedCTPLsByAssetIDVDeviceIdMAId.size}`,
       );
       const result = await this.repo.save([...currTelemetryToBeUpserted]);
+
+
+
+      // added for vdAggregation
+      // const vIds = currTelemetryToBeUpserted.map(c => c.virtualDeviceId!);
+      const vIds = result.map(c => c.virtualDeviceId!);
+
+      await this.virtualDeviceService.markVdNeedsAggregation(_.uniq(vIds));
+
+
+
+
       /* const result = await this.repo.upsert(
         [...createCurrTelePayloadMap.values()],
         {
@@ -891,41 +906,41 @@ export class CurrentTelemetryPayloadService {
   //     }
   //   }
 
-  // findByMultipleIDs(searchCriteria: FindCurrentTelemetryPayloadsByMultipleIDs) {
-  //   const fnName = this.findByMultipleIDs.name;
-  //   //const input = `Input : ${JSON.stringify(searchCriteria)}`;
-  //   this.logger.debug(`${fnName} : Start`);
-  //   //this.logger.debug(input);
-  //   const assetIDs = searchCriteria.csvAssetIDs?.split(',');
-  //   const deviceIDs = searchCriteria.csvDeviceIDs?.split(',');
-  //   const virtualDeviceIDs =
-  //     searchCriteria.csvVirtualDeviceIDs?.split(',') ?? null;
-  //   const attributes = searchCriteria.csvMetricsAttributeIDs?.split(',');
-  //   const searchObject: FindCurrentTelemetryDto = {};
-  //   if (assetIDs) {
-  //     searchObject.virtualDevice = {
-  //       assetId: In(_.uniq(assetIDs)),
-  //     };
-  //   }
-  //   if (deviceIDs) {
-  //     searchObject.deviceId = In(_.uniq(deviceIDs));
-  //   }
-  //   if (virtualDeviceIDs) {
-  //     searchObject.virtualDeviceId = In(_.uniq(virtualDeviceIDs));
-  //   } /* else {
-  //     searchObject.virtualDeviceId = IsNull();
-  //   } */
-  //   if (attributes) {
-  //     searchObject.metric = {
-  //       metricsAttributeId: In(_.uniq(attributes)),
-  //     };
-  //   }
-  //   this.logger.debug(
-  //     `${fnName} : searchObject is : ${JSON.stringify(searchObject)}`,
-  //   );
-  //   const result = this.repo.findBy(searchObject);
-  //   return result;
-  // }
+  findByMultipleIDs(searchCriteria: FindCurrentTelemetryPayloadsByMultipleIDs) {
+    const fnName = this.findByMultipleIDs.name;
+    //const input = `Input : ${JSON.stringify(searchCriteria)}`;
+    this.logger.debug(`${fnName} : Start`);
+    //this.logger.debug(input);
+    const assetIDs = searchCriteria.csvAssetIDs?.split(',');
+    const deviceIDs = searchCriteria.csvDeviceIDs?.split(',');
+    const virtualDeviceIDs =
+      searchCriteria.csvVirtualDeviceIDs?.split(',') ?? null;
+    const attributes = searchCriteria.csvMetricsAttributeIDs?.split(',');
+    const searchObject: FindCurrentTelemetryDto = {};
+    if (assetIDs) {
+      searchObject.virtualDevice = {
+        assetId: In(_.uniq(assetIDs)),
+      };
+    }
+    if (deviceIDs) {
+      searchObject.deviceId = In(_.uniq(deviceIDs));
+    }
+    if (virtualDeviceIDs) {
+      searchObject.virtualDeviceId = In(_.uniq(virtualDeviceIDs));
+    } /* else {
+      searchObject.virtualDeviceId = IsNull();
+    } */
+    if (attributes) {
+      searchObject.metric = {
+        metricsAttributeId: In(_.uniq(attributes)),
+      };
+    }
+    this.logger.debug(
+      `${fnName} : searchObject is : ${JSON.stringify(searchObject)}`,
+    );
+    const result = this.repo.findBy(searchObject);
+    return result;
+  }
 
   findByMultipleConditions(searchCriteria: FindCurrentTelemetryDto[]) {
     const fnName = this.findByMultipleConditions.name;
@@ -1109,18 +1124,19 @@ export class CurrentTelemetryPayloadService {
   //   return telemetryMap;
   // }
 
-  async getLatestTelemetry(
-    virtualDeviceIds: string[],
-    metricsAttributeIds: string[],
-  ) {
-    if (!virtualDeviceIds.length || !metricsAttributeIds.length) return [];
-    return this.repo.find({
-      where: {
-        virtualDeviceId: In(virtualDeviceIds),
-        metric: { metricsAttributeId: In(metricsAttributeIds) },
-      },
-    });
-  }
+
+  // async getLatestTelemetry(
+  //   virtualDeviceIds: string[],
+  //   metricsAttributeIds: string[],
+  // ) {
+  //   if (!virtualDeviceIds.length || !metricsAttributeIds.length) return [];
+  //   return this.repo.find({
+  //     where: {
+  //       virtualDeviceId: In(virtualDeviceIds),
+  //       metric: { metricsAttributeId: In(metricsAttributeIds) },
+  //     },
+  //   });
+  // }
 
   async saveMany(payloads: CurrentTelemetryPayload[]): Promise<CurrentTelemetryPayload[]> {
     // repo.save upserts by primary key (id = getKey(), set in the constructor),

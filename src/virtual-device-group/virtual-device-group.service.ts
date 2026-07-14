@@ -128,6 +128,21 @@ export class VirtualDeviceGroupService {
 
 
 
+  async findByVirtualDeviceIDs(
+    virtualDeviceIds: string[],
+  ): Promise<VirtualDeviceGroup[]> {
+    if (!virtualDeviceIds.length) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        virtualDeviceId: In(virtualDeviceIds),
+      },
+    });
+  }
+
+
   // findOne(
   //   searchCriteria: FindVirtualDeviceGroupDto,
   //   relationsRequired: boolean = false,

@@ -35,6 +35,7 @@ import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/
 import { CurrentOpenAlert } from 'src/current-open-alert/entities/current-open-alert.entity';
 import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
 import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
+import { aggregationStatus } from 'src/utils/enums';
 // import { DeviceType } from 'device-type/entities/device-t/ype.entity';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Alert } from 'alert/entities/alert.entity';
@@ -188,6 +189,16 @@ export class VirtualDevice {
         default: false,
     })
     needsAggregation: boolean;
+
+    @Column({
+        default: false,
+    })
+    aggregationStatus: aggregationStatus;
+
+    @Column({
+        nullable: true,
+    })
+    lastAggregationAt?: Date;
 
     @Column({ nullable: true })
     displayNumber: Number;

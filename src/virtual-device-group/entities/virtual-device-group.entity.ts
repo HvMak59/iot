@@ -63,3 +63,5 @@ export class VirtualDeviceGroup {
     return this.groupId + KEY_SEPARATOR + this.virtualDeviceId;
   }
 }
+
+

@@ -212,6 +212,30 @@ export class GroupMetricsAttributeAggregationService {
     }
   }
 
+
+
+
+
+
+  async findByGroupIDs(
+    groupIds: string[],
+  ) {
+    if (!groupIds.length) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        groupId: In(groupIds),
+      },
+      relations: [
+        'metricsAttributeAggregation',
+      ],
+    });
+  }
+
+
+
   findOne(id: number) {
     return `This action returns a #${id} groupMetricsAttributeAggregation`;
   }

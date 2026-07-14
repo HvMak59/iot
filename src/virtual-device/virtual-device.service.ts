@@ -33,7 +33,7 @@ import { ATTACH_DEVICE_URL, DETACH_DEVICE_URL, DEVICE_URL, DUPLICATE_RECORD, KEY
 import { getTokenString, throwErrIfSrvcRespFailure } from 'src/utils/others';
 import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
 import { Response } from 'express';
-import { Relations } from 'src/utils/enums';
+import { aggregationStatus, Relations } from 'src/utils/enums';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggregation/metrics-attribute-aggregation.service';
@@ -615,7 +615,7 @@ export class VirtualDeviceService {
   }
 
 
-  async markNeedsAggregation(
+  async markNeedsAggregationn(
     parentVirtualDeviceId: string,
   ): Promise<void> {
 
@@ -1361,6 +1361,455 @@ export class VirtualDeviceService {
 
   //   return recordSetC;
   // }
+
+
+
+
+
+
+
+  async findPendingParents(): Promise<VirtualDevice[]> {
+    return this.repo.find({
+      where: {
+        needsAggregation: true,
+        // aggregationInProgress: false,
+      },
+    });
+  }
+
+
+  async claimPendingParents(): Promise<VirtualDevice[]> {
+    const parents = await this.findPendingParents();
+
+    if (!parents.length) {
+      return [];
+    }
+
+    await this.repo.update(
+      {
+        id: In(parents.map(parent => parent.id)),
+      },
+      {
+        // aggregationInProgress: true,
+      },
+    );
+
+    return parents;
+  }
+
+
+  async findParentVdForAggr(
+    uniqueVDIds: string[]
+  ) {
+
+    if (uniqueVDIds.length == 0) {
+      this.logger.debug(
+        'No virtual device IDs found',
+      );
+      return [];
+    }
+
+    const virtualDevices = await this.repo.find({
+      where: {
+        id: In(uniqueVDIds),
+      },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+
+    const parentVDIds = _.uniq(
+      virtualDevices
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    if (parentVDIds.length == 0) {
+      this.logger.debug(`No parent virtual devices`);
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        id: In(parentVDIds),
+      },
+      select: {
+        id: true,
+        assetId: true,
+        children: {
+          id: true,
+        },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findParentVds(virtualDeviceIds: string[]) {
+    if (virtualDeviceIds.length == 0) {
+      this.logger.debug(
+        'No virtual device IDs found',
+      );
+      return [];
+    }
+
+    const virtualDevices = await this.repo.find({
+      where: {
+        id: In(virtualDeviceIds),
+      },
+      select: {
+        id: true,
+        parentId: true,
+      },
+    });
+
+    const parentVDIds = _.uniq(
+      virtualDevices
+        .map((vd) => vd.parentId)
+        .filter(Boolean),
+    );
+
+    return parentVDIds;
+  }
+
+  async markVdNeedsAggregation(virtualDeviceIds: string[]) {
+    if (!virtualDeviceIds.length) {
+      this.logger.error(`VirtualDeviceIDs not found`);
+      return;
+    }
+
+    // const parentIds = (await this.findParentVdForAggr(virtualDeviceIds)).map(vd => vd.id);
+    const parentIds = await this.findParentVds(virtualDeviceIds);
+
+    await this.repo.update(
+      {
+        id: In(parentIds),
+      },
+      {
+        needsAggregation: true,
+        aggregationStatus: aggregationStatus.pending
+      },
+    );
+  }
+
+  findVirtualDeviceNeedsAggregation() {
+    return this.repo.find({
+      where: {
+        needsAggregation: true,
+        aggregationStatus: aggregationStatus.pending,
+      },
+      select: {
+        id: true,
+        assetId: true,
+        children: {
+          id: true,
+        },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    })
+  }
+
+
+  async markAggregationCompleted(parentIds: string[]) {
+    if (!parentIds.length) {
+      return;
+    }
+
+    await this.repo.update(
+      {
+        id: In(parentIds),
+      },
+      {
+        needsAggregation: false,
+        // aggregationInProgress: false,
+        lastAggregationAt: new Date(),
+      },
+    );
+  }
+
+  async markAggregationFailed(parentIds: string[]) {
+    if (!parentIds.length) {
+      return;
+    }
+
+    await this.repo.update(
+      {
+        id: In(parentIds),
+      },
+      {
+        // aggregationInProgress: false,
+      },
+    );
+  }
+
+
+  async findChildren(parentIds: string[]) {
+    if (!parentIds.length) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        parentId: In(parentIds),
+      },
+    });
+  }
+
+
+  async findParentsByChildIds(
+    childIds: string[],
+  ): Promise<VirtualDevice[]> {
+    if (!childIds.length) {
+      return [];
+    }
+
+    const children = await this.repo.find({
+      where: {
+        id: In(childIds),
+      },
+    });
+
+    const parentIds = [
+      ...new Set(
+        children
+          .map(child => child.parentId)
+          .filter(Boolean),
+      ),
+    ];
+
+    if (!parentIds.length) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        id: In(parentIds),
+      },
+    });
+  }
+
+
+
+
+
+
+
+
+
+
+  // private isAggregationCycleInProgress = false;
+  // private readonly AGGREGATION_BATCH_SIZE = 50;
+
+  // async runVirtualDeviceGroupAggregationCycle(): Promise<void> {
+  //   if (this.isAggregationCycleInProgress) {
+  //     this.logger.warn('Previous aggregation cycle still running — skipping this tick');
+  //     return;
+  //   }
+  //   this.isAggregationCycleInProgress = true;
+  //   let totalProcessed = 0;
+
+  //   try {
+  //     let pendingDevices: VirtualDevice[];
+  //     do {
+  //       pendingDevices = await this.claimVirtualDevicesPendingAggregation(this.AGGREGATION_BATCH_SIZE);
+  //       if (pendingDevices.length === 0) break;
+
+  //       for (const parentDevice of pendingDevices) {
+  //         try {
+  //           await this.aggregateChildTelemetryForParentDevice(parentDevice.id);
+  //           totalProcessed++;
+  //         } catch (err) {
+  //           this.logger.error(
+  //             `Aggregation failed for VD ${parentDevice.id}: ${err.message}`,
+  //             err.stack,
+  //           );
+  //           await this.restoreAggregationPendingFlag(parentDevice.id);
+  //         }
+  //       }
+  //     } while (pendingDevices.length === this.AGGREGATION_BATCH_SIZE);
+
+  //     if (totalProcessed > 0) {
+  //       this.logger.debug(`Aggregation cycle done — processed ${totalProcessed} parent VD(s).`);
+  //     }
+  //   } finally {
+  //     this.isAggregationCycleInProgress = false;
+  //   }
+  // }
+
+  // /** Atomically claims a batch of parent VDs flagged for aggregation, using
+  //  * SKIP LOCKED — safe across overlapping cron ticks and multiple app instances. */
+  // private async claimVirtualDevicesPendingAggregation(batchSize: number): Promise<VirtualDevice[]> {
+  //   return this.dataSource.transaction(async (manager) => {
+  //     const repo = manager.getRepository(VirtualDevice);
+
+  //     const pendingDevices = await repo.find({
+  //       where: { needsAggregation: true },
+  //       order: { id: 'ASC' },
+  //       take: batchSize,
+  //       lock: { mode: 'pessimistic_write', onLocked: 'skip_locked' },
+  //     });
+
+  //     if (pendingDevices.length === 0) return [];
+
+  //     await repo.update(
+  //       { id: In(pendingDevices.map((vd) => vd.id)) },
+  //       { needsAggregation: false },
+  //     );
+
+  //     return pendingDevices;
+  //   });
+  // }
+
+
+  // private async restoreAggregationPendingFlag(virtualDeviceId: string): Promise<void> {
+  //   await this.repo.update(
+  //     { id: virtualDeviceId },
+  //     { needsAggregation: true },
+  //   );
+  // }
+
+  // /** Marks a parent VD as pending aggregation. Call this from your
+  //  * ingestion pipeline right after a child inverter's CurrentTelemetryPayload
+  //  * is written — ideally passing the same transaction manager as that write. */
+  // async flagParentVirtualDeviceForAggregation(
+  //   childVirtualDeviceId: string,
+  //   manager?: EntityManager,
+  // ): Promise<void> {
+  //   const repo = manager ? manager.getRepository(VirtualDevice) : this.repo;
+
+  //   const childDevice = await repo.findOne({
+  //     where: { id: childVirtualDeviceId },
+  //     relations: ['parent'],
+  //   });
+
+  //   if (childDevice?.parent?.id) {
+  //     await repo.update({ id: childDevice.parent.id }, { needsAggregation: true });
+  //   }
+  // }
+
+  // /** Aggregates all child VDs' current telemetry into the parent VD,
+  //  * per the group aggregation rules configured for that parent. */
+  // private async aggregateChildTelemetryForParentDevice(parentDeviceId: string): Promise<void> {
+  //   const parentDevice = await this.repo.findOne({
+  //     where: { id: parentDeviceId },
+  //     relations: ['children'],
+  //   });
+
+  //   if (!parentDevice) {
+  //     this.logger.warn(`Parent VD ${parentDeviceId} not found — likely deleted, skipping`);
+  //     return;
+  //   }
+  //   if (!parentDevice.children?.length) return;
+
+  //   const childDeviceIds = parentDevice.children.map((c) => c.id);
+
+  //   const groupIds = await this.virtualDeviceGroupService.getGroupIdsForVirtualDevice(parentDeviceId);
+  //   if (groupIds.length === 0) return;
+
+  //   const aggregationRules = await this.groupMetricsAttributeAggregationService.getAggregationRulesForGroups(groupIds);
+  //   if (aggregationRules.length === 0) return;
+
+  //   const childTelemetryPayloads = await this.current.find({
+  //     where: { virtualDeviceId: In(childDeviceIds) },
+  //   });
+  //   if (childTelemetryPayloads.length === 0) return;
+
+  //   const aggregatedValuesByAttribute = computeGroupAggregations(childTelemetryPayloads, aggregationRules);
+  //   if (aggregatedValuesByAttribute.size === 0) return;
+
+  //   await this.saveAggregatedTelemetryForVirtualDevice(parentDeviceId, aggregatedValuesByAttribute);
+  // }
+
+  // /** Upserts the parent VD's CurrentTelemetryPayload and appends a
+  //  * TelemetryPayload history record, per aggregated metric attribute. */
+  // private async saveAggregatedTelemetryForVirtualDevice(
+  //   virtualDeviceId: string,
+  //   aggregatedValuesByAttribute: Map<string, number>,
+  // ): Promise<void> {
+  //   await this.dataSource.transaction(async (manager) => {
+  //     const currentTelemetryRepo = manager.getRepository(CurrentTelemetryPayload);
+  //     const telemetryHistoryRepo = manager.getRepository(TelemetryPayload);
+  //     const now = new Date();
+
+  //     for (const [metricsAttributeId, aggregatedValue] of aggregatedValuesByAttribute.entries()) {
+  //       const existingPayload = await currentTelemetryRepo.findOne({
+  //         where: { virtualDeviceId, metricsAttributeId },
+  //       });
+
+  //       if (existingPayload) {
+  //         await currentTelemetryRepo.update(
+  //           { virtualDeviceId, metricsAttributeId },
+  //           { value: aggregatedValue, timestamp: now } as any,
+  //         );
+  //       } else {
+  //         await currentTelemetryRepo.save(
+  //           currentTelemetryRepo.create({
+  //             virtualDeviceId,
+  //             metricsAttributeId,
+  //             value: aggregatedValue,
+  //             timestamp: now,
+  //           } as any),
+  //         );
+  //       }
+
+  //       await telemetryHistoryRepo.save(
+  //         telemetryHistoryRepo.create({
+  //           virtualDeviceId,
+  //           metricsAttributeId,
+  //           value: aggregatedValue,
+  //           timestamp: now,
+  //         } as any),
+  //       );
+  //     }
+  //   });
+  // }
+
 }
 
 

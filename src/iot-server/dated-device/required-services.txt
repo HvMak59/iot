@@ -1,0 +1,124 @@
+IN Others : 
+
+
+getTPLV3DTO
+
+export function getTPLV3DTO<
+  T extends CurrentTelemetryPayload | TelemetryPayload,
+>(
+  payloads: T[],
+  PayloadCtor: new (payload: any) => CurrentTelemetryPayload | TelemetryPayload,
+  options: TelemetryPayloadOptions = {},
+) {
+  const logger = winstonServerLogger(getTPLV3DTO.name);
+
+  const { dTMAsByKey = {}, aCPSByKey } = options;
+
+  const tPLV3DTOs: TelemetryPayloadV3DTO[] = [];
+
+  const cTPLsByPK = _.groupBy(payloads, (ctpl) =>
+    new PayloadCtor(ctpl).getVDKey(),
+  );
+
+  for (const [pk, cTPLs] of Object.entries(cTPLsByPK)) {
+    const telemetryDevice = TelemetryDevice.createFromTelemetry(cTPLs[0]);
+
+    const metricsWithDisplayProperty: MetricWithDisplayProperty[] = [];
+
+    for (const cTPL of cTPLs) {
+      const aCPS = aCPSByKey?.get(
+        new PayloadCtor(cTPL).getAssetVDMetricKey(),
+      );
+
+      const dTMAKey = `${cTPL.virtualDevice?.deviceTypeId ?? ''}${KEY_SEPARATOR}${cTPL.metric?.metricsAttributeId ?? ''
+        }`;
+
+      const {
+        txnCaptureTimeInEpoch,
+        txnCapturePeriodInEpoch,
+        ...metric
+      } = cTPL.metric!;
+
+      metricsWithDisplayProperty.push(
+        new MetricWithDisplayProperty({
+          metric: {
+            ...metric,
+            txnCaptureTime: cTPL.metric!.txnCaptureTime.valueOf(),
+            txnCapturePeriod: cTPL.metric!.txnCapturePeriod.valueOf(),
+          } as any,
+          telemetryDisplayProperty: {
+            metricsAttributeId:
+              cTPL.metric?.metricsAttributeId ?? '',
+            frequency:
+              cTPL.metric?.frequency ?? MetricsFrequency.INSTANT,
+            displayName:
+              cTPL.metric?.metricsAttributeId ?? '',
+            displayOrder:
+              dTMAsByKey[dTMAKey]?.[0]?.displayOrder ??
+              aCPS?.assetTypeCurrentPerformanceSource.displayOrder ??
+              1000,
+            unit: cTPL.metric?.unit,
+          },
+        }),
+      );
+    }
+
+    tPLV3DTOs.push(
+      new TelemetryPayloadV3DTO({
+        telemetryDevice,
+        metricsWithDisplayProperties: metricsWithDisplayProperty,
+      }),
+    );
+  }
+
+  return tPLV3DTOs;
+}
+
+
+
+
+Interface : 
+
+export interface TelemetryPayloadOptions {
+  dTMAsByKey?: _.Dictionary<DeviceTypeMetricsAttribute[]>;
+  aCPSByKey?: Map<string, AssetCurrentPerformanceSource>;
+}
+
+
+
+
+
+
+TelemetryPayloadsRepo(tPLs).getCTPLDTOV3() : 
+
+
+  getCTPLDTOV3(
+    options: TelemetryPayloadOptions,
+  ): TelemetryPayloadV3DTO[] {
+    return getTPLV3DTO<TelemetryPayload>(
+      this.telemetryPayloads as TelemetryPayload[],
+      TelemetryPayload,
+      options,
+    );
+  }
+
+
+
+
+
+
+ CurrentTelemetryPayloadsRepo(Object.values(cTPLsByTime).flat()).getCTPLDTOV3() :
+
+
+getCTPLDTOV3(
+    options: TelemetryPayloadOptions,
+  ): TelemetryPayloadV3DTO[] {
+    return getTPLV3DTO<CurrentTelemetryPayload>(
+      this.currentTelemetryPayloads as CurrentTelemetryPayload[],
+      CurrentTelemetryPayload,
+      options,
+    );
+  }
+
+
+  

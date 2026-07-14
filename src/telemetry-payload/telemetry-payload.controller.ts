@@ -17,6 +17,8 @@ import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { Public } from 'src/auth/entities/public_route';
 import { KEY_SEPARATOR, USER_NOT_IN_REQUEST_HEADER } from 'src/app_config/constants';
 import { UserId } from 'src/utils/req-user-id.decorator';
+import { FindTelemetryPayloadDto } from './dto/find-telemetry-payload.dto';
+import { query } from 'express';
 
 
 
@@ -130,6 +132,21 @@ export class TelemetryPayloadController {
   // findOneById(@Param('id') id: string) {
   //   return this.telemetryPayloadService.findOneById(id);
   // }
+
+
+
+  @Get('findSome')
+  findSome(
+    @Query() searchcriteria: FindTelemetryPayloadDto,
+    @Query('numberOfRecord') numberOfRecord: string
+  ) {
+    this.telemetryPayloadService.findSome(searchcriteria, numberOfRecord);
+
+  }
+
+
+
+
   @Patch()
   update(
     @UserId() userId: string,

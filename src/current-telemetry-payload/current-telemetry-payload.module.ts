@@ -6,9 +6,10 @@ import { CurrentTelemetryPayload } from './entities/current-telemetry-payload.en
 import { IotServerModule } from 'src/iot-server/iot-server.module';
 import { TelemetryEventsListener } from '../sse/sse-event.listener';
 import { SseModule } from 'src/sse/sse.module';
+import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CurrentTelemetryPayload])],
+  imports: [TypeOrmModule.forFeature([CurrentTelemetryPayload]), VirtualDeviceModule],
   controllers: [CurrentTelemetryPayloadController],
   providers: [CurrentTelemetryPayloadService],
   exports: [CurrentTelemetryPayloadService]

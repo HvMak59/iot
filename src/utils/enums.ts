@@ -134,3 +134,9 @@ export enum ruleStoreOutputEvent {
   EXISTS,
   ERROR,
 } */
+
+export enum aggregationStatus {
+    pending = 'pending',
+    processing = 'processing',
+    completed = 'completed'
+}

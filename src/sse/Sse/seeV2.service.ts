@@ -93,23 +93,30 @@ export class SseService {
         return this.streams.has(key);
     }
 
-    // added listener here, no need for separate istener
-    @OnEvent('telemetry.inserted')
+    // @OnEvent('telemetry.inserted')
     async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
         const fnName = this.handleTelemetryInserted.name;
-        if (!payloads || payloads.length === 0) return;
+
+        if (_.isEmpty(payloads)) {
+            this.logger.debug('Empty payload');
+            return;
+        }
 
         const assetIds = _.uniq(payloads.map(p => p.assetId).filter(Boolean));
 
         for (const assetId of assetIds) {
             const aCPSs = await this.aCPSService.findByAssetID(assetId!);
 
-            if (_.isNil(aCPSs) || aCPSs.length === 0) {
-                this.logger.debug(`${fnName} No ACPS found for asset ${assetId}, skipping`);
+            if (_.isEmpty(aCPSs)) {
+                this.logger.debug(
+                    `${fnName} : No ACPS found for asset ${assetId}, skipping`,
+                );
                 continue;
             }
 
-            this.logger.debug(`${fnName} Found ${aCPSs.length} ACPS for asset ${assetId}`);
+            this.logger.debug(
+                `${fnName} : Found ${aCPSs.length} ACPS for asset ${assetId}`,
+            );
 
             const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
             const aCPSByVD = new Map<string, Map<string, AssetCurrentPerformanceSource>>();
@@ -117,55 +124,92 @@ export class SseService {
 
             for (const aCPS of aCPSs) {
                 const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
-                const key = aCPSObj.getKey();
-                const vdId = aCPSObj.virtualDeviceId!;
 
-                aCPSByKey.set(key, aCPSObj);
+                aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+
+                const vdId = aCPSObj.virtualDeviceId!;
 
                 if (!aCPSByVD.has(vdId)) {
                     aCPSByVD.set(vdId, new Map());
                 }
-                aCPSByVD.get(vdId)!.set(key, aCPSObj);
+
+                aCPSByVD.get(vdId)!.set(aCPSObj.getKey(), aCPSObj);
+
                 if (aCPSObj.virtualDevice?.deviceTypeId) {
                     deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
                 }
             }
 
-            let dTMAByKey: { [key: string]: DeviceTypeMetricsAttribute[] } = {};
-            if (deviceTypeIDSet.size > 0) {
-                dTMAByKey = await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
-                    { csvDeviceTypeIDs: [...deviceTypeIDSet].join(',') },
-                    false,
-                    true,
-                );
-            }
-            const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
-            const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
-            const cTPLs = await this.currentTelemetryPayloadService.findByMultipleConditions(findCTPLDTOs);
+            let dTMAsByKey: _.Dictionary<DeviceTypeMetricsAttribute[]> = {};
 
-            const cTPLsByVD = _.groupBy(cTPLs, (c) => c.virtualDeviceId);
+            if (deviceTypeIDSet.size > 0) {
+                dTMAsByKey =
+                    await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+                        {
+                            csvDeviceTypeIDs: [...deviceTypeIDSet].join(','),
+                        },
+                        false,
+                        true,
+                    );
+            }
+
+            const aCPSRepo = new AssetCurrentPerformanceSourceRepo(aCPSs);
+
+            const findCTPLDTOs = aCPSRepo.getFindCTPLDTOs();
+
+            const cTPLs =
+                await this.currentTelemetryPayloadService.findByMultipleConditions(
+                    findCTPLDTOs,
+                );
+
+            const cTPLsByVD = _.groupBy(cTPLs, c => c.virtualDeviceId);
 
             for (const [virtualDeviceId, vdCTPLs] of Object.entries(cTPLsByVD)) {
-
                 if (!this.hasStream(assetId!, virtualDeviceId)) {
-                    this.logger.debug(`No stream found for virtualDevice: ${virtualDeviceId}`);
+                    this.logger.debug(
+                        `${fnName} : No stream found for virtualDevice ${virtualDeviceId}`,
+                    );
                     continue;
                 }
-                const vdACPSByKey = aCPSByVD.get(virtualDeviceId) ?? new Map();
+
+                const vdACPSByKey =
+                    aCPSByVD.get(virtualDeviceId) ?? new Map();
 
                 const vdMessage = {
-                    // data: getTPLV3DTO(vdCTPLs, vdACPSByKey, CurrentTelemetryPayload, dTMAByKey),
-                };
+                    data: getTPLV3DTO(
+                        vdCTPLs,
+                        CurrentTelemetryPayload,
+                        {
+                            aCPSByKey: vdACPSByKey,
+                            dTMAsByKey,
+                        },
+                    ),
+                }
 
-                // this.publish(assetId!, vdMessage, virtualDeviceId);
+                this.publish(
+                    assetId!,
+                    vdMessage,
+                    virtualDeviceId,
+                );
             }
 
             if (this.hasStream(assetId!)) {
-                // const message = { data: getTPLV3DTO(cTPLs, aCPSByKey, CurrentTelemetryPayload, dTMAByKey) };
-                // this.publish(assetId!, message);
-            }
-            else {
-                this.logger.debug(`No stream found for assetId: ${assetId}`);
+                const message = {
+                    data: getTPLV3DTO(
+                        cTPLs,
+                        CurrentTelemetryPayload,
+                        {
+                            aCPSByKey,
+                            dTMAsByKey,
+                        },
+                    ),
+                }
+
+                this.publish(assetId!, message);
+            } else {
+                this.logger.debug(
+                    `${fnName} : No stream found for asset ${assetId}`,
+                );
             }
         }
     }

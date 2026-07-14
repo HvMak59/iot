@@ -2485,7 +2485,7 @@ export class IotServerService {
     const msgTemplate = `Save Telemetry Metrics : ${this.serviceName}`;
     const event = `Input : Nos are : ${telemetryPayloads.length}`;
     try {
-      this.logger.debug(`${msgTemplate} : ${event} : Star t`);
+      this.logger.debug(`${msgTemplate} : ${event} : Start`);
       const txnCaptureTimeInEpoch =
         telemetryPayloads[0].metric.txnCaptureTime.valueOf();
       const currentTimeInEpoch = Date.now().valueOf();
@@ -3092,6 +3092,7 @@ export class IotServerService {
     this.logger.debug(`${fnName} : ${event}`);
 
     try {
+      console.log("in iot")
       const telemetryPayloads =
         await this.telemetryPayloadService.findForMultipleDevicesForATimePeriod(
           searchCriteria,
@@ -3161,6 +3162,138 @@ export class IotServerService {
   //     Object.values(cTPLsByTime).flat(),
   //   ).getCTPLDTOV3(assetCurrPerfSrcByKey, dTMAsByKey);
   // }
+
+
+
+  async getAssetPerformanceTelemetry(
+    searchCriteria: FindAssetPerformanceTelemetry,
+  ) {
+    const msgTemplate = this.serviceName + `.getAssetPerformanceTelemetry()`;
+    //try {
+    this.logger.debug(`${msgTemplate} : Start`);
+
+    const findTelemetryPayload =
+      FindTelemetryPayloadForAPeriod.createFromFindAssetPerformanceTelemetry(
+        searchCriteria,
+      );
+    let telemetryPayloads = [];
+    telemetryPayloads =
+      await this.telemetryPayloadService.findForATimePeriodInAsc(
+        findTelemetryPayload,
+      );
+    this.logger.debug(
+      `${msgTemplate} : No of rcvdTelemetryPayloads : ${telemetryPayloads.length}`,
+    );
+
+    let metrics: Partial<Metric>[] = [];
+    let telemetryDevice: TelemetryDevice;
+    let telemetryDisplayProperty: TelemetryDisplayProperty;
+    if (telemetryPayloads.length > 0) {
+      telemetryDevice = TelemetryDevice.createFromTelemetry(
+        telemetryPayloads[0],
+      );
+      let frequency = telemetryPayloads[0].metric.frequency;
+
+      for (const rcvdTelemetryPayload of telemetryPayloads) {
+        const telemetryPayload = new TelemetryPayload(rcvdTelemetryPayload);
+        metrics.push(getMetricDTO(telemetryPayload.metric));
+      }
+      const metricsAttributeId =
+        metrics.length > 0
+          ? telemetryPayloads[0].metric.metricsAttributeId
+          : searchCriteria.metricsAttributeId;
+
+      telemetryDisplayProperty = {
+        metricsAttributeId: metricsAttributeId!,
+        frequency: frequency,
+        displayName: metricsAttributeId!,
+        unit: telemetryPayloads[0].metric.unit,
+        /* displayOrder:
+              assetCurrPerfSrc.assetTypeCurrentPerformanceSource.displayOrder, */
+      };
+    } else {
+      telemetryDevice =
+        TelemetryDevice.createFromFindAssetPerformanceTelemetry(searchCriteria);
+      telemetryDisplayProperty = {
+        metricsAttributeId: searchCriteria.metricsAttributeId!,
+        frequency: searchCriteria.frequency ?? MetricsFrequency.INSTANT,
+        displayName: searchCriteria.metricsAttributeId!,
+        //unit: searchCriteria.unit,
+        /* displayOrder:
+              assetCurrPerfSrc.assetTypeCurrentPerformanceSource.displayOrder, */
+      };
+      metrics = [];
+
+      //throw new Error('No telemetry');
+    }
+    return new TelemetryPayloadDto(
+      telemetryDevice,
+      metrics,
+      telemetryDisplayProperty,
+    );
+  }
+
+
+  // my 
+  async getAssetPerformanceTelemetryy(
+    searchCriteria: FindAssetPerformanceTelemetry,
+  ) {
+    const fnName = this.getAssetPerformanceTelemetry.name;
+
+    this.logger.debug(`${fnName} : Start`);
+
+    const findTelemetryPayload =
+      FindTelemetryPayloadForAPeriod.createFromFindAssetPerformanceTelemetry(
+        searchCriteria,
+      );
+
+    const telemetryPayloads =
+      await this.telemetryPayloadService.findForATimePeriodInAsc(
+        findTelemetryPayload,
+      );
+
+    if (_.isEmpty(telemetryPayloads)) {
+      return [];
+    }
+
+    const aCPSs =
+      await this.assetCurrentPerformanceSourceService.findByMultipleIDs({
+        csvAssetIDs: searchCriteria.assetId,
+      });
+
+    const aCPSByKey = new Map<string, AssetCurrentPerformanceSource>();
+    const deviceTypeIDSet = new Set<string>();
+
+    for (const aCPS of aCPSs) {
+      const aCPSObj = new AssetCurrentPerformanceSource(aCPS);
+
+      aCPSByKey.set(aCPSObj.getKey(), aCPSObj);
+
+      if (aCPSObj.virtualDevice?.deviceTypeId) {
+        deviceTypeIDSet.add(aCPSObj.virtualDevice.deviceTypeId);
+      }
+    }
+
+    let dTMAsByKey: _.Dictionary<DeviceTypeMetricsAttribute[]> = {};
+
+    if (deviceTypeIDSet.size > 0) {
+      dTMAsByKey =
+        await this.deviceTypeMetricsAttributeService.dTMAsByByKey(
+          {
+            csvDeviceTypeIDs: [...deviceTypeIDSet].join(','),
+          },
+          false,
+          true,
+        );
+    }
+
+    return new TelemetryPayloadsRepo(telemetryPayloads).getCTPLDTOV3({
+      aCPSByKey,
+      dTMAsByKey,
+    });
+  }
+
+
 
 }
 

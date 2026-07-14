@@ -28,6 +28,7 @@ import { TelemetryDevice } from 'src/iot-server/dto/telemetry-device.dto';
 import { TelemetryPayloadV3DTO } from 'src/iot-server/dto/telemetry-payload-v3.dto';
 import { MetricWithDisplayProperty } from 'src/iot-server/dto/metric_with_display_property.dto';
 import { TelemetryPayloadOptions } from 'src/current-telemetry-payload/dto/find-current-telemetry.dto';
+import { AggStrategy } from './enums';
 // import { MetricsFrequency } from 'common';
 // import { Asset } from 'asset/entities/asset.entity';
 // import { Metric } from 'metrics/entities/metric.entity';
@@ -341,6 +342,50 @@ export function getMetricDTOMy(metric: Partial<Metric>) {
   };
   // return metricDto;
 }
+
+
+export interface AggregationRule {
+  metricsAttributeId: string;
+  aggregation: 'sum' | 'avg';
+  aggStrategy: AggStrategy;
+}
+
+/** Computes the aggregated value per metricsAttributeId from a set of
+ * child VDs' current telemetry payloads, per the given aggregation rules. */
+// export function computeGroupAggregations(
+//   childTelemetryPayloads: CurrentTelemetryPayload[],
+//   aggregationRules: AggregationRule[],
+//   now: Date = new Date(),
+// ): Map<string, number> {
+//   const ruleByAttributeId = new Map(aggregationRules.map((r) => [r.metricsAttributeId, r]));
+//   const valuesByAttributeId = new Map<string, number[]>();
+
+//   for (const payload of childTelemetryPayloads) {
+//     const rule = ruleByAttributeId.get(payload.metric.metricsAttributeId);
+//     if (!rule) continue;
+//     if (payload.metric.measure === null || payload.metric.measure  === undefined) continue;
+
+//     if (rule.aggStrategy === 'Within_20_Mins') {
+//       const payloadAgeMs = now.getTime() - new Date(payload.metric.txnCaptureTime).getTime();
+//       if (payloadAgeMs > 20 * 60 * 1000) continue; // stale, exclude
+//     }
+
+//     const values = valuesByAttributeId.get(payload.metricsAttributeId) ?? [];
+//     values.push(Number(payload.value));
+//     valuesByAttributeId.set(payload.metricsAttributeId, values);
+//   }
+
+//   const aggregatedResults = new Map<string, number>();
+//   for (const [attributeId, values] of valuesByAttributeId.entries()) {
+//     if (values.length === 0) continue;
+//     const rule = ruleByAttributeId.get(attributeId)!;
+//     const total = values.reduce((sum, v) => sum + v, 0);
+//     aggregatedResults.set(attributeId, rule.aggregation === 'sum' ? total : total / values.length);
+//   }
+
+//   return aggregatedResults;
+// }
+
 
 export function getMetricDTOMy2(metric: Partial<Metric>) {
   return {

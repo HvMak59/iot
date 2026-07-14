@@ -8,6 +8,8 @@ import { PeriodTelemetryPayloadAuditService } from 'src/period-telemetry-payload
 import { TelemetryPayloadService } from 'src/telemetry-payload/telemetry-payload.service';
 import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
 import { MetricsFrequency } from 'src/common';
+import { VirtualDeviceGroupService } from 'src/virtual-device-group/virtual-device-group.service';
+import { GroupMetricsAttributeAggregationService } from 'src/group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.service';
 // import { AggregationService } from './aggregation.service';
 
 @Injectable()
@@ -17,6 +19,9 @@ export class CronJobsService {
     constructor(
         private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
         private readonly iotServerService: IotServerService,
+        private readonly virtualDeviceService: VirtualDeviceService,
+        // private readonly virtualDeviceGroupService: VirtualDeviceGroupService,
+        // private readonly groupMetricsAttributeAggregationService: GroupMetricsAttributeAggregationService
         // private readonly aggregationService: AggregationService
     ) { }
 
@@ -137,17 +142,68 @@ export class CronJobsService {
     }
 
 
-    // @Cron(CronExpression.EVERY_5_MINUTES)
-    // async handleCron() {
-    //     if (this.isRunning) {
-    //         console.log('Previous aggregation run still in progress — skipping this tick');
-    //         return;
-    //     }
-    //     this.isRunning = true;
+    // async aggregateTelemetry() {
 
-    //     await this.aggregationService.processScheduledAggregation();
+    //     const parents = await this.virtualDeviceService.findPendingParents();
+
+    //     if (!parents.length)
+    //         return;
+
+    //     const children =
+    //         await this.virtualDeviceService.findChildren(
+    //             parents.map(x => x.id)
+    //         );
+
+    //     // const telemetry =
+    //     //     await this.currentTelemetryPayloadService.findLatestTelemetry(
+    //     //         children.map(x => x.id)
+    //     //     );
+
+    //     const groups =
+    //         await this.virtualDeviceGroupService.findByVirtualDeviceIDs(
+    //             children.map(x => x.id)
+    //         );
+
+    //     const rules =
+    //         await this.groupMetricsAttributeAggregationService.findByGroupIDs(
+    //             groups.map(x => x.groupId)
+    //         );
+
+    //     const dto = [];
+
+    //     for (const parent of parents) {
+
+    //         // const result =
+    //         //     await this.aggregateParent(
+    //         //         parent,
+    //         //         children,
+    //         //         telemetry,
+    //         //         groups,
+    //         //     rules
+    //         // );
+
+    //         // dto.push(...result);
+
+    //     }
+
+    //     // await this.currentTelemetryPayloadService.createV2(dto);
+
+    //     await this.virtualDeviceService.markAggregationCompleted(
+    //         parents.map(x => x.id)
+    //     );
 
     // }
 
+
+    private aggregationn = 'On Interval';
+    // @Cron()
+    async aggregation() {
+        const parentVdsNeedsAggregation =
+            await this.virtualDeviceService.findVirtualDeviceNeedsAggregation();
+
+        // rest aggregation logic....
+
+
+    }
 }
 

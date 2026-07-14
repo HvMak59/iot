@@ -4,7 +4,8 @@ export interface FindDevicesPerformanceTelemetryDto {
   assetTypeId?: string;
   csvAssetIDs?: string;
   csvVirtualDeviceIDs: string;
-  metricsAttributeId: string;
+  metricsAttributeId?: string;
   startTime: string;
   endTime: string;
+  take?: number
 }

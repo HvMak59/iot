@@ -123,3 +123,137 @@ AggregationService.processScheduledAggregation()
         │
         └── VirtualDeviceService
                 └── updateLastAggregationTime()
+
+
+
+
+
+Cld : 
+
+
+
+
+Design: Batched Group Telemetry Aggregation
+
+1. Problem statement
+
+One RMU pushes telemetry for all its inverters every 5 minutes. Today, each
+inverter's incoming payload independently triggers an aggregation
+calculation for its parent virtual device (VD). With 8 inverters under one
+RMU, that means 8 aggregation runs every 5 minutes, even though all 8
+belong to the same batch and the parent only needs to be recalculated once
+per batch.
+
+This is wasted computation, and it risks the parent's aggregated value
+reflecting a partial/inconsistent set of children if calculations
+interleave.
+
+Goal: collapse N inverter-triggered aggregations into 1 aggregation per
+parent per batch, without losing correctness or introducing race conditions.
+
+2. Current vs proposed behavior
+
+CurrentProposedTriggerEvery child telemetry writeEvery child telemetry writeAction on triggerImmediately recalculates parentOnly sets a flag on parentActual calculationRuns once per child (8x per batch)Runs once per parent per cron tickRisk of partial-batch calculationYes — can fire mid-batchNo — batched by cron interval
+
+3. Core idea: dirty-flag + scheduled sweep
+
+Instead of calculating on every write, we mark the parent as needing
+recalculation, and a cron job sweeps and processes all marked parents on
+a fixed interval. This is the standard pattern for collapsing bursty
+writes into a single downstream computation — same idea as browser
+re-render batching or database materialized view refresh.
+
+Child telemetry arrives  →  parent.needsAggregation = true   (cheap, no calc)
+Cron (every 30s)          →  pick up all dirty parents, calculate once each
+
+Since the RMU pushes every 5 minutes and all 8 inverters arrive close
+together, by the time the cron sweeps, the parent is marked dirty once
+(idempotent — repeated writes just leave the flag true) and gets
+recalculated exactly once, using whatever child data is present at sweep
+time.
+
+4. Data model (existing entities, no schema changes needed)
+
+VirtualDevice (parent)
+  ├─ needsAggregation: boolean   ← dirty flag, already exists
+  ├─ children: VirtualDevice[]   ← the 8 inverters
+  └─ virtualDeviceGroups → Group → GroupMetricsAttributeAggregation
+                                        → MetricsAttributeAggregation
+                                            (aggregation: sum|avg, aggStrategy)
+
+The aggregation rules (which metric, sum or avg, strategy) are already
+modeled via Group → GroupMetricsAttributeAggregation →
+MetricsAttributeAggregation. No new tables required — this design reuses
+what's already there.
+
+5. Processing flow
+
+See attached diagram. Summary:
+
+
+Cron fires every 30s.
+Atomically claim a batch of dirty parent VDs 
+For each claimed parent:
+
+resolve its groups → aggregation rules
+fetch current telemetry of all its children
+compute sum/avg per rule
+write result to parent's current + history telemetry
+
+
+Repeat until no dirty parents remain, then wait for next tick.
+
+
+6. Concurrency safety — why "atomic claim"
+
+Two things can go wrong without care:
+
+
+Same parent processed twice — if two cron ticks overlap (one run
+takes >30s) or the app has multiple instances, both could pick up the
+same dirty parent and calculate simultaneously → duplicate/conflicting
+writes.
+Lost updates — a naive read-then-write flag check has a race window
+between "check flag" and "clear flag."
+
+
+Fix: claim dirty parents using a single atomic
+SELECT ... FOR UPDATE SKIP LOCKED + flag-clear, inside one transaction.
+SKIP LOCKED means: if another process already has a row locked, this
+process silently skips it and moves to the next one — instead of blocking
+or double-processing. This is a standard Postgres pattern for building a
+safe job queue on top of a plain table, and it works correctly even when
+scaled to multiple backend instances, with no extra distributed lock
+infrastructure needed.
+
+7. Failure handling
+
+If aggregation fails for a specific parent (bad data, transient DB error,
+etc.), that parent is re-flagged dirty so it's retried on the next
+cron tick — it doesn't block or fail the rest of the batch.
+
+Open question for a v2 (not blocking initial rollout): a max-retry counter
+to avoid infinite retry loops on permanently-bad data, with alerting.
+
+8. Why this approach over alternatives
+
+AlternativeWhy not chosenDebounce per-parent in application memory (setTimeout)Doesn't survive app restarts, breaks with multiple instances, no persistenceMessage queue (e.g. BullMQ) per parentAdds infra dependency for a problem solvable with existing DB + cronCalculate on every child write but check "all children arrived" before computingFragile — depends on knowing expected child count / arrival order, breaks if a child is late or missingDirty-flag + scheduled sweep (chosen)Uses existing needsAggregation column, no new infra, naturally batches, safe under concurrency via SKIP LOCKED
+
+9. Rollout checklist
+
+
+ Add partial index for fast dirty-row lookups:
+CREATE INDEX idx_vd_needs_aggregation ON virtual_device (id) WHERE "needsAggregation" = true;
+ Confirm TypeORM version ≥ 0.3.12 (needed for onLocked: 'skip_locked' support)
+ Wire the dirty-flag setter into the existing child telemetry ingestion path
+ Set cron interval (proposed: 30s — well under the 5 min RMU push interval, negligible cost when nothing is dirty)
+ Add basic logging/metrics: batch size processed per cycle, failures re-queued
+
+
+10. Result
+
+
+8 aggregation calculations per RMU push → 1 aggregation calculation per
+RMU push, per affected parent.
+No new infrastructure — reuses existing entities, adds one cron job.
+Safe under concurrent cron ticks / multiple app instances by construction.

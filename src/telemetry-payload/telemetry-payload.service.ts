@@ -312,49 +312,100 @@ export class TelemetryPayloadService {
     });
   }
 
+  private 4 = 'this is working'
+  // findForMultipleDevicesForATimePeriod(
+  //   searchCriteria: FindDevicesPerformanceTelemetryDto,
+  // ) {
+  //   const event = `Input : ${JSON.stringify(searchCriteria)}`;
+  //   // const msgTemplate = 'Find ' + this.serviceName + ` ${event}`;
+
+  //   this.logger.debug(`Start`);
+  //   const startTime =
+  //     typeof searchCriteria.startTime == 'string'
+  //       ? Number(searchCriteria.startTime).valueOf()
+  //       : searchCriteria.startTime;
+  //   const endTime =
+  //     typeof searchCriteria.endTime == 'string'
+  //       ? Number(searchCriteria.endTime).valueOf()
+  //       : searchCriteria.endTime;
+  //   this.logger.debug(`Printing start time : ${startTime}`);
+
+  //   const telemetryPayloadSearchObject: FindOptionsWhere<TelemetryPayload> = {
+  //     virtualDeviceId: In(searchCriteria.csvVirtualDeviceIDs.split(',')),
+  //     metric: {
+  //       metricsAttributeId: searchCriteria.metricsAttributeId,
+  //       txnCapturePeriod: Between<Date>(new Date(startTime), new Date(endTime)),
+  //     },
+  //   };
+
+  //   searchCriteria.csvAssetIDs && searchCriteria.csvAssetIDs.length > 0
+  //     ? (telemetryPayloadSearchObject.assetId = In(
+  //       searchCriteria.csvAssetIDs.split(','),
+  //     ))
+  //     : null;
+
+  //   return this.repo.find({
+  //     where: telemetryPayloadSearchObject,
+  //     relations: this.eagerRelations,
+  //     order: {
+  //       //assetId: 'ASC',
+  //       //virtualDeviceId: 'ASC',
+  //       metric: {
+  //         txnCaptureTime: 'ASC',
+  //       },
+  //     },
+  //   });
+  // }
+
+
   findForMultipleDevicesForATimePeriod(
     searchCriteria: FindDevicesPerformanceTelemetryDto,
   ) {
-    const event = `Input : ${JSON.stringify(searchCriteria)}`;
-    // const msgTemplate = 'Find ' + this.serviceName + ` ${event}`;
-
     this.logger.debug(`Start`);
-    const startTime =
-      typeof searchCriteria.startTime == 'string'
-        ? Number(searchCriteria.startTime).valueOf()
-        : searchCriteria.startTime;
-    const endTime =
-      typeof searchCriteria.endTime == 'string'
-        ? Number(searchCriteria.endTime).valueOf()
-        : searchCriteria.endTime;
-    this.logger.debug(`Printing start time : ${startTime}`);
 
+    const startTime =
+      typeof searchCriteria.startTime === 'string'
+        ? Number(searchCriteria.startTime)
+        : searchCriteria.startTime;
+
+    const endTime =
+      typeof searchCriteria.endTime === 'string'
+        ? Number(searchCriteria.endTime)
+        : searchCriteria.endTime;
+
+    // const metricWhere: FindOptionsWhere<Metric> = {
+    //   txnCapturePeriod: Between(new Date(startTime), new Date(endTime))
+    // }
+    // if (searchCriteria.metricsAttributeId) {
+    //   metricWhere.metricsAttributeId = searchCriteria.metricsAttributeId
+    // }
     const telemetryPayloadSearchObject: FindOptionsWhere<TelemetryPayload> = {
       virtualDeviceId: In(searchCriteria.csvVirtualDeviceIDs.split(',')),
       metric: {
-        metricsAttributeId: searchCriteria.metricsAttributeId,
-        txnCapturePeriod: Between<Date>(new Date(startTime), new Date(endTime)),
-      },
+        metricsAttributeId: searchCriteria.metricsAttributeId, // uncomment this 
+        txnCapturePeriod: Between(new Date(startTime), new Date(endTime)),
+      }
     };
 
-    searchCriteria.csvAssetIDs && searchCriteria.csvAssetIDs.length > 0
-      ? (telemetryPayloadSearchObject.assetId = In(
+    if (searchCriteria.csvAssetIDs?.length) {
+      telemetryPayloadSearchObject.assetId = In(
         searchCriteria.csvAssetIDs.split(','),
-      ))
-      : null;
+      );
+    }
 
+    // console.log(telemetryPayloadSearchObject);
     return this.repo.find({
       where: telemetryPayloadSearchObject,
       relations: this.eagerRelations,
       order: {
-        //assetId: 'ASC',
-        //virtualDeviceId: 'ASC',
         metric: {
-          txnCaptureTime: 'ASC',
+          txnCaptureTime: 'DESC',
         },
       },
+      take: searchCriteria.take!,
     });
   }
+
 
   //   findAllWthRelations() {
   //     const msgTemplate = 'Find ' + this.serviceName + 's' + ' with relations';
@@ -1162,4 +1213,15 @@ export class TelemetryPayloadService {
   //       parseFloat(incomingTelemetryPayload.metric!.measure)
   //     );
   //   } */
+
+
+
+  findSome(
+    searchCriteria: FindTelemetryPayloadDto,
+    numberOfRecord: string
+  ) {
+
+  }
+
+
 }

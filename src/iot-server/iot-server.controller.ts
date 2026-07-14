@@ -64,9 +64,9 @@ export class IotServerController {
     try {
       this.logger.debug(`${fnName} : Start`);
       this.logger.debug(`${fnName} : ${input}`);
-      // return await this.iotServerService.getAssetPerformanceTelemetry(
-      //   searchCriteria,
-      // );
+      return await this.iotServerService.getAssetPerformanceTelemetry(
+        searchCriteria,
+      );
     } catch (error) {
       const errMsg = getTryCatchErrorStr(error);
       this.logger.error(`${fnName} : ${errMsg}`);

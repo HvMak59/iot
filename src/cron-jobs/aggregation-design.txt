@@ -1,0 +1,66 @@
+Telemetry Arrives
+        │
+        |
+Save CurrentTelemetryPayload
+        │
+        |
+Find Root Parent
+        │
+        |
+needsAggregation = true
+    
+
+
+Cron 
+
+Every 5 Minutes (Cron)
+
+        │
+        |
+Load Parents (needsAggregation=true)
+        │
+        |
+Load ALL Children 
+        │
+        |
+Load ALL CurrentTelemetry 
+        │
+        |
+Load ALL VirtualDeviceGroups 
+        │
+        |
+Load ALL Group Aggregation Rules
+        │
+        |
+Build Maps in Memory
+        │
+        |
+For Each Parent
+        │
+        ├── Group child telemetry
+        ├── Apply SUM / AVG
+        ├── Create parent metrics
+        |
+Bulk Save Parent Telemetry
+        │
+        |
+needsAggregation = false
+lastAggregationAt = now
+
+
+
+
+VD 
+findParentsNeedingAggregation()
+markAggregationCompleted(parentIds)
+markNeedsAggregation(parentId)
+findChildren(parentIds)
+
+CurrentTelemetryService
+findLatestTelemetry(virtualDeviceIds)
+
+VirtualDeviceGroupService
+findByVirtualDeviceIds(ids)
+
+GroupMetricsAggregationService
+findByGroupIds(groupIds)

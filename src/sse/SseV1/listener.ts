@@ -24,7 +24,7 @@ export class TelemetryEventsListener {
         private readonly deviceTypeMetricsAttributeService: DeviceTypeMetricsAttributeService,
     ) { }
 
-    @OnEvent('telemetry.inserted')
+    // @OnEvent('telemetry.inserted')
     async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
         const fnName = this.handleTelemetryInserted.name;
 
