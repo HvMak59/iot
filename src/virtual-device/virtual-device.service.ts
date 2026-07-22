@@ -40,6 +40,7 @@ import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggreg
 import { VirtualDeviceGroupService } from 'src/virtual-device-group/virtual-device-group.service';
 import { GroupMetricsAttributeAggregationService } from 'src/group-metrics-attribute-aggregation/group-metrics-attribute-aggregation.service';
 import { PeriodTelemetryPayloadAudit } from 'src/period-telemetry-payload-audit/entities/period-telemetry-payload-audit.entity';
+import { CreateVirtualDeviceDto } from './dto/create-virtual-device.dto';
 // import { DeviceService } from 'src/device/device.service';
 // import { Device } from 'src/device/entities/device.entity';
 // import { DeviceModel } from 'src/device-model/entities/device-model.entity';
@@ -211,17 +212,7 @@ export class VirtualDeviceService {
   //     return this.repo.findOne({ where: { id: id }, relations: relations });
   //   }
 
-  //   // findChildrenFromCSVParentIDs(csvParentVirtualIDs: string) {
-  //   //   this.logger.debug(`csvParentVirtualIDs : ${csvParentVirtualIDs}`);
-  //   //   return this.repo.find({
-  //   //     where: {
-  //   //       id: In(csvParentVirtualIDs.split(',')),
-  //   //     },
-  //   //     relations: {
-  //   //       children: true,
-  //   //     },
-  //   //   });
-  //   // }
+
 
   //   getVirtualDeviceWithChildren(assetId?: string) {
   //     const fnName = 'getVirtualDeviceWithChildren()';
@@ -530,6 +521,70 @@ export class VirtualDeviceService {
   // }
 
 
+  async create(createVirtualDeviceDto: CreateVirtualDeviceDto, token: string) {
+    const fnName = 'create()'
+    const input = `Create object : ${JSON.stringify(createVirtualDeviceDto)}`
+
+    this.logger.debug(fnName + KEY_SEPARATOR + input)
+
+    let result = await this.repo.findOneBy({
+      assetId: createVirtualDeviceDto.assetId,
+      name: createVirtualDeviceDto.name,
+    });
+    if (result != null) {
+      throw new Error(
+        `${DUPLICATE_RECORD} : ${createVirtualDeviceDto.assetId}${KEY_SEPARATOR}${createVirtualDeviceDto.name} already exists`,
+      );
+    } else {
+      if (
+        createVirtualDeviceDto.virtualDeviceGroups == null ||
+        createVirtualDeviceDto.virtualDeviceGroups.length == 0
+      ) {
+        const createVirtualDeviceObj = this.repo.create(createVirtualDeviceDto);
+        return await this.repo.save(createVirtualDeviceObj);
+      } else {
+        const { virtualDeviceGroups, ...createVirtualDeviceWithoutGroups } =
+          createVirtualDeviceDto;
+        const createVirtualDeviceObj = this.repo.create(
+          createVirtualDeviceWithoutGroups,
+        );
+        const createdVirtualDevice = await this.repo.save(
+          createVirtualDeviceObj,
+        );
+        const virtualDeviceGroupURL = new URL(
+          VIRTUAL_DEVICE_GROUP_URL,
+          this.baseURL,
+        );
+        this.logger.debug(
+          `virtualDeviceGroupURL : ${virtualDeviceGroupURL.href}`,
+        );
+        this.httpService.axiosRef.defaults.headers.common['Authorization'] =
+          getTokenString(token);
+        const createdVirtualDeviceGroups = [];
+        for (const virtualDeviceGroup of virtualDeviceGroups) {
+          virtualDeviceGroup.virtualDeviceId = createdVirtualDevice.id;
+          this.logger.debug(
+            `Virtual device group : ${JSON.stringify(virtualDeviceGroup)}`,
+          );
+          const virtualDeviceGroupURLResp = await firstValueFrom(
+            this.httpService.post(
+              virtualDeviceGroupURL.href,
+              virtualDeviceGroup,
+            ),
+          );
+          throwErrIfSrvcRespFailure(virtualDeviceGroupURLResp);
+          createdVirtualDeviceGroups.push(virtualDeviceGroupURLResp.data);
+        }
+        createdVirtualDevice.virtualDeviceGroups = createdVirtualDeviceGroups;
+        return createdVirtualDevice;
+      }
+
+      // const res = this.repo.create(createVirtualDeviceDto)
+      // result = await this.repo.save(res)
+      // this.logger.debug(`${fnName} : ${JSON.stringify(result)} created`);
+      // return result;
+    }
+  }
 
   async findParentsNeedingAggregation(): Promise<VirtualDevice[]> {
 
@@ -1471,7 +1526,7 @@ export class VirtualDeviceService {
   async findParentVds(virtualDeviceIds: string[]) {
     if (virtualDeviceIds.length == 0) {
       this.logger.debug(
-        'No virtual device IDs found',
+        'No vitualDeviceids found',
       );
       return [];
     }
@@ -1491,7 +1546,7 @@ export class VirtualDeviceService {
         .map((vd) => vd.parentId)
         .filter(Boolean),
     );
-
+    // 
     return parentVDIds;
   }
 
@@ -1515,6 +1570,18 @@ export class VirtualDeviceService {
     );
   }
 
+  findChildrenFromCSVParentIDs(csvParentVirtualIDs: string) {
+    this.logger.debug(`csvParentVirtualIDs : ${csvParentVirtualIDs}`);
+    return this.repo.find({
+      where: {
+        id: In(csvParentVirtualIDs.split(',')),
+      },
+      relations: {
+        children: true,
+      },
+    });
+  }
+
   findVirtualDeviceNeedsAggregation() {
     return this.repo.find({
       where: {
@@ -1524,6 +1591,7 @@ export class VirtualDeviceService {
       select: {
         id: true,
         assetId: true,
+        deviceId: true,
         children: {
           id: true,
         },
@@ -1536,6 +1604,7 @@ export class VirtualDeviceService {
               metricsAttributeAggregation: {
                 id: true,
                 aggregation: true,
+                aggStrategy: true,
                 metricsAttributeId: true,
               },
             },
@@ -1555,8 +1624,56 @@ export class VirtualDeviceService {
     })
   }
 
+  async markAggregationProcessing(
+    virtualDeviceId: string,
+  ) {
+    return this.repo.update(
+      {
+        id: virtualDeviceId,
+        needsAggregation: true,
+        aggregationStatus: aggregationStatus.pending,
+      },
+      {
+        aggregationStatus: aggregationStatus.processing,
+      },
+    );
+  }
 
-  async markAggregationCompleted(parentIds: string[]) {
+  async markAggregationPending(
+    virtualDeviceId: string,
+  ) {
+    return this.repo.update(
+      {
+        id: virtualDeviceId,
+      },
+      {
+        needsAggregation: true,
+        aggregationStatus: aggregationStatus.pending,
+      },
+    );
+  }
+
+  async markAggregationCompleted(
+    virtualDeviceId: string,
+  ) {
+    return this.repo.update(
+      {
+        id: virtualDeviceId,
+      },
+      {
+        needsAggregation: false,
+        aggregationStatus: aggregationStatus.completed,
+      },
+    );
+  }
+
+
+
+
+
+
+
+  async markAggregationCompletedd(parentIds: string[]) {
     if (!parentIds.length) {
       return;
     }

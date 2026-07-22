@@ -46,9 +46,9 @@ export class AggregationService {
 
         }
 
-        await this.virtualDeviceService.markAggregationCompleted(
-            context.parents.map(p => p.id),
-        );
+        // await this.virtualDeviceService.markAggregationCompleted(
+        // context.parents.map(p => p.id),
+        // );
 
     }
 

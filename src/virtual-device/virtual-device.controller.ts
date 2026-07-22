@@ -11,8 +11,13 @@
 //   Res,
 //   UseInterceptors,
 
-import { Controller } from "@nestjs/common";
+import { Body, Controller, Post } from "@nestjs/common";
 import { VirtualDeviceService } from "./virtual-device.service";
+import { UserId } from "src/utils/req-user-id.decorator";
+import { Token } from "src/utils/token.decorator";
+import { CreateVirtualDeviceDto } from "./dto/create-virtual-device.dto";
+import { KEY_SEPARATOR, USER_NOT_IN_REQUEST_HEADER } from "src/app_config/constants";
+import { winstonServerLogger } from "src/app_config/serverWinston.config";
 
 // } from '@nestjs/common';
 // import { VirtualDeviceService } from './virtual-device.service';
@@ -36,30 +41,30 @@ export class VirtualDeviceController {
     private readonly virtualDeviceService: VirtualDeviceService,
     // private readonly authService: AuthService
   ) { }
-  //   private readonly logger = winstonServerLogger(VirtualDeviceController.name);
-  //   @Post()
-  //   async create(
-  //     @UserId() userId: string,
-  //     @Token() token: string,
-  //     @Body() createVirtualDeviceDto: CreateVirtualDeviceDto,
-  //   ) {
-  //     const fnName = 'create()';
-  //     const input = `Input : ${JSON.stringify(createVirtualDeviceDto)}`;
-  //     this.logger.debug(fnName + KEY_SEPARATOR + input);
+  private readonly logger = winstonServerLogger(VirtualDeviceController.name);
+  @Post()
+  async create(
+    @UserId() userId: string,
+    @Token() token: string,
+    @Body() createVirtualDeviceDto: CreateVirtualDeviceDto,
+  ) {
+    const fnName = 'create()';
+    const input = `Input : ${JSON.stringify(createVirtualDeviceDto)}`;
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
 
-  //     if (userId == null) {
-  //       this.logger.error(`${fnName} : User is not available in reaquest header`);
-  //       throw new Error(`${fnName} : ${USER_NOT_IN_REQUEST_HEADER}`);
-  //     }
-  //     else {
-  //       // const isToken = await this.authService.verifyToken(token);
-  //       // this.logger.debug(`Token : ${isToken}`);
+    if (userId == null) {
+      this.logger.error(`${fnName} : User is not available in reaquest header`);
+      throw new Error(`${fnName} : ${USER_NOT_IN_REQUEST_HEADER}`);
+    }
+    else {
+      // const isToken = await this.authService.verifyToken(token);
+      // this.logger.debug(`Token : ${isToken}`);
 
-  //       createVirtualDeviceDto.createdBy = userId;
-  //       this.logger.debug(`${fnName} : Calling Create service`);
-  //       return await this.virtualDeviceService.create(createVirtualDeviceDto, token);
-  //     }
-  //   }
+      createVirtualDeviceDto.createdBy = userId;
+      this.logger.debug(`${fnName} : Calling Create service`);
+      return await this.virtualDeviceService.create(createVirtualDeviceDto, token);
+    }
+  }
 
   //   @Patch()
   //   async update(

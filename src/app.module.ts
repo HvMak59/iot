@@ -272,11 +272,6 @@ export class AppModule { }
 
 
 
-// License : 3185254025
-// GJ02 /0023994/2025
-// GJ02 /0005273/2026  - new 
-// New License : 764000026
-
 // cg (crompton grave) drive - check rmu with this drive 
 
 
@@ -457,6 +452,8 @@ export class AppModule { }
 
 // Bapu ata chakki
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026060239 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026040182 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 
 // for publish : 
 // mosquitto_pub -h hermesmqtt.com -t HrmsIOT/Cmprs/RtBn1/Hlsa/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" -m '{"device_type":"invtr"}'
@@ -484,7 +481,7 @@ export class AppModule { }
 // "PrtyMLnPrsLTrp":0}}
 
 // 9328152924
-  
+
 
 // Standalone Script :
 // npx ts-node -r tsconfig-paths/register src/telemetry-payload/update_telemetry_script.ts
@@ -662,6 +659,8 @@ export class AppModule { }
 // hvmak.59@gmail.com 
 // #Money@59$
 
+// name change application number : 3297659426 (22/07)
+
 
 // Halisa number : 5755042035318
 
@@ -684,7 +683,7 @@ export class AppModule { }
 //     let maxY = 0;
 
 //     const rowMatches = html.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
-    
+
 //     rowMatches.forEach(row => {
 //         const cells = [];
 //         const cellMatches = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [];
@@ -738,10 +737,6 @@ export class AppModule { }
 
 
 
-
-
-
-
 // technource : applied.... 9624770438 
 // verve systems : applied .... 7069016868
 // rysyth technologies : applied.....6356663508
@@ -767,7 +762,7 @@ export class AppModule { }
 // next day moring we went to sudarshan setu.....bhai kharekh jbbr jas mahol hto ahiya .... aa to must
 // visit spot che shivraj pur beach javanu htu but bandh htu to e experience rai gyo...and then we 
 // went back. 
- 
+
 
 
 
@@ -915,5 +910,103 @@ export class AppModule { }
 
 // chat.atxp.ai 
 
+
+// Salary 
+
+// 14500   14500      14500
+// 8419    9565       8419
+
+// 22919   24065      22919
+
+// Minus          
+// 172                 
+// 1740    1740       1740
+// 200     200        200
+
+// 20807   22125      20979
+
+// Plus
+// 745                
+// 1740    1740       
+// 1910    2005    
+
+// 27314   27810
+
+
+
+
+
+
+// Flow Meter 
+// GasPrsH = 40000(16 bit)
+// GasPrsL = 40001(16 bit)
+// GasTmpH = 40002(16 bit)
+// GasTmpL = 40003(16 bit)
+// FlwrtH = 40012(16 bit)
+// FlwrtL = 40013(16 bit)
+// CrrctVolumeH = 40018(16 bit)
+// CrrctVolumeMiddle = 40019(16 bit)
+// CrrctVolumeL = 40020(16 bit)
+// DlyVolumeH = 40023(16 bit)
+// DlyVolumeL = 40024(16 bit)
+
+
+
+
+// NICL : 
+// https://ibpsreg.ibps.in/nicljul26/
+// user : 852002670
+// pas : 278ULBME
+
+
+
+// EPFO 
+// UAN : 102085897847
+// PASS : #Money@59$02
+
+
+
+// Handshake Ai : https://ai.joinhandshake.com/fellow/onboarding
+
+
+// PAN Token : 0211196130
+
+
+
+
+// Hi Gitesh Sir,
+
+// I recently applied for the Software Developer position at Adani (application received confirmation on 21 July) and wanted to reach out directly.
+
+// I'm currently working as a backend developer at Hermes Technologies, building IoT telemetry systems using NestJS, TypeScript, PostgreSQL, and industrial protocols like Modbus/SCADA — alongside pursuing an M.Tech in Cybersecurity. Given Adani's scale in infrastructure and energy, I thought my background in industrial/IoT backend systems could be a strong fit for the kind of platforms your team builds.
+
+// Would really appreciate it if you could take a look at my application or point me toward the right person handling this role. Happy to share my resume directly if useful.
+
+// Thanks for your time!
+// Hitenkumar Makwana
+
+
+// Darpan Pandya — Talent Acquisition, Adani Ports & SEZ / Adani Total — has actively posted IT Security & tech-adjacent roles in Ahmedabad. Closest match to tech hiring I found.
+// Paresh Meharawat — TA Specialist, but tagged to Adani Cements — probably not your BU.
+// Neeraj Kumar and Aishwarya Singh — generic "Adani Group" TA titles, unclear which vertical.
+
+
+
+
+
+// function horizontalCylinderVolume(radius: number, length: number, fillHeight: number): number {
+//   const r = radius;
+//   const h = fillHeight;
+
+//   // clamp edge cases
+//   if (h <= 0) return 0;
+//   if (h >= 2 * r) return Math.PI * r * r * length; // completely full
+
+//   const term1 = r * r * Math.acos((r - h) / r);
+//   const term2 = (r - h) * Math.sqrt(2 * r * h - h * h);
+//   const segmentArea = term1 - term2;
+
+//   return segmentArea * length;
+// }
 
 

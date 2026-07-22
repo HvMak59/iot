@@ -12,4 +12,9 @@ export class CronJobsController {
     async createOfflineAlert() {
         this.cronJobsService.createRmuOfflineAlert();
     }
+
+    @Post('aggregate')
+    async aggregate() {
+        this.cronJobsService.aggregation();
+    }
 }

@@ -22,17 +22,17 @@ export class GroupMetricsAttributeAggregationController {
     private readonly groupMetricsAttributeAggregationService: GroupMetricsAttributeAggregationService,
   ) { }
 
-  //   @Post()
-  //   create(
-  //     @Body()
-  //     createGroupMetricsAttributeAggregationDto: CreateGroupMetricsAttributeAggregationDto,
-  //     @Res({ passthrough: true }) response: Response,
-  //   ) {
-  //     return this.groupMetricsAttributeAggregationService.create(
-  //       createGroupMetricsAttributeAggregationDto,
-  //       response,
-  //     );
-  //   }
+  @Post()
+  create(
+    @Body()
+    createGroupMetricsAttributeAggregationDto: CreateGroupMetricsAttributeAggregationDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.groupMetricsAttributeAggregationService.create(
+      createGroupMetricsAttributeAggregationDto,
+      response,
+    );
+  }
 
   //   @Post('bulk')
   //   async createBulk(

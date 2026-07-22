@@ -1,0 +1,17 @@
+Hyperviser : 
+
+    its a software that crates and run virtual machines.(ex. orale virtual box)
+
+    2 type :
+        type1(bare metal) - directly set up on hardware (ex. vmware)
+        type2(hosted) 
+
+Cloud Computing 
+    iaas   - infra as as service
+    paas   - pltfrm ||
+    saas   - softwr ||
+
+Service : 
+IAM - Identity and Access Management 
+
+ 

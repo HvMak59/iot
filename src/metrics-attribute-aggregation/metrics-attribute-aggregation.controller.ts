@@ -21,17 +21,17 @@ export class MetricsAttributeAggregationController {
     private readonly metricsAttributeAggregationService: MetricsAttributeAggregationService,
   ) { }
 
-  //   @Post()
-  //   create(
-  //     @Body()
-  //     metricsAttributeAggregationDto: CreateMetricsAttributeAggregationDto,
-  //     @Res({ passthrough: true }) response: Response,
-  //   ) {
-  //     return this.metricsAttributeAggregationService.create(
-  //       metricsAttributeAggregationDto,
-  //       response,
-  //     );
-  //   }
+  @Post()
+  create(
+    @Body()
+    metricsAttributeAggregationDto: CreateMetricsAttributeAggregationDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.metricsAttributeAggregationService.create(
+      metricsAttributeAggregationDto,
+      response,
+    );
+  }
 
   //   @Get()
   //   findAll(@Query() searchCriteria: FindMetricsAttributeAggregationDto) {

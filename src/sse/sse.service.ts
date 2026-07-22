@@ -517,7 +517,8 @@ export class SseService {
     // }
 
 
-    @OnEvent('telemetry.inserted')
+    private unCommentBelowLine = '4';
+    // @OnEvent('telemetry.inserted')
     async handleTelemetryInserted(payloads: CurrentTelemetryPayload[]) {
         const fnName = this.handleTelemetryInserted.name;
 

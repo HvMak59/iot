@@ -29,26 +29,26 @@ export class VirtualDeviceGroupController {
     private readonly virtualDeviceGroupService: VirtualDeviceGroupService,
   ) { }
 
-  //   @Post()
-  //   async create(
-  //     @Body() createVirtualDeviceGroupDto: CreateVirtualDeviceGroupDto,
-  //   ) {
-  //     const fnName = 'create()';
-  //     const input = `Input : ${JSON.stringify(createVirtualDeviceGroupDto)}`;
-  //     const msgTemplate = fnName + KEY_SEPARATOR + input;
-  //     try {
-  //       this.logger.debug(msgTemplate + ' Start');
-  //       return await this.virtualDeviceGroupService.create(
-  //         createVirtualDeviceGroupDto,
-  //       );
-  //     } catch (error) {
-  //       const errMsg = getTryCatchErrorStr(error);
-  //       this.logger.error(msgTemplate + errMsg);
-  //       throw new HttpException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
-  //     } finally {
-  //       this.logger.debug(msgTemplate + ' End');
-  //     }
-  //   }
+  @Post()
+  async create(
+    @Body() createVirtualDeviceGroupDto: CreateVirtualDeviceGroupDto,
+  ) {
+    const fnName = 'create()';
+    const input = `Input : ${JSON.stringify(createVirtualDeviceGroupDto)}`;
+    const msgTemplate = fnName + KEY_SEPARATOR + input;
+    try {
+      this.logger.debug(msgTemplate + ' Start');
+      return await this.virtualDeviceGroupService.create(
+        createVirtualDeviceGroupDto,
+      );
+    } catch (error) {
+      const errMsg = getTryCatchErrorStr(error);
+      this.logger.error(msgTemplate + errMsg);
+      throw new HttpException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      this.logger.debug(msgTemplate + ' End');
+    }
+  }
 
   //   /*  @Get('repo')
   //   getRepo() {

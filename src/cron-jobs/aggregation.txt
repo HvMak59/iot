@@ -34,29 +34,29 @@ Cron flowchart :
 
                    
         │
-        ▼
+        |
 Find Parent VDs
 WHERE
 needsAggregation = true
 AND
 aggregationInProgress = false
         │
-        ▼
+        |
 For Each Parent
         │
-        ▼
+        |
 aggregationInProgress = true
         │
-        ▼
+        |
 needsAggregation = false
         │
-        ▼
+        |
 Aggregate
         │
-        ▼
+        |
 aggregationInProgress = false
         │
-        ▼
+        |
 END
 
 
@@ -102,7 +102,7 @@ Update Parent.lastAggregationTime
 
 AggregationCron
         │
-        ▼
+        |
 AggregationService.processScheduledAggregation()
         │
         ├── VirtualDeviceService
@@ -257,3 +257,56 @@ CREATE INDEX idx_vd_needs_aggregation ON virtual_device (id) WHERE "needsAggrega
 RMU push, per affected parent.
 No new infrastructure — reuses existing entities, adds one cron job.
 Safe under concurrent cron ticks / multiple app instances by construction.
+
+
+
+
+
+
+┌────────────────────────────────────┐
+│     CurrentTelemetryPayload        │
+│                                    │
+│ INV-001 → Voltage = 220            │
+│ INV-002 → Voltage = 225            │
+│ INV-003 → Voltage = 230            │
+└────────────────┬───────────────────┘
+                 │
+                 |
+       needsAggregation = true
+                 │
+                 |
+           CRON EVERY 5 MIN
+                 │
+                 |
+┌────────────────────────────────────┐
+│        findPendingParents()        │
+│                                    │
+│           RMU-001                  │
+└────────────────┬───────────────────┘
+                 │
+                 |
+        aggregateParent()
+                 │
+       ┌─────────┴──────────┐
+       |                    |
+  Group: Inverters     Group: Batteries
+       │
+       |
+ aggregateGroup()
+       │
+       |
+ findLatestTelemetry()
+       │
+       |
+ calculateAggregation()
+       │
+       |
+ avg / sum / max / min
+       │
+       |
+ Parent calculated telemetry
+       │
+       |
+ needsAggregation = false
+ aggregationStatus = completed
+ aggregationStatus = completed

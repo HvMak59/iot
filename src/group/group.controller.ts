@@ -19,13 +19,13 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 export class GroupController {
   constructor(private readonly groupService: GroupService) { }
 
-  //   @Post()
-  //   create(
-  //     @Body() createGroupDto: CreateGroupDto,
-  //     @Res({ passthrough: true }) response: Response,
-  //   ) {
-  //     return this.groupService.create(createGroupDto, response);
-  //   }
+  @Post()
+  create(
+    @Body() createGroupDto: CreateGroupDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.groupService.create(createGroupDto, response);
+  }
 
   //   @Get()
   //   findAll(@Query() searchCriteria: FindGroupDto) {

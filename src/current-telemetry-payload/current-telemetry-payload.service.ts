@@ -302,12 +302,14 @@ export class CurrentTelemetryPayloadService {
 
 
 
+
       // added for vdAggregation
       // const vIds = currTelemetryToBeUpserted.map(c => c.virtualDeviceId!);
       const vIds = result.map(c => c.virtualDeviceId!);
 
       await this.virtualDeviceService.markVdNeedsAggregation(_.uniq(vIds));
 
+      // 
 
 
 
@@ -331,6 +333,28 @@ export class CurrentTelemetryPayloadService {
       this.logger.error(errMsg);
       throw new HttpException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+
+  async findLatestTelemetry(
+    virtualDeviceIds: string[],
+    metricsAttributeIds: string[],
+  ) {
+    if (
+      !virtualDeviceIds.length ||
+      !metricsAttributeIds.length
+    ) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        virtualDeviceId: In(virtualDeviceIds),
+        metric: {
+          metricsAttributeId: In(metricsAttributeIds),
+        },
+      },
+    });
   }
 
   async create(createTelemetryPayloadDto: CreateCurrentTelemetryDto[]) {
