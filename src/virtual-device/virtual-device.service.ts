@@ -1537,7 +1537,7 @@ export class VirtualDeviceService {
       },
       select: {
         id: true,
-        parentId: true,
+        parentId: true
       },
     });
 
@@ -1546,7 +1546,7 @@ export class VirtualDeviceService {
         .map((vd) => vd.parentId)
         .filter(Boolean),
     );
-    // 
+
     return parentVDIds;
   }
 
@@ -1562,6 +1562,7 @@ export class VirtualDeviceService {
     await this.repo.update(
       {
         id: In(parentIds),
+        needsAggregation: false
       },
       {
         needsAggregation: true,

@@ -309,7 +309,7 @@ export class CurrentTelemetryPayloadService {
 
       await this.virtualDeviceService.markVdNeedsAggregation(_.uniq(vIds));
 
-      // 
+
 
 
 
@@ -341,8 +341,8 @@ export class CurrentTelemetryPayloadService {
     metricsAttributeIds: string[],
   ) {
     if (
-      !virtualDeviceIds.length ||
-      !metricsAttributeIds.length
+      virtualDeviceIds.length == 0 ||
+      metricsAttributeIds.length == 0
     ) {
       return [];
     }

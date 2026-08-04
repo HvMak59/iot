@@ -226,11 +226,11 @@ export class CronJobsService {
             const parentVdsNeedsAggregation =
                 await this.virtualDeviceService.findVirtualDeviceNeedsAggregation();
 
-            if (!parentVdsNeedsAggregation.length) {
+            if (parentVdsNeedsAggregation.length == 0) {
                 this.logger.debug(`${fName} : No parent VDs require aggregation`);
                 return;
             }
-            // 
+
             for (const parentVD of parentVdsNeedsAggregation) {
                 try {
                     this.logger.debug(
@@ -254,8 +254,8 @@ export class CronJobsService {
                     this.logger.error(
                         `${fName} : Aggregation failed for parent VD : ${parentVD.id}`,
                         error,
-                    );
 
+                    );
                     // Put it back into pending so next cron can retry
                     await this.virtualDeviceService.markAggregationPending(
                         parentVD.id,
@@ -280,9 +280,7 @@ export class CronJobsService {
             return;
         }
 
-        const childVirtualDeviceIds = children.map(
-            child => child.id,
-        );
+        const childVirtualDeviceIds = children.map(child => child.id);
 
         for (const virtualDeviceGroup of parentVD.virtualDeviceGroups ?? []) {
             const group = virtualDeviceGroup.group;
@@ -327,7 +325,7 @@ export class CronJobsService {
                 metricsAttributeIds,
             );
 
-        if (!latestTelemetry.length) {
+        if (latestTelemetry.length == 0) {
             this.logger.debug(
                 `No telemetry found for parent VD : ${parentVD.id}`,
             );
@@ -378,17 +376,17 @@ export class CronJobsService {
 
     private calculateAggregation(
         telemetryRecords: CurrentTelemetryPayload[],
-        aggregation: MetricsAttributeAggregation,
+        metricAggregation: MetricsAttributeAggregation,
     ) {
         const now = new Date();
 
         const recordsForAggregation =
             telemetryRecords.filter(record => {
-                if (aggregation.aggStrategy === AggStrategy.last) {
+                if (metricAggregation.aggStrategy === AggStrategy.last) {
                     return true;
                 }
 
-                if (aggregation.aggStrategy === AggStrategy.within20Mins) {
+                if (metricAggregation.aggStrategy === AggStrategy.within20Mins) {
                     const telemetryTime = new Date(record.metric.txnCaptureTime).getTime();
 
                     const timeDifference = now.getTime() - telemetryTime;
@@ -398,7 +396,6 @@ export class CronJobsService {
 
                 return false;
             });
-
 
 
         if (recordsForAggregation.length == 0) {
@@ -412,7 +409,7 @@ export class CronJobsService {
 
         let result: number;
 
-        switch (aggregation.aggregation) {
+        switch (metricAggregation.aggregation) {
             case 'sum':
                 result = _.sum(values);
                 break;
@@ -423,29 +420,32 @@ export class CronJobsService {
 
             default:
                 throw new Error(
-                    `Unsupported aggregation: ${aggregation.aggregation}`,
+                    `Unsupported aggregation: ${metricAggregation.aggregation}`,
                 );
         }
-        // 
-        const latestRecord =
-            recordsForAggregation.reduce(
-                (latest, current) =>
-                    new Date(current.metric.txnCaptureTime)
-                        >
-                        new Date(latest.metric.txnCaptureTime)
-                        ? current
-                        : latest,
-            );
+
+        // const latestRecord =
+        //     recordsForAggregation.reduce(
+        //         (latest, current) =>
+        //             new Date(current.metric.txnCaptureTime)
+        //                 >
+        //                 new Date(latest.metric.txnCaptureTime)
+        //                 ? current
+        //                 : latest,
+        //     );
 
         return new Metric({
-            metricsAttributeId: aggregation.metricsAttributeId,
+            metricsAttributeId: metricAggregation.metricsAttributeId,
             measure: Number(result.toFixed(2)).toString(),
-            frequency: latestRecord.metric.frequency,
-            // txnCaptureTime: latestRecord.metric.txnCaptureTime,
-            // txnCapturePeriod: latestRecord.metric.txnCapturePeriod,
+            frequency: recordsForAggregation[0].metric.frequency,
             txnCaptureTime: new Date(),
             txnCapturePeriod: new Date(),
             isCalculated: true,
+
+            // frequency: latestRecord.metric.frequency,
+            // txnCaptureTime: latestRecord.metric.txnCaptureTime,
+            // txnCapturePeriod: latestRecord.metric.txnCapturePeriod,
+
         });
     }
 

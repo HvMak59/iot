@@ -891,12 +891,6 @@ export class AppModule { }
 
 
 
-// for flow meter (data needed) 
-// prs tmp flwrat total flow 
-
-
-
-
 
 // startOfDate, endOfDate = others 
 
@@ -937,21 +931,6 @@ export class AppModule { }
 
 
 
-// Flow Meter 
-// GasPrsH = 40000(16 bit)
-// GasPrsL = 40001(16 bit)
-// GasTmpH = 40002(16 bit)
-// GasTmpL = 40003(16 bit)
-// FlwrtH = 40012(16 bit)
-// FlwrtL = 40013(16 bit)
-// CrrctVolumeH = 40018(16 bit)
-// CrrctVolumeMiddle = 40019(16 bit)
-// CrrctVolumeL = 40020(16 bit)
-// DlyVolumeH = 40023(16 bit)
-// DlyVolumeL = 40024(16 bit)
-
-
-
 
 // NICL : 
 // https://ibpsreg.ibps.in/nicljul26/
@@ -970,6 +949,7 @@ export class AppModule { }
 
 
 // PAN Token : 0211196130
+// Ack No : 881153280158384
 
 
 
@@ -993,7 +973,6 @@ export class AppModule { }
 
 
 
-
 // function horizontalCylinderVolume(radius: number, length: number, fillHeight: number): number {
 //   const r = radius;
 //   const h = fillHeight;
@@ -1008,5 +987,104 @@ export class AppModule { }
 
 //   return segmentArea * length;
 // }
+
+
+
+
+
+// Tender : 
+
+// Subscribe topic 
+// rtsg-1/ongridrooftop/{IMEI}/info/sub
+// rtsg-1/ongridrooftop/{IMEI}/messagekey/sub
+// rtsg-1/ongridrooftop/{IMEI}/ondemand/sub
+// rtsg-1/ongridrooftop/{IMEI}/config/sub
+
+// Publish topics 
+// rtsg-1/ongridrooftop/{IMEI}/data/pub
+// rtsg-1/ongridrooftop/{IMEI}/heartbeat/pub
+
+
+// Ex : rtsg-1/ongridrooftop/123456123456123/data/pub 
+
+// sample data json : annexure 2 (page 131)
+// {
+//   "VD": 5,
+//   "TIMESTAMP": "2026-07-27 14:32:10",
+//   "MAXINDEX": 96,
+//   "INDEX": 68,
+//   "LOAD": 0,
+//   "STINTERVAL": 5,
+//   "MSGID": "",
+//   "DATE": 260727,    ddmmyy
+//   "IMEI": "123456123456123",
+//   "ASN_32": 34123450,
+
+//   "IS-10-2-3--IST": 1,
+//   "IS-10-2-3--DCV1": 342.38,
+//   "IS-10-2-3--DCI1": 6.01,
+//   "IS-10-2-3--DCKW1": 2.07,
+//   "IS-10-2-3--RPHV": 254.10,
+//   "IS-10-2-3--RPHI": 2.77, 
+//   ..... 
+// }
+
+
+// IS = device type (three-phase string inverter)
+// 10 = device instance number
+// 2  = plant/block ID
+// 3  = DB (distribution board) ID
+// empty segment = inverter-layer identifier not duplicated (since this is the inverter)
+
+
+
+
+
+
+
+// for flow meter (data needed) 
+// prs tmp flwrat total flow 
+
+
+
+
+// Flow Meter 
+// GasPrsH = 40000(16 bit)
+// GasPrsL = 40001(16 bit)
+// GasTmpH = 40002(16 bit)
+// GasTmpL = 40003(16 bit)
+// FlwrtH = 40012(16 bit)
+// FlwrtL = 40013(16 bit)
+// CrrctVolumeH = 40018(16 bit)
+// CrrctVolumeMiddle = 40019(16 bit)
+// CrrctVolumeL = 40020(16 bit)
+// DlyVolumeH = 40023(16 bit)
+// DlyVolumeL = 40024(16 bit)
+
+
+
+// prs bar G(absolute) = 2.829     done      = /1000        = 40001  
+// temp                = 87.9      done      = /10          = 40002
+// cc f m3/h           = 19.90                              = 40008
+// ttl fctor           = 3.0683    done      = /1000        = 40009
+// day crr             = 336.92    done      = dont divide  = 40023  (need to verify again)
+// bttry vol           = 3.66      done      = /10          = 40029
+// crr m3              = 130390.0  pending 
+// ucrr m3             = 41468.9   pending
+// prev corr           = 755.83    pending     755.83   but laptop 9174
+
+
+// tmp,flwrt,prs,corrct volume,daily volume
+
+
+// flwrt, volume  
+
+// change topic : HrmsIOT/Fm/RtBn1/Gmb1/info
+// call saurabh - is rs232 available or not 
+
+
+
+
+
 
 
