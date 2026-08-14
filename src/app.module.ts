@@ -567,7 +567,7 @@ export class AppModule { }
 
 
 
-// 96677 lxm  42084 
+// 96677 laxm  42084 
 //  9278664414
 
 
@@ -1042,6 +1042,7 @@ export class AppModule { }
 
 
 
+
 // for flow meter (data needed) 
 // prs tmp flwrat total flow 
 
@@ -1075,7 +1076,6 @@ export class AppModule { }
 
 
 // tmp,flwrt,prs,corrct volume,daily volume
-
 
 // flwrt, volume  
 

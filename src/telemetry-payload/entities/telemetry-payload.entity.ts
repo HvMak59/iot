@@ -58,7 +58,7 @@ export class TelemetryPayload {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
+  @Column('uuid', { nullable: true })
   telemetryHeaderId: string;
 
   @ManyToOne(() => Asset, (asset) => asset.currentTelemetryPayloads)

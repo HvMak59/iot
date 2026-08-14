@@ -56,6 +56,10 @@ export class CurrentTelemetryPayload {
   device?: Device;
 
 
+  @Column('uuid', { nullable: true })
+  telemetryHeaderId: string;
+
+
   /* @BeforeInsert()
   //@BeforeUpdate()
   setID() {
@@ -71,8 +75,6 @@ export class CurrentTelemetryPayload {
     }
   } */
 
-  // @Column('uuid')
-  // telemetryHeaderId: string;
 
   // @Column()
   // assetId: string;

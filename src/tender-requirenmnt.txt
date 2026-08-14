@@ -1,0 +1,139 @@
+Step 1 : Register on govt portal as vendor
+
+    Reference : 5. RMS REGISTRATION page - 122
+
+Step 2 : RMU Registration
+
+    -> we(vendor) have to give rmu detials to govt centralized iot platform
+    -> platform will give 
+                user,
+                pass,
+                clientid,
+                cert 
+    -> we have to store this in rmu 
+
+    
+    Reference : 5. RMS REGISTRATION page - 122 (c,d)
+
+    topics : 
+
+    Subscribe topic 
+    rtsg-1/ongridrooftop/{IMEI}/info/sub
+    rtsg-1/ongridrooftop/{IMEI}/messagekey/sub
+    rtsg-1/ongridrooftop/{IMEI}/ondemand/sub
+    rtsg-1/ongridrooftop/{IMEI}/config/sub
+
+    Publish topics 
+    rtsg-1/ongridrooftop/{IMEI}/data/pub
+    rtsg-1/ongridrooftop/{IMEI}/heartbeat/pub
+
+Step 3 : Messagekey 
+ 
+    -> Govt portal/ hermes will share messagekey on topic : rtsg-1/ongridrooftop/{IMEI}/messagekey/sub
+    -> rmu have to store 
+    -> cmkey = current msg key , pmkey = previous msg key 
+
+    Reference : 4. SECURITY ARCHITECTURE page 122
+
+step 4 : Validation on rmu side 
+
+    -> on topic ondeand/sub or config/sub govt will send msgkey 
+    -> rmu check with stored keys and validates
+
+Step 5 : data  
+
+    -> hermesiot and govt 
+    reference : page 119 ( in this regard .....)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RMU Boot
+    │
+    ▼
+Read Local Configuration    
+    │
+    ▼
+Load
+ClientID
+Username
+Password
+Certificate
+CurrentKey
+PreviousKey
+    │
+    ▼
+TLS Connect
+    │
+    ▼
+MQTT Login
+    │
+    ▼
+Connected?
+    │
+ ┌──┴──────┐
+ │         │
+No        Yes
+ │         │
+Retry      ▼
+       Subscribe
+    messagekey
+    config
+    ondemand
+            │
+            ▼
+Receive Latest MessageKey
+(⚠️ Tender doesnt explain this)
+            │
+            ▼
+Store
+CurrentKey
+PreviousKey
+            │
+            ▼
+Every 5 min
+Read Modbus
+            │
+            ▼
+Create Government JSON
+            │
+            ▼
+Publish data/pub
+            │
+            ▼
+Publish heartbeat/pub
+            │
+            ▼
+Receive Config?
+            │
+         Yes │
+            ▼
+Update Local Config
+            │
+            ▼
+Receive OnDemand?
+            │
+         Yes │
+            ▼
+Validate
+MessageKey
+            │
+Validate
+MSGID
+            │
+Execute
+            │
+Publish Response

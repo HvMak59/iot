@@ -185,6 +185,10 @@ export class VirtualDevice {
     @Column({ nullable: true })
     searchTerm?: string;
 
+
+
+
+
     @Column({
         default: false,
     })
@@ -194,6 +198,11 @@ export class VirtualDevice {
         default: false,
     })
     aggregationStatus: aggregationStatus;
+
+
+
+
+
 
     @Column({
         nullable: true,

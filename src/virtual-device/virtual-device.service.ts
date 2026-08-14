@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-import { In, IsNull, Repository, TreeRepository } from 'typeorm';
+import { In, IsNull, Not, Repository, TreeRepository } from 'typeorm';
 // import {
 //   deleteRec,
 //   findAll,
@@ -211,7 +211,6 @@ export class VirtualDeviceService {
   //     let relations = this.getRelations(relation);
   //     return this.repo.findOne({ where: { id: id }, relations: relations });
   //   }
-
 
 
   //   getVirtualDeviceWithChildren(assetId?: string) {
@@ -1625,6 +1624,47 @@ export class VirtualDeviceService {
     })
   }
 
+
+  async findPrents() {
+    return this.repo.find({
+      select: {
+        id: true,
+        assetId: true,
+        deviceId: true,
+        children: {
+          id: true,
+        },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                aggStrategy: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    })
+  }
+
+
+
   async markAggregationProcessing(
     virtualDeviceId: string,
   ) {
@@ -1669,6 +1709,57 @@ export class VirtualDeviceService {
   }
 
 
+
+
+
+
+  /**
+ * Finds all VDs that have children, along with their group aggregation
+ * config. These are the candidate "parents" for aggregation.
+ * Pure repo call — no telemetry/timestamp logic here.
+ */
+  async findParentVdsWithAggregationConfig() {
+    const allVds = await this.repo.find({
+      select: {
+        id: true,
+        assetId: true,
+        deviceId: true,
+        children: { id: true },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                aggStrategy: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: { metricsAttributeAggregation: true },
+          },
+        },
+      },
+    });
+
+    // Only VDs with children AND at least one group aggregation config are real candidates
+    return allVds.filter(
+      vd =>
+        (vd.children ?? []).length > 0 &&
+        (vd.virtualDeviceGroups ?? []).some(
+          vdg => (vdg.group?.groupMetricsAttributeAggregations ?? []).length > 0,
+        ),
+    );
+  }
 
 
 
@@ -1757,6 +1848,75 @@ export class VirtualDeviceService {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  async findParents() {
+    return this.repo.find({
+      where: {
+        parentId: IsNull(),
+        virtualDeviceGroups: {
+          groupId: Not(IsNull())
+        }
+      },
+      select: {
+        id: true,
+        assetId: true,
+        deviceId: true,
+        children: { id: true },
+        virtualDeviceGroups: {
+          groupId: true,
+          group: {
+            id: true,
+            groupMetricsAttributeAggregations: {
+              groupId: true,
+              metricsAttributeAggregation: {
+                id: true,
+                aggregation: true,
+                aggStrategy: true,
+                metricsAttributeId: true,
+              },
+            },
+          },
+        },
+      },
+      relations: {
+        children: true,
+        virtualDeviceGroups: {
+          group: {
+            groupMetricsAttributeAggregations: {
+              metricsAttributeAggregation: true,
+            },
+          },
+        },
+      },
+    });
+  }
+
+
+
+
+
+
+
+
+  // async findDescendants(parent: VirtualDevice) {
+  //   return this.repo.findDescendants(parent);
+  // }
 
 
 

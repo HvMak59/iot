@@ -15,6 +15,7 @@ export class CronJobsController {
 
     @Post('aggregate')
     async aggregate() {
-        this.cronJobsService.aggregation();
+        // this.cronJobsService.aggregation();
+        this.cronJobsService.aggregation2();
     }
 }

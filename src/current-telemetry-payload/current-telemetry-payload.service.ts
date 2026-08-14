@@ -305,9 +305,9 @@ export class CurrentTelemetryPayloadService {
 
       // added for vdAggregation
       // const vIds = currTelemetryToBeUpserted.map(c => c.virtualDeviceId!);
-      const vIds = result.map(c => c.virtualDeviceId!);
+      // const vIds = result.map(c => c.virtualDeviceId!);
 
-      await this.virtualDeviceService.markVdNeedsAggregation(_.uniq(vIds));
+      // await this.virtualDeviceService.markVdNeedsAggregation(_.uniq(vIds));
 
 
 
@@ -340,6 +340,55 @@ export class CurrentTelemetryPayloadService {
     virtualDeviceIds: string[],
     metricsAttributeIds: string[],
   ) {
+    if (virtualDeviceIds.length == 0 || metricsAttributeIds.length == 0) {
+      return [];
+    }
+
+    return this.repo.find({
+      where: {
+        virtualDeviceId: In(virtualDeviceIds),
+        metric: {
+          metricsAttributeId: In(metricsAttributeIds),
+        },
+      },
+      select: {
+        virtualDeviceId: true,
+        telemetryHeaderId: true,
+        metric: {
+          metricsAttributeId: true,
+          measure: true,
+          txnCaptureTime: true,
+          txnCapturePeriod: true,
+          frequency: true,
+        },
+      },
+    });
+  }
+
+
+
+
+  async findLatestTelemetryGroupedByVD(
+    virtualDeviceIds: string[],
+    metricsAttributeIds: string[],
+  ) {
+    const telemetry = await this.findLatestTelemetry(
+      virtualDeviceIds,
+      metricsAttributeIds,
+    );
+
+    return _.groupBy(
+      telemetry,
+      telemetry => telemetry.virtualDeviceId,
+    );
+  }
+
+
+
+  async findLatestTelemetryNew(
+    virtualDeviceIds: string[],
+    metricsAttributeIds: string[],
+  ) {
     if (
       virtualDeviceIds.length == 0 ||
       metricsAttributeIds.length == 0
@@ -356,6 +405,25 @@ export class CurrentTelemetryPayloadService {
       },
     });
   }
+
+
+  findLatestTelemetryForVdsAndMetrics(
+    virtualDeviceIds: string[],
+    metricsAttributeIds: string[],
+  ): Promise<CurrentTelemetryPayload[]> {
+    if (!virtualDeviceIds.length || !metricsAttributeIds.length) {
+      return Promise.resolve([]);
+    }
+
+    return this.repo.find({
+      where: {
+        virtualDeviceId: In(virtualDeviceIds),
+        metric: { metricsAttributeId: In(metricsAttributeIds) },
+      },
+      select: { virtualDeviceId: true, metric: true },
+    });
+  }
+
 
   async create(createTelemetryPayloadDto: CreateCurrentTelemetryDto[]) {
     const tobeCreated = this.repo.create(createTelemetryPayloadDto);
