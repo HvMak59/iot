@@ -2337,11 +2337,6 @@ export class IotServerService {
     }
 
     if (incrementdAlerts.length > 0) {
-      // this.eventEmitter.emit('alert.incremented', {
-      //   assetId: assetID,
-      //   alerts: incrementdAlerts,
-      // });
-
       this.eventEmitter.emit('alert.incremented', incrementdAlerts);
     }
 

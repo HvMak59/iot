@@ -47,6 +47,7 @@ import { SseModule } from './sse/sse.module';
 import { DeviceTypeMetricsAttributeModule } from './device-type-metrics-attribute/device-type-metrics-attribute.module';
 import { AssetCurrentPerformanceSourceModule } from './asset-current-performance-source/asset-current-performance-source.module';
 import { AssetTypeCurrentPerformanceSourceModule } from './asset-type-current-performance-source/asset-type-current-performance-source.module';
+import { CacheMappingModule } from './cache-maps/cache-maps.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -125,7 +126,9 @@ import { AssetTypeCurrentPerformanceSourceModule } from './asset-type-current-pe
     SseModule,
 
     AssetCurrentPerformanceSourceModule,
-    AssetTypeCurrentPerformanceSourceModule
+    AssetTypeCurrentPerformanceSourceModule,
+
+    CacheMappingModule
   ],
   // providers: [
   //   {

@@ -218,7 +218,7 @@ export class CronJobsService {
 
 
     // @Cron('*/5 * * * *')
-    async aggregation() {
+    async aggregationOld() {
         const fName = `${this.constructor.name}.${this.aggregation.name}`;
 
         this.logger.debug(`${fName} : Start`);
@@ -242,7 +242,7 @@ export class CronJobsService {
                         parentVD.id,
                     );
 
-                    await this.aggregateParent(parentVD);
+                    await this.aggregateParentOld(parentVD);
 
                     await this.virtualDeviceService.markAggregationCompleted(
                         parentVD.id,
@@ -271,7 +271,7 @@ export class CronJobsService {
         }
     }
 
-    async aggregateParent(parentVD: VirtualDevice) {
+    async aggregateParentOld(parentVD: VirtualDevice) {
         const children = parentVD.children ?? [];
         console.log(children)
 
@@ -302,7 +302,7 @@ export class CronJobsService {
                 groupMetricAggregation => groupMetricAggregation.metricsAttributeAggregation,
             );
 
-            await this.aggregateGroup(
+            await this.aggregateGroupOld(
                 parentVD,
                 childVirtualDeviceIds,
                 metricsAttributeAggregations,
@@ -310,7 +310,7 @@ export class CronJobsService {
         }
     }
 
-    async aggregateGroup(
+    async aggregateGroupOld(
         parentVD: VirtualDevice,
         childVirtualDeviceIds: string[],
         metricAggregations: MetricsAttributeAggregation[],
@@ -355,7 +355,7 @@ export class CronJobsService {
                 continue;
             }
 
-            const aggregatedMetric = this.calculateAggregation(
+            const aggregatedMetric = this.calculateAggregationOld(
                 telemetryForMetric,
                 metricAggregation,
             );
@@ -382,7 +382,7 @@ export class CronJobsService {
     }
 
 
-    private calculateAggregation(
+    private calculateAggregationOld(
         telemetryRecords: CurrentTelemetryPayload[],
         metricAggregation: MetricsAttributeAggregation,
     ) {
@@ -469,7 +469,7 @@ export class CronJobsService {
 
 
 
-    private rt = 'perfectly running this, uncommnt this sir shown';
+    private rt = 'perfectly running, uncommnt this sir shown';
     // @Cron(CronExpression.EVERY_5_MINUTES)
     // async aggregation2() {
     //     this.logger.debug('Aggregation cron started');
@@ -691,116 +691,54 @@ export class CronJobsService {
 
 
 
-    async aggregation2() {
+
+
+    private a = 5;
+    // @Cron(CronExpression.EVERY_5_MINUTES)
+    async aggregation() {
         this.logger.debug('Aggregation cron started');
 
         const parents = await this.virtualDeviceService.findParents();
 
+        if (_.isEmpty(parents)) {
+            this.logger.debug('No parents found');
+            return;
+        }
+
+
+        const allVirtualDeviceIds = _.uniq(
+            parents.flatMap(parent => [
+                parent.id,
+                ...(parent.children ?? []).map(child => child.id),
+            ]),
+        );
+
+        // Collect every metric id needed across ALL parents in one shot
+        const allMetricIds = _.uniq(
+            parents.flatMap(parent =>
+                (parent.virtualDeviceGroups ?? []).flatMap(vdg =>
+                    (vdg.group?.groupMetricsAttributeAggregations ?? []).map(
+                        x => x.metricsAttributeAggregation.metricsAttributeId,
+                    ),
+                ),
+            ),
+        );
+
+        // ONE query for the all parents instead of one query per parent
+        const telemetryByVD = await this.currentTelemetryPayloadService
+            .findLatestTelemetryGroupedByVD(allVirtualDeviceIds, allMetricIds);
+
         for (const parent of parents) {
-            await this.aggregateParent2(parent);
+            await this.aggregateParent(parent, telemetryByVD);
         }
 
         this.logger.debug('Aggregation cron completed');
     }
 
-    // async aggregateParent2(parentVD: VirtualDevice) {
-
-    //     const children = parentVD.children ?? [];
-
-    //     if (_.isEmpty(children)) {
-    //         this.logger.debug(`No children found for ${parentVD.id}`);
-    //         return;
-    //     }
-
-    //     const childVirtualDeviceIds = children.map(child => child.id);
-
-    //     // Collect ALL metric aggregations from every group
-    //     const allMetricAggregations = parentVD.virtualDeviceGroups?.flatMap(vdg =>
-    //         (vdg.group?.groupMetricsAttributeAggregations ?? []).map(
-    //             x => x.metricsAttributeAggregation,
-    //         ),
-    //     ) ?? []
-
-    //     if (!allMetricAggregations.length) {
-    //         return;
-    //     }
-
-    //     const allMetricIds = _.uniq(
-    //         allMetricAggregations.map(
-    //             aggregation => aggregation.metricsAttributeId,
-    //         ),
-    //     );
-
-    //     const latestTelemetry =
-    //         await this.currentTelemetryPayloadService.findLatestTelemetry(
-    //             [parentVD.id, ...childVirtualDeviceIds],
-    //             allMetricIds,
-    //         );
-
-    //     if (!latestTelemetry.length) {
-    //         return;
-    //     }
-
-    //     // const parentTelemetry: CurrentTelemetryPayload[] = [];
-    //     const childTelemetry: CurrentTelemetryPayload[] = [];
-
-    //     const parentTelemetryByMetric = new Map<string, CurrentTelemetryPayload>();
-    //     const childTelemetryByMetric = new Map<string, CurrentTelemetryPayload[]>();
-    //     let lastAggrTime: number;
-
-    //     for (const telemetry of latestTelemetry) {
-
-    //         if (telemetry.virtualDeviceId == parentVD.id) {
-    //             // parentTelemetry.push(telemetry);
-    //             lastAggrTime = telemetry.metric.txnCaptureTime.valueOf();
-    //             parentTelemetryByMetric.set(telemetry.metric.metricsAttributeId, telemetry);
-    //         } else {
-    //             // childTelemetry.push(telemetry);
-    //             childTelemetryByMetric.set(telemetry.metric.metricsAttributeId, [telemetry]);
-    //         }
-    //     }
-
-    //     Object.values(childTelemetryByMetric).some((tM) => {
-    //         tM.metric.txnCaptureTime.valueOf() > lastAggrTime
-    //     })
-
-    //     const aggregatedTelemetry: CreateCurrentTelemetryDto[] = [];
-
-    //     for (const virtualDeviceGroup of parentVD.virtualDeviceGroups ?? []) {
-
-    //         const group = virtualDeviceGroup.group;
-
-    //         if (!group) {
-    //             this.logger.debug('No group found for this parent');
-    //             continue;
-    //         }
-
-    //         const metricAggregations = group.groupMetricsAttributeAggregations.map(
-    //             x => x.metricsAttributeAggregation,
-    //         )
-
-    //         // await this.aggregateGroup2(
-    //         const groupAggregatedTelemetry = await this.aggregateGroup2(
-    //             parentVD,
-    //             metricAggregations,
-    //             childTelemetryByMetric,
-    //             parentTelemetryByMetric,
-    //             // aggregatedTelemetry,
-    //         );
-
-    //         aggregatedTelemetry.push(...groupAggregatedTelemetry);
-    //     }
-
-    //     if (aggregatedTelemetry.length) {
-
-    //         await this.currentTelemetryPayloadService.createV2(
-    //             aggregatedTelemetry,
-    //         );
-    //     }
-    // }
-
-
-    async aggregateParent2(parentVD: VirtualDevice) {
+    async aggregateParent(
+        parentVD: VirtualDevice,
+        telemetryByVD: Record<string, CurrentTelemetryPayload[]>,
+    ) {
         const children = parentVD.children ?? [];
 
         if (_.isEmpty(children)) {
@@ -808,9 +746,8 @@ export class CronJobsService {
             return;
         }
 
-        const childVirtualDeviceIds = children.map(child => child.id);
+        const childVirtualDeviceIds = children.map((child) => child.id);
 
-        // Collect all metric aggregations configured for this parent
         const allMetricAggregations = parentVD.virtualDeviceGroups?.flatMap(vdg =>
             (vdg.group?.groupMetricsAttributeAggregations ?? []).map(
                 x => x.metricsAttributeAggregation,
@@ -821,22 +758,11 @@ export class CronJobsService {
             return;
         }
 
-        const allMetricIds = _.uniq(
-            allMetricAggregations.map(x => x.metricsAttributeId),
-        );
-
-        const telemetryByVD = await this.currentTelemetryPayloadService.findLatestTelemetryGroupedByVD(
-            [parentVD.id, ...childVirtualDeviceIds],
-            allMetricIds,
-        );
-
-        if (_.isEmpty(telemetryByVD)) {
-            return;
-        }
-
+        // Last aggregation time of each metric
         const parentLastAggregationByMetric = new Map<string, number>();
 
         for (const telemetry of telemetryByVD[parentVD.id] ?? []) {
+
             parentLastAggregationByMetric.set(
                 telemetry.metric.metricsAttributeId,
                 telemetry.metric.txnCaptureTime.getTime(),
@@ -846,43 +772,17 @@ export class CronJobsService {
         const childTelemetryByMetric = new Map<string, CurrentTelemetryPayload[]>();
         const aggregationRequiredMetrics = new Set<string>();
 
-        // for (const childVDId of childVirtualDeviceIds) {
-        //     const childTelemetry = telemetryByVD[childVDId] ?? [];
+        // Process ONLY this parent's children
+        for (const childVDId of childVirtualDeviceIds) {
 
-        //     for (const telemetry of childTelemetry) {
-        //         const metricId = telemetry.metric.metricsAttributeId;
-        //         const lastAggregationTime = parentLastAggregationByMetric.get(metricId);
-        //         const telemetryTime = telemetry.metric.txnCaptureTime.getTime();
+            const telemetryPayloads = telemetryByVD[childVDId] ?? [];
 
-        //         if (
-        //             lastAggregationTime === undefined ||
-        //             telemetryTime > lastAggregationTime
-        //         ) {
-        //             aggregationRequiredMetrics.add(metricId);
-        //         }
-
-        //         const records = childTelemetryByMetric.get(metricId) ?? [];
-
-        //         records.push(telemetry);
-
-        //         childTelemetryByMetric.set(metricId, records);
-        //     }
-        // }
-
-        for (const [virtualDeviceId, telemetryList] of Object.entries(telemetryByVD)) {
-
-            // Skip parent
-            if (virtualDeviceId === parentVD.id) {
-                continue;
-            }
-
-            for (const telemetry of telemetryList) {
+            for (const telemetry of telemetryPayloads) {
 
                 const metricId = telemetry.metric.metricsAttributeId;
                 const telemetryTime = telemetry.metric.txnCaptureTime.getTime();
                 const lastAggregationTime = parentLastAggregationByMetric.get(metricId);
 
-                // Check if ANY child has newer telemetry
                 if (
                     lastAggregationTime === undefined ||
                     telemetryTime > lastAggregationTime
@@ -890,13 +790,15 @@ export class CronJobsService {
                     aggregationRequiredMetrics.add(metricId);
                 }
 
-                // Keep ALL child values
                 const records = childTelemetryByMetric.get(metricId);
 
                 if (records) {
                     records.push(telemetry);
                 } else {
-                    childTelemetryByMetric.set(metricId, [telemetry]);
+                    childTelemetryByMetric.set(
+                        metricId,
+                        [telemetry],
+                    );
                 }
             }
         }
@@ -911,81 +813,37 @@ export class CronJobsService {
         const aggregatedTelemetry: TelemetryPayload[] = [];
 
         for (const virtualDeviceGroup of parentVD.virtualDeviceGroups ?? []) {
+
             const group = virtualDeviceGroup.group;
+
+            if (!group) {
+                continue;
+            }
 
             const metricAggregations = group.groupMetricsAttributeAggregations.map(
                 x => x.metricsAttributeAggregation,
             );
 
-            const groupTelemetry = this.aggregateGroup2(
+            const groupTelemetry = this.aggregateGroup(
                 parentVD,
                 metricAggregations,
                 childTelemetryByMetric,
                 aggregationRequiredMetrics,
             );
 
-            aggregatedTelemetry.push(...groupTelemetry);
+            aggregatedTelemetry.push(
+                ...groupTelemetry,
+            );
         }
 
         if (aggregatedTelemetry.length) {
-            // await this.currentTelemetryPayloadService.createV2(
-            //     aggregatedTelemetry,
-            // );
-            await this.iotServerService.saveTelemetryMetrics(aggregatedTelemetry)
+            await this.iotServerService.saveTelemetryMetrics(
+                aggregatedTelemetry,
+            );
         }
     }
 
-    // async aggregateGroup2(
-    //     parentVD: VirtualDevice,
-    //     metricAggregations: MetricsAttributeAggregation[],
-    //     childTelemetryByMetric: Map<string, CurrentTelemetryPayload[]>,
-    // ) {
-    //     const aggregatedTelemetry: CreateCurrentTelemetryDto[] = [];
-
-    //     for (const metricAggregation of metricAggregations) {
-    //         const telemetryForMetric = childTelemetryByMetric.get(
-    //             metricAggregation.metricsAttributeId,
-    //         ) ?? [];
-
-    //         if (!telemetryForMetric.length) {
-    //             continue;
-    //         }
-
-    //         let recordsForAggregation = telemetryForMetric;
-
-    //         if (metricAggregation.aggStrategy === AggStrategy.within20Mins) {
-    //             const now = Date.now();
-
-    //             recordsForAggregation = telemetryForMetric.filter(
-    //                 record => now - record.metric.txnCaptureTime.getTime() <= 20 * 60 * 1000,
-    //             );
-    //         }
-
-    //         if (!recordsForAggregation.length) {
-    //             continue;
-    //         }
-
-    //         const aggregatedMetric = this.calculateAggregation2(
-    //             recordsForAggregation,
-    //             metricAggregation,
-    //         );
-
-    //         if (!aggregatedMetric) {
-    //             continue;
-    //         }
-
-    //         aggregatedTelemetry.push({
-    //             assetId: parentVD.assetId,
-    //             virtualDeviceId: parentVD.id,
-    //             deviceId: parentVD.deviceId!,
-    //             metric: aggregatedMetric,
-    //         });
-    //     }
-
-    //     return aggregatedTelemetry;
-    // }
-
-    aggregateGroup2(
+    aggregateGroup(
         parentVD: VirtualDevice,
         metricAggregations: MetricsAttributeAggregation[],
         childTelemetryByMetric: Map<string, CurrentTelemetryPayload[]>,
@@ -1000,7 +858,7 @@ export class CronJobsService {
             if (!aggregationRequiredMetrics.has(metricId)) {
                 continue;
             }
-            // 
+
             const telemetryForMetric = childTelemetryByMetric.get(metricId) ?? [];
 
             if (!telemetryForMetric.length) {
@@ -1018,21 +876,11 @@ export class CronJobsService {
                     );
             }
 
-            // if (
-            //     metricAggregation.aggStrategy === AggStrategy.within20Mins
-            // ) {
-            //     const now = Date.now();
-
-            //     recordsForAggregation = telemetryForMetric.filter(
-            //         record => (now - record.metric.txnCaptureTime.getTime()) <= 20 * 60 * 1000,
-            //     );
-            // }
-
             if (!recordsForAggregation.length) {
                 continue;
             }
 
-            const aggregatedMetric = this.calculateAggregation2(
+            const aggregatedMetric = this.calculateAggregation(
                 recordsForAggregation,
                 metricAggregation,
             );
@@ -1041,25 +889,17 @@ export class CronJobsService {
                 continue;
             }
 
-            // aggregatedTelemetry.push({
-            //     assetId: parentVD.assetId,
-            //     virtualDeviceId: parentVD.id,
-            //     deviceId: parentVD.deviceId!,
-            //     metric: aggregatedMetric,
-            // });
-
             aggregatedTelemetry.push(new TelemetryPayload({
                 assetId: parentVD.assetId,
                 virtualDeviceId: parentVD.id,
                 deviceId: parentVD.deviceId!,
-                metric: aggregatedMetric,
-                // telemetryHeaderId: we need to add this 
+                metric: aggregatedMetric
             }));
         }
         return aggregatedTelemetry;
     }
 
-    private calculateAggregation2(
+    private calculateAggregation(
         telemetryRecords: CurrentTelemetryPayload[],
         metricAggregation: MetricsAttributeAggregation,
     ) {
@@ -1094,6 +934,8 @@ export class CronJobsService {
             isCalculated: true,
         });
     }
+
+
 
 
 
@@ -1140,7 +982,7 @@ export class CronJobsService {
                     groupMetricAggregation => groupMetricAggregation.metricsAttributeAggregation,
                 );
 
-                await this.aggregateGroup(
+                await this.aggregateGroupOld(
                     parent,
                     childVirtualDeviceIds,
                     metricsAttributeAggregations,

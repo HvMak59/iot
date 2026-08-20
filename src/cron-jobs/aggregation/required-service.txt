@@ -1,0 +1,104 @@
+
+-> virtualDeviceService.findParents();
+
+    async findParents() {
+        return this.repo.find({
+        where: {
+            parentId: IsNull(),
+            virtualDeviceGroups: {
+            groupId: Not(IsNull())
+            }
+        },
+        select: {
+            id: true,
+            assetId: true,
+            deviceId: true,
+            children: { id: true },
+            virtualDeviceGroups: {
+            groupId: true,
+            group: {
+                id: true,
+                groupMetricsAttributeAggregations: {
+                groupId: true,
+                metricsAttributeAggregation: {
+                    id: true,
+                    aggregation: true,
+                    aggStrategy: true,
+                    metricsAttributeId: true,
+                },
+                },
+            },
+            },
+        },
+        relations: {
+            children: true,
+            virtualDeviceGroups: {
+            group: {
+                groupMetricsAttributeAggregations: {
+                metricsAttributeAggregation: true,
+                },
+            },
+            },
+        },
+        });
+    }
+
+
+
+
+
+
+
+
+-> currentTelemetryPayloadService.findLatestTelemetryGroupedByVD(allVirtualDeviceIds, allMetricIds);
+
+    async findLatestTelemetry(
+        virtualDeviceIds: string[],
+        metricsAttributeIds: string[],
+    ) {
+        if (virtualDeviceIds.length == 0 || metricsAttributeIds.length == 0) {
+        return [];
+        }
+
+        return this.repo.find({
+        where: {
+            virtualDeviceId: In(virtualDeviceIds),
+            metric: {
+            metricsAttributeId: In(metricsAttributeIds),
+            },
+        },
+        select: {
+            virtualDeviceId: true,
+            telemetryHeaderId: true,
+            metric: {
+            metricsAttributeId: true,
+            measure: true,
+            txnCaptureTime: true,
+            txnCapturePeriod: true,
+            frequency: true,
+            },
+        },
+        });
+    }
+
+
+
+
+    async findLatestTelemetryGroupedByVD(
+        virtualDeviceIds: string[],
+        metricsAttributeIds: string[],
+    ) {
+        const telemetry = await this.findLatestTelemetry(
+        virtualDeviceIds,
+        metricsAttributeIds,
+        );
+
+        return _.groupBy(
+        telemetry,
+        telemetry => telemetry.virtualDeviceId,
+        );
+    }
+
+
+
+

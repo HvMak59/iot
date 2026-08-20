@@ -6,12 +6,14 @@ import { AssetService } from 'src/asset/asset.service';
 import _ from 'lodash';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
 
 @Injectable()
 export class AlertEventsListener {
     constructor(
         private readonly assetService: AssetService,
         private readonly firebaseService: FirebaseService,
+        private readonly cacheMappingService: CacheMappingService,
     ) { }
 
     private readonly logger = winstonServerLogger(AlertEventsListener.name);
@@ -43,6 +45,10 @@ export class AlertEventsListener {
         // parentOrg will be handled in that hierarchy function
         const assetOrgIdMap = await this.assetService.findAssetOrgIdMap(missingAssetIds);
         // this service is available at the end of this code(commented code) 
+
+        console.log("old", assetOrgIdMap);
+        const assetOrgMap = this.cacheMappingService.getOrgIds(assetIds);
+        console.log("new", assetOrgMap);
 
         const orgAlertsMap = new Map<string, Alert[]>();
 
@@ -148,6 +154,7 @@ export class AlertEventsListener {
 
 
 
+// this is assetservice
 
 //  async findAssetOrgIdMap(assetIds: string[]) {
 

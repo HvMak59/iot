@@ -1,0 +1,31 @@
+
+@Injectable()
+export class OrgService {
+
+    constructor(
+        @InjectRepository(Org) private readonly repo: TreeRepository<Org>,
+    ) { }
+
+    async getChildrenHierarchy(orgId: string) {
+
+        const org = await this.repo.findOne({
+            select: {
+                id: true
+            },
+            where: { id: orgId },
+        });
+
+        if (!org) {
+            this.logger.error(`OrgId ${orgId} not found`);
+            return [];
+        }
+
+        const descendants = await this.repo.findDescendants(org);
+
+        const descendantOrgs = [org, ...descendants];
+
+        return descendantOrgs.map(o => o.id);
+    }
+
+
+}

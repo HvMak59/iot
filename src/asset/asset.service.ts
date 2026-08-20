@@ -74,4 +74,31 @@ export class AssetService {
         );
     }
 
+    async findAssetVirtualDeviceIdMap(assetIds: string[]) {
+
+        const assets = await this.repo.find({
+            select: {
+                id: true,
+                virtualDevices: {
+                    id: true,
+                },
+            },
+            where: {
+                id: In(assetIds),
+            },
+            relations: {
+                virtualDevices: true,
+            },
+        });
+
+        return new Map(
+            assets.map(asset => [
+                asset.id,
+                asset.virtualDevices?.map(
+                    virtualDevice => virtualDevice.id,
+                ) ?? [],
+            ]),
+        );
+    }
+
 }
