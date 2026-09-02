@@ -48,6 +48,8 @@ import { DeviceTypeMetricsAttributeModule } from './device-type-metrics-attribut
 import { AssetCurrentPerformanceSourceModule } from './asset-current-performance-source/asset-current-performance-source.module';
 import { AssetTypeCurrentPerformanceSourceModule } from './asset-type-current-performance-source/asset-type-current-performance-source.module';
 import { CacheMappingModule } from './cache-maps/cache-maps.module';
+import { EventTypeModule } from './event-type/event-type.module';
+import { EventInstanceModule } from './event-instance/event-instance.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -68,8 +70,8 @@ import { CacheMappingModule } from './cache-maps/cache-maps.module';
         database: config.get('DB_NAME', 'hermes'),
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
-        // synchronize: true, // for my db use this 
-        synchronize: false, // to connect with sir database use these 2 
+        synchronize: true, // for my db use this 
+        // synchronize: false, // to connect with sir database use these 2 
         migrationsRun: false,
         // logging: true
       }),
@@ -128,7 +130,10 @@ import { CacheMappingModule } from './cache-maps/cache-maps.module';
     AssetCurrentPerformanceSourceModule,
     AssetTypeCurrentPerformanceSourceModule,
 
-    CacheMappingModule
+    CacheMappingModule,
+
+    EventTypeModule,
+    EventInstanceModule
   ],
   // providers: [
   //   {
@@ -1089,5 +1094,101 @@ export class AppModule { }
 
 
 
+
+
+// pas - phosprs , arsnic , antimony - p type
+// bag - boron, allumnm, glllm - n type 
+// barrier potential : Silicon → 0.7 V, Germanium → 0.3 V
+
+// Questionમાં keyword	તરત વિચાર
+// Rectification	       PN diode
+// Voltage regulation	   Zener
+// Emits light	         LED
+// Detects light	       Photodiode
+// Solar energy	         Solar cell
+// Fast switching	       Schottky
+// Variable capacitance	 Varactor
+
+// Rectifier : ac->dc (converssion)
+// Exam માટે મુખ્ય 3:
+// 1. Half-Wave Rectifier                  - one diode, one half cycle 
+// 2. Full-Wave Centre-Tapped Rectifier    - 2 diodes, full waves, centre-trapped transformer
+// 3. Full-Wave Bridge Rectifier           -
+
+//  half-wave freq = f             efficiency 
+//  full-wave freq = 2f            half-wave = 40.6
+//  bridge    freq = 2f            full-wave = 81.2
+
+// filter 
+// ac-dc conversion ma ripple(variation) aave 
+// aa ripple ne reduce krva filter use thay 
+
+// Capacitor filter
+// Inductor filter
+// LC filter
+// π (Pi) filter
+
+
+// XL = 2πfL
+//     XL = inductive reactance
+//     f = frequency
+//     L = inductance
+
+// Zener diode power Pz ​= Vz​*Iz​
+
+// Zener → Voltage Regulation
+// Zener → Reverse Bias
+// Zener → Breakdown Region
+// Series resistor → Current limiting
+
+// Transistor = Amplification અને Switching
+// NPN and PNP 
+
+// Doping order
+
+// Emitter → Heavy
+// Base → Light
+// Collector → Moderate
+
+// Transistor 
+// Ie = Ib + Ic (emitter currnt = base + cllctr)
+// β = Ic/​Ib
+// α = Ic/Ie 
+// amplifier = active region 
+// switch off = cut off
+// switch on = saturation
+
+
+
+
+
+// flowmeter 
+// {"device_type":"invtr","device_name":"invt","device_id":"I202603006","date":"27/06/2026",
+// "time":"12:18:25","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
+// "software_ver":"SM-1.03.D20_4G","signal_strength":"3","valid":false,"data":{"slave_id":"1",
+// "GasPressure":0,"GasTemp":0,"CorrFactor":0,"UncorrFlwRt":0,"CorrFlwRt":0,"AlarmStatus":0,
+// "TtlCorrVol":0,"DlyCorrVol":0,"PrvDyCorrVol":0,"BatVolt":0,"BatLifeMnth":0}}
+
+
+
+// net20.cc
+// NetMirror (Netflix) Or Moviebox.ph
+
+
+
+// dulo.cx 
+
+
+// atreyo 232 models 
+// AG-702 
+// AG-1621 
+// AM-201 
+
+// done : https://jobs.siemens.com/en_US/externaljobs/JobDetail/509113 : password : #Money@59$2002
+// done : https://n26.com/en-eu/careers/positions/8108866/apply
+
+
+
+// txn id : RPD010920261744391788264879742
 
 

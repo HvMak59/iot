@@ -22,6 +22,7 @@ export class AssetService {
 
         const asset = await this.repo.findOne({
             select: {
+                // 
                 id: true,
                 org: {
                     id: true,
@@ -75,7 +76,6 @@ export class AssetService {
     }
 
     async findAssetVirtualDeviceIdMap(assetIds: string[]) {
-
         const assets = await this.repo.find({
             select: {
                 id: true,

@@ -31,6 +31,7 @@ import { VirtualDevice } from '../../virtual-device/entities/virtual-device.enti
 // import { Org } from '../../org/entities/org.entity';
 import { TelemetryPayload } from '../../telemetry-payload/entities/telemetry-payload.entity';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
+import { EventInstance } from 'src/event-instance/entities/event-instance.entity';
 // import { EntityState } from '../../../utils/commonModels/entity_state';
 
 @Unique(['deviceModelId', 'serialNo'])
@@ -180,6 +181,12 @@ export class Device {
 
   @Column({ nullable: true })
   searchTerm?: string;
+
+
+
+  @OneToMany(() => EventInstance, (eventInstance) => eventInstance.device)
+  eventInstances: EventInstance;
+
 
   @BeforeInsert()
   @BeforeUpdate()

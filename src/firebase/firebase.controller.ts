@@ -20,7 +20,7 @@ export class FirebaseController {
     }
 
     @Post('subscribe')
-    async subscribe(
+    subscribe(
         @Body() body: {
             token: string;
             topic: string;
@@ -31,5 +31,16 @@ export class FirebaseController {
             body.token,
             body.topic,
         );
+    }
+
+
+    @Post('unsubscribe')
+    unsubscribe(
+        @Body() body: {
+            token: string;
+            topic: string;
+        },
+    ) {
+        return this.firebaseService.unsubscribeFromTopic(body.token, body.topic);
     }
 }

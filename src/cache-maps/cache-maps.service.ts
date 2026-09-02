@@ -68,6 +68,7 @@ import { AssetService } from 'src/asset/asset.service';
 export class CacheMappingService {
 
     private readonly assetOrgMap = new Map<string, string>();
+    private topicSubscribersMap = new Map<String, String>();
 
     constructor(
         private readonly assetService: AssetService,
@@ -82,9 +83,10 @@ export class CacheMappingService {
 
             const orgId = this.assetOrgMap.get(assetId);
 
-            if (orgId !== undefined) {
+            if (orgId) {
                 result.set(assetId, orgId);
-            } else {
+            }
+            else {
                 missingAssetIds.push(assetId);
             }
         }
@@ -92,15 +94,12 @@ export class CacheMappingService {
             return result;
         }
         else {
-            console.log('here');
             const missingAssetOrgMap = await this.assetService.findAssetOrgIdMap(missingAssetIds);
-            // console.log(missingAssetOrgMap);
 
             for (const [assetId, orgId] of missingAssetOrgMap) {
                 this.assetOrgMap.set(assetId, orgId);
                 result.set(assetId, orgId);
             }
-            // console.log('length', result)
             return result;
         }
     }
@@ -117,6 +116,24 @@ export class CacheMappingService {
         this.assetOrgMap.delete(assetId);
     }
 
+
+
+
+    setSubscriberToTopic(token: string, topic: string) {
+        this.topicSubscribersMap.set(topic, token);
+    }
+
+    getSubscriberForTopic(topic: string) {
+        return this.topicSubscribersMap.get(topic);
+    }
+
+    deleteSubscriberForTopic(topic: string) {
+        return this.topicSubscribersMap.delete(topic);
+    }
+
+    hasSubscriberToTopic(topic: string) {
+        return this.topicSubscribersMap.has(topic);
+    }
 
 
 

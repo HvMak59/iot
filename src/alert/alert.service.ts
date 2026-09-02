@@ -18,7 +18,7 @@ import {
   Repository,
 } from 'typeorm';
 // import { deleteRec, restore, softDelete } from 'src/utils/cmnFn.repository';
-import _ from 'lodash';
+import _, { isNull } from 'lodash';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 // import { FindAssetDto } from 'src/asset/dto/find-asset.dto';
 // import { KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
@@ -34,7 +34,7 @@ import { AlertStatus } from 'src/utils/enums';
 @Injectable()
 export class AlertService {
   //private serviceName = serviceConfig.alert.serviceName;
-  // relations = serviceConfig.alert.relations;
+  // private relations = serviceConfig.alert.relations;
   private readonly logger = winstonServerLogger(AlertService.name);
   constructor(
     @InjectRepository(Alert) private readonly repo: Repository<Alert>,
@@ -288,7 +288,7 @@ export class AlertService {
       [alertToBeSent as Alert]
     )
   }
-  // 
+
 
   findAll(
     searchCriteria: FindAlertDto | FindAlertDto[],
@@ -303,6 +303,8 @@ export class AlertService {
     });
     //return findAll<Alert>(this.repo, fnName, relations, searchCriteria);
   }
+
+
 
   findOne(searchCriteria: FindAlertDto, relationsRequired = false) {
     return this.repo.findOne({
@@ -352,6 +354,22 @@ export class AlertService {
       order: {
         openDateTime: 'DESC',
       },
+    });
+  }
+
+  async findAllOpenAlerts(skip = 0, take = 500) {
+    const fnName = this.findAll.name;
+    const input = `Input: Find all open alerts`;
+
+    // const relations = relationsRequired ? relation : [];
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+    return await this.repo.find({
+      // where: {
+      // closeDateTime: IsNull()
+      // },
+      skip,
+      take,
     });
   }
 

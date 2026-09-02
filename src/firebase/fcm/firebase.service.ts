@@ -20,6 +20,7 @@ export class FirebaseService {
                 projectId: 'notify-demo-3be73',
             });
 
+
             this.logger.debug('Firebase initialized');
 
         } catch (error) {
@@ -54,7 +55,6 @@ export class FirebaseService {
         return await getMessaging().sendEach(messages);
     }
 }
-
 
 
 

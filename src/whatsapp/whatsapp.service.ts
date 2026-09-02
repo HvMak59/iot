@@ -42,8 +42,9 @@ export class WhatsAppService {
 
         const payload = {
             messaging_product: 'whatsapp',
-            // to: '916353921545',
-            to: phoneNumber,
+            to: '916353921545',
+            // to: phoneNumber,
+            // to,
             type: 'template',
             template: {
                 name: 'alert_triggered',

@@ -10,6 +10,7 @@ import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-sou
 import { AuditDateTime } from 'src/audit_attribute/entities/audit_date_time.entity';
 import { CurrentOpenAlert } from 'src/current-open-alert/entities/current-open-alert.entity';
 import { CurrentTelemetryPayload } from 'src/current-telemetry-payload/entities/current-telemetry-payload.entity';
+import { EventInstance } from 'src/event-instance/entities/event-instance.entity';
 import { Org } from 'src/org/entities/org.entity';
 import { VirtualDevice } from 'src/virtual-device/entities/virtual-device.entity';
 import {
@@ -146,6 +147,10 @@ export class Asset {
 
     @Column({ type: Date })
     installationDate: Date | number;
+
+
+    @OneToMany(() => EventInstance, (eventInstance) => eventInstance.asset)
+    eventInstances: EventInstance;
 
     @BeforeInsert()
     @BeforeUpdate()

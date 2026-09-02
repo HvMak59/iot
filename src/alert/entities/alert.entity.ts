@@ -9,6 +9,7 @@ import {
   Entity,
   ManyToMany,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   Unique,
 } from 'typeorm';
@@ -21,6 +22,7 @@ import { Asset } from 'src/asset/entities/asset.entity';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { convertInputToDate } from 'src/utils/others';
 import { KEY_SEPARATOR } from 'src/app_config/constants';
+import { EventInstance } from 'src/event-instance/entities/event-instance.entity';
 // import { AlertLevel, AlertType } from 'src/utils/enums';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 // import { convertInputToDate } from 'src/utils/others';
@@ -120,6 +122,12 @@ export class Alert {
 
   @Column({ type: 'timestamptz' })
   openDateTime: Date | number;
+
+
+
+
+  @OneToOne(() => EventInstance, (eventInstance) => eventInstance.alert)
+  eventInstance?: EventInstance;
 
   @BeforeInsert()
   setOpenDateTimeBefore() {

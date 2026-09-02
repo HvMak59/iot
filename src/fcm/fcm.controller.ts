@@ -4,6 +4,9 @@ import { FcmService } from "./fcm.service";
 @Controller('fcm')
 export class FcmController {
 
+    // for fcm use firebase or firebase/fcm folders
+
+
     constructor(
         private readonly fcmService: FcmService,
     ) { }

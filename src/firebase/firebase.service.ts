@@ -84,11 +84,11 @@
 //     }
 // }
 
-
 import { Injectable } from '@nestjs/common';
-import { initializeApp, applicationDefault, cert } from 'firebase-admin/app';
+import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getMessaging, Message } from 'firebase-admin/messaging';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
 import { OrgService } from 'src/org/org.service';
 
 @Injectable()
@@ -115,10 +115,13 @@ export class FirebaseService {
 
     constructor(
         private readonly orgService: OrgService,
+        private readonly cacheMappingService: CacheMappingService,
     ) {
         try {
             initializeApp({
                 credential: applicationDefault(),
+                // we have to set env variable named : 
+                // GOOGLE_APPLICATION_CREDENTIALS=E:/.../firebase-admin-sdk.json (path to admin sdk)
                 projectId: 'notify-demo-3be73',
             });
 
@@ -145,6 +148,8 @@ export class FirebaseService {
     ) {
         try {
             await getMessaging().subscribeToTopic(token, topic);
+            // this.topicSubscribersMap.set(topic, token);
+            this.cacheMappingService.setSubscriberToTopic(token, topic)
             this.logger.debug(`Subscribed token to ${topic}`);
         }
         catch (error) {
@@ -152,10 +157,25 @@ export class FirebaseService {
         }
     }
 
+    async unsubscribeFromTopic(
+        token: string,
+        topic: string,
+    ) {
+        try {
+            // we have to add subscriber map in subscribe service and add logic in listener that if not subs then dont send
+            await getMessaging().unsubscribeFromTopic(token, topic);
+            // this.topicSubscribersMap.delete(topic);
+            this.cacheMappingService.deleteSubscriberForTopic(topic);
+            this.logger.debug(`Unsubscribed from topic ${topic}`);
+        }
+        catch (error) {
+            this.logger.error(`Error unsubscribing from topic : ${topic}`, error);
+        }
+    }
+
     async sendNotificationToTopic(messages: Message[]) {
         return await getMessaging().sendEach(messages);
     }
-
 
     async sendTopicNotification(
         topic: string,
@@ -173,7 +193,7 @@ export class FirebaseService {
         const message: Message = {
             notification: {
                 title,
-                body,
+                body
             },
             data,
             topic,
@@ -189,7 +209,6 @@ export class FirebaseService {
             };
         } catch (error) {
             this.logger.error('Error sending notification', error);
-
             return {
                 success: false,
                 error,

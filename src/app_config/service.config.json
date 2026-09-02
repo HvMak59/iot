@@ -74,5 +74,21 @@
       "metricsAttribute",
       "deviceType"
     ]
+  },
+  "eventInstance": {
+    "serviceName": "eventInstance",
+    "relations": [
+      "asset",
+      "virtualDevice",
+      "device",
+      "eventType",
+      "alert"
+    ]
+  },
+  "eventType": {
+    "serviceName": "eventType",
+    "relations": [
+      "eventInstances"
+    ]
   }
 }
