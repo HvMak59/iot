@@ -368,6 +368,7 @@ export class AlertService {
       // where: {
       // closeDateTime: IsNull()
       // },
+      // relations: ['asset', 'virtualDevice', 'device'],
       order: {
         id: 'ASC',
       },

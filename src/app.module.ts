@@ -1179,7 +1179,7 @@ export class AppModule { }
 // dulo.cx 
 
 
-// atreyo 232 models 
+// Atreyo rs-232 models 
 // AG-702 
 // AG-1621 
 // AM-201 

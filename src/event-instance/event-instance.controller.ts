@@ -6,6 +6,7 @@ import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { KEY_SEPARATOR, USER_NOT_IN_REQUEST_HEADER } from 'src/app_config/constants';
 import { UserId } from 'src/utils/req-user-id.decorator';
 import { FindEventInstanceDto } from './dto/find-event-instance.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @Controller('event-instance')
 export class EventInstanceController {
@@ -31,6 +32,42 @@ export class EventInstanceController {
       createEventInstanceDto.createdBy = userId;
       this.logger.debug(`${fnName}: Calling create service`);
       return this.eventInstanceService.create(createEventInstanceDto);
+    }
+  }
+
+  @Post('forAlerts')
+  createForAlerts(@UserId() userId: string) {
+    const fnName = this.create.name;
+    const input = `Input : Create eventInstance fro alerts`;
+
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+    if (userId == null) {
+      this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
+      throw new Error(USER_NOT_IN_REQUEST_HEADER);
+    }
+    else {
+      this.logger.debug(`${fnName}: Calling createForAlerts service`);
+      return this.eventInstanceService.createEventInstancesForExistingAlerts();
+    }
+  }
+
+  @Patch('closeEventInstance')
+  closeEventInstance(
+    @UserId() userId: string,
+    @Query('id') id: string) {
+    const fnName = this.closeEventInstance.name;
+    const input = `Input : Close eventInstance with id : ${id}`;
+
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+    if (userId == null) {
+      this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
+      throw new Error(USER_NOT_IN_REQUEST_HEADER);
+    }
+    else {
+      this.logger.debug(`${fnName}: Calling closeEventInstance service`);
+      return this.eventInstanceService.closeEventInstance(id);
     }
   }
 

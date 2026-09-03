@@ -7,6 +7,7 @@ import _ from 'lodash';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
+import { EventInstanceService } from 'src/event-instance/event-instance.service';
 
 @Injectable()
 export class AlertEventsListener {
@@ -14,6 +15,7 @@ export class AlertEventsListener {
         private readonly assetService: AssetService,
         private readonly firebaseService: FirebaseService,
         private readonly cacheMappingService: CacheMappingService,
+        private readonly eventInstanceService: EventInstanceService,
     ) { }
 
     private readonly logger = winstonServerLogger(AlertEventsListener.name);
