@@ -109,7 +109,6 @@ export class EventInstanceService {
       );
     }
 
-
     this.logger.debug(
       `Using EventType "Alert": ${alertEventType.id}`,
     );
@@ -129,7 +128,7 @@ export class EventInstanceService {
         `Fetched ${alerts.length} open alerts. Skip: ${skip}`,
       );
 
-      // No more alerts
+      // No more alerts                                                                                                                                                                                                                                                                                                                                       
       if (alerts.length === 0) {
         break;
       }
@@ -154,7 +153,7 @@ export class EventInstanceService {
         this.logger.debug(
           `Created ${eventInstancesToBeCreated.length} EventInstances`,
         );
-
+        // 
         skip += take;
       } catch (error) {
         this.logger.error(

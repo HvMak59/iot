@@ -368,6 +368,9 @@ export class AlertService {
       // where: {
       // closeDateTime: IsNull()
       // },
+      order: {
+        id: 'ASC',
+      },
       skip,
       take,
     });
