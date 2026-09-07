@@ -35,7 +35,7 @@ export class EventInstanceController {
     }
   }
 
-  @Post('forAlerts')
+  @Post('forExistingAlerts')
   createForAlerts(@UserId() userId: string) {
     const fnName = this.create.name;
     const input = `Input : Create eventInstance fro alerts`;

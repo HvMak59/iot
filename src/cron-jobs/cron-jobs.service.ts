@@ -98,7 +98,7 @@ export class CronJobsService {
                 group.csvVirtualDeviceIDs.join(','),
                 group.arrivedAlerts2,
                 Date.now(),
-                RMU_OFFLINE, // we have added one optional field in managealert input, because 
+                // RMU_OFFLINE, // we have added one optional field in managealert input, because 
                 // wihout this, it was closing other alerts for same asset if rmu comes online  
             );
             results.push({ assetId, ...result });

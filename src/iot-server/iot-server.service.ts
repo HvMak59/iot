@@ -21,7 +21,7 @@ import { CreateAlertDto } from 'src/alert/dto/create-alert.dto';
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { Alert } from 'src/alert/entities/alert.entity';
 import { FindDeviceModelAlertByMultipleIDs } from 'src/device-model-alert/dto/find-device-model-alert-byMultipleIDs.dto';
-import { DEVICE_MODEL_WITH_ALERTS_URL, KEY_SEPARATOR, PUBLISH_INTERVAL_IN_SECONDS, SEPARATOR } from 'src/app_config/constants';
+import { CreatedAndClosedAlerts, DEVICE_MODEL_WITH_ALERTS_URL, KEY_SEPARATOR, PUBLISH_INTERVAL_IN_SECONDS, SEPARATOR } from 'src/app_config/constants';
 import { convertInputToDate, endOfDate, getMetricDTO, getTelemetryPayloadKey, getTokenString, getTPLV3DTO, getTryCatchErrorStr, startOfDate, throwErrIfNoData } from 'src/utils/others';
 import { DeviceModel } from 'src/device-model/entities/device-model.entity';
 import { AlertMaster } from 'src/alert-master/entities/alert-master.entity';
@@ -2171,6 +2171,189 @@ export class IotServerService {
   //   return recordSetG;
   // }
 
+
+
+  private a = "my code"
+  // async manageAlerts2(
+  //   token: string,
+  //   assetID: string,
+  //   csvVirtualDeviceIDs: string,
+  //   arrivedAlerts2: InputAlert2Dto[],
+  //   //csvSourceAttributes?: string,
+  //   closeDateTime?: number,
+  //   alertId?: string,  // added this and if block of 430 line 
+  // ) {
+  //   this.logger.debug("in managealerts2");
+  //   const fnName = this.manageAlerts2.name;
+
+  //   const createdAlerts: Alert[] = [];
+  //   const toBeCreatedAlerts: InputAlert2Dto[] = [];
+
+  //   const toBeDeletedCurrOpenAlerts: CurrentOpenAlert[] = [];
+  //   const deletedCurrentOpenAlerts: CurrentOpenAlert[] = [];
+
+  //   const closedAlerts: Alert[] = [];
+
+  //   const toBeIncrementedCOAlerts: CurrentOpenAlert[] = [];
+  //   const incrementedCurrentOpenAlerts: CurrentOpenAlert[] = [];
+  //   const incrementdAlerts: Alert[] = [];
+
+  //   const searchObj: FindCurrentOpenAlertDto = {
+  //     virtualDeviceId: In(csvVirtualDeviceIDs.split(',')),
+  //     assetId: assetID,
+  //   };
+
+  //   if (alertId) {
+  //     searchObj.alertId = alertId;
+  //   }
+
+  //   /* if (csvSourceAttributes && csvSourceAttributes.length > 0) {
+  //     searchObj.sourceAttribute = In(csvSourceAttributes.split(','));
+  //   } else {
+  //     searchObj.sourceAttribute = IsNull();
+  //   } */
+  //   this.logger.debug(`${fnName} : searchObj : ${JSON.stringify(searchObj)}`);
+
+  //   const currentOpenAlerts = await this.currentOpenAlertService.findAll(
+  //     searchObj,
+  //   );
+
+  //   if (_.isEmpty(arrivedAlerts2)) {
+  //     this.logger.debug(`${fnName} : No arrived alerts`);
+
+  //     if (!_.isEmpty(currentOpenAlerts)) {
+  //       const { deletedCOAlerts, clsdAlerts } = await this.closeAlerts(
+  //         currentOpenAlerts,
+  //         closeDateTime,
+  //       );
+  //       deletedCurrentOpenAlerts.push(...deletedCOAlerts);
+  //       closedAlerts.push(...clsdAlerts);
+  //     } else {
+  //       this.logger.debug(
+  //         `${fnName} :  No ArrivedAlerts and CurrentOpenAlerts`,
+  //       );
+  //     }
+  //   } else {
+  //     this.logger.debug(
+  //       `${fnName} : No of arrived alerts : ${arrivedAlerts2.length}`,
+  //     );
+  //     const arrivedAlert2Map = new Map(
+  //       arrivedAlerts2.map((arrivedAlert2) => [
+  //         arrivedAlert2.assetId +
+  //         KEY_SEPARATOR +
+  //         (arrivedAlert2.virtualDeviceId ??
+  //           arrivedAlert2.virtualDevice?.id ??
+  //           '') +
+  //         KEY_SEPARATOR +
+  //         (arrivedAlert2.sourceAttribute ?? '') +
+  //         /*  (arrivedAlert2.metricsAttributeId ?? 
+  //           arrivedAlert2.metricsAttribute?.id ??
+  //           '') + */
+  //         KEY_SEPARATOR +
+  //         arrivedAlert2.alertId,
+  //         arrivedAlert2,
+  //       ]),
+  //     );
+
+  //     if (!_.isEmpty(currentOpenAlerts)) {
+  //       this.logger.debug(`${fnName} : in currentOpenAlert`);
+  //       // 
+  //       for (const currOpenAlert of currentOpenAlerts) {
+  //         const currentOpenAlertObj = new CurrentOpenAlert(currOpenAlert);
+  //         const key = currentOpenAlertObj.getKey();
+
+  //         const matchingAlert = arrivedAlert2Map.get(key);
+
+  //         if (matchingAlert) {
+  //           this.logger.debug(`${fnName} : matched`);
+  //           currentOpenAlertObj.alertCount++;
+  //           toBeIncrementedCOAlerts.push(currentOpenAlertObj);
+  //           arrivedAlert2Map.delete(key);
+  //         } else {
+  //           this.logger.debug(`${fnName} : not matched`);
+  //           toBeDeletedCurrOpenAlerts.push(currentOpenAlertObj);
+  //         }
+  //       }
+  //       if (!_.isEmpty(toBeDeletedCurrOpenAlerts)) {
+  //         const { deletedCOAlerts, clsdAlerts } = await this.closeAlerts(
+  //           toBeDeletedCurrOpenAlerts,
+  //           closeDateTime,
+  //         );
+  //         deletedCurrentOpenAlerts.push(...deletedCOAlerts);
+  //         closedAlerts.push(...clsdAlerts);
+  //       }
+  //       // 
+  //       if (!_.isEmpty(toBeIncrementedCOAlerts)) {
+  //         this.logger.debug(`${fnName} : incremented currOAlert array`);
+  //         const incrmntdCOAlerts: CurrentOpenAlert[] =
+  //           await this.currentOpenAlertService.save(toBeIncrementedCOAlerts);
+  //         incrementedCurrentOpenAlerts.push(...incrmntdCOAlerts);
+  //         const findAlertDTOs = this.findOpenAlertObjsFromCrntOpnAlrts(
+  //           toBeIncrementedCOAlerts,
+  //         );
+  //         const toBeIncrementedAlerts = await this.alertService.findAll(
+  //           findAlertDTOs,
+  //         );
+  //         for (const alert of toBeIncrementedAlerts) {
+  //           alert.alertCount++;
+  //         }
+  //         const incrmntdAlerts: Alert[] = await this.alertService.save(
+  //           toBeIncrementedAlerts,
+  //         );
+  //         incrementdAlerts.push(...incrmntdAlerts);
+  //       }
+  //     }
+
+  //     this.logger.debug(`${fnName} : Outside currentOpenAlerts`);
+
+  //     toBeCreatedAlerts.push(...arrivedAlert2Map.values());
+
+  //     const crtdAlerts: Alert[] | undefined = await this.saveTelemetryAlerts3(
+  //       token,
+  //       toBeCreatedAlerts,
+  //     );
+  //     // 
+
+  //     if (crtdAlerts && crtdAlerts.length > 0) {
+  //       createdAlerts.push(...crtdAlerts);
+  //     }
+  //   }
+
+  //   // if (createdAlerts.length > 0) {
+  //   //   this.alertGateway.sendAlerts(assetID, AlertStatus.CREATED, createdAlerts);
+  //   // }
+
+  //   // if (closedAlerts.length > 0) {
+  //   //   this.alertGateway.sendAlerts(assetID, AlertStatus.CLOSED, closedAlerts);
+  //   // }
+
+  //   // if (incrementdAlerts.length > 0) {
+  //   //   this.alertGateway.sendAlerts(assetID, AlertStatus.INCREMENTED, incrementdAlerts);
+  //   // }
+
+  //   if (createdAlerts.length > 0) {
+  //     this.eventEmitter.emit('alert.created', createdAlerts);
+  //   }
+
+  //   if (closedAlerts.length > 0) {
+  //     this.eventEmitter.emit('alert.closed', closedAlerts);
+  //   }
+
+  //   if (incrementdAlerts.length > 0) {
+  //     this.eventEmitter.emit('alert.incremented', incrementdAlerts);
+  //   }
+
+  //   return {
+  //     createdAlerts: createdAlerts,
+  //     //deletedCurrentOpenAlerts: deletedCurrentOpenAlerts,
+  //     closedAlerts: closedAlerts,
+  //     //incrementedCurrentOpenAlerts: incrementedCurrentOpenAlerts,
+  //     incrementedAlerts: incrementdAlerts,
+  //   };
+  // }
+
+
+  private b = "sir latest code sept 2026"
   async manageAlerts2(
     token: string,
     assetID: string,
@@ -2178,9 +2361,7 @@ export class IotServerService {
     arrivedAlerts2: InputAlert2Dto[],
     //csvSourceAttributes?: string,
     closeDateTime?: number,
-    alertId?: string,  // added this and if block of 430 line 
   ) {
-    this.logger.debug("in managealerts2");
     const fnName = this.manageAlerts2.name;
 
     const createdAlerts: Alert[] = [];
@@ -2200,10 +2381,6 @@ export class IotServerService {
       assetId: assetID,
     };
 
-    if (alertId) {
-      searchObj.alertId = alertId;
-    }
-
     /* if (csvSourceAttributes && csvSourceAttributes.length > 0) {
       searchObj.sourceAttribute = In(csvSourceAttributes.split(','));
     } else {
@@ -2211,12 +2388,11 @@ export class IotServerService {
     } */
     this.logger.debug(`${fnName} : searchObj : ${JSON.stringify(searchObj)}`);
 
-    const currentOpenAlerts = await this.currentOpenAlertService.findAll(
-      searchObj,
-    );
+    const currentOpenAlerts =
+      await this.currentOpenAlertService.findAll(searchObj);
 
     if (_.isEmpty(arrivedAlerts2)) {
-      this.logger.debug(`${fnName} : No arrived alerts`);
+      this.logger.debug(`${fnName} : No arrived alerts for ${assetID}`);
 
       if (!_.isEmpty(currentOpenAlerts)) {
         const { deletedCOAlerts, clsdAlerts } = await this.closeAlerts(
@@ -2226,13 +2402,11 @@ export class IotServerService {
         deletedCurrentOpenAlerts.push(...deletedCOAlerts);
         closedAlerts.push(...clsdAlerts);
       } else {
-        this.logger.debug(
-          `${fnName} :  No ArrivedAlerts and CurrentOpenAlerts`,
-        );
+        this.logger.debug(`${fnName} :  No CurrentOpenAlerts for ${assetID}`);
       }
     } else {
       this.logger.debug(
-        `${fnName} : No of arrived alerts : ${arrivedAlerts2.length}`,
+        `${fnName} : No of arrived alerts : ${arrivedAlerts2.length} for ${assetID}`,
       );
       const arrivedAlert2Map = new Map(
         arrivedAlerts2.map((arrivedAlert2) => [
@@ -2243,7 +2417,7 @@ export class IotServerService {
             '') +
           KEY_SEPARATOR +
           (arrivedAlert2.sourceAttribute ?? '') +
-          /*  (arrivedAlert2.metricsAttributeId ?? 
+          /*  (arrivedAlert2.metricsAttributeId ??
             arrivedAlert2.metricsAttribute?.id ??
             '') + */
           KEY_SEPARATOR +
@@ -2254,7 +2428,7 @@ export class IotServerService {
 
       if (!_.isEmpty(currentOpenAlerts)) {
         this.logger.debug(`${fnName} : in currentOpenAlert`);
-        // 
+
         for (const currOpenAlert of currentOpenAlerts) {
           const currentOpenAlertObj = new CurrentOpenAlert(currOpenAlert);
           const key = currentOpenAlertObj.getKey();
@@ -2262,12 +2436,12 @@ export class IotServerService {
           const matchingAlert = arrivedAlert2Map.get(key);
 
           if (matchingAlert) {
-            this.logger.debug(`${fnName} : matched`);
+            this.logger.debug(`${fnName} : matched for ${key}`);
             currentOpenAlertObj.alertCount++;
             toBeIncrementedCOAlerts.push(currentOpenAlertObj);
             arrivedAlert2Map.delete(key);
           } else {
-            this.logger.debug(`${fnName} : not matched`);
+            this.logger.debug(`${fnName} : not matched for ${key}`);
             toBeDeletedCurrOpenAlerts.push(currentOpenAlertObj);
           }
         }
@@ -2279,7 +2453,7 @@ export class IotServerService {
           deletedCurrentOpenAlerts.push(...deletedCOAlerts);
           closedAlerts.push(...clsdAlerts);
         }
-        // 
+
         if (!_.isEmpty(toBeIncrementedCOAlerts)) {
           this.logger.debug(`${fnName} : incremented currOAlert array`);
           const incrmntdCOAlerts: CurrentOpenAlert[] =
@@ -2288,9 +2462,8 @@ export class IotServerService {
           const findAlertDTOs = this.findOpenAlertObjsFromCrntOpnAlrts(
             toBeIncrementedCOAlerts,
           );
-          const toBeIncrementedAlerts = await this.alertService.findAll(
-            findAlertDTOs,
-          );
+          const toBeIncrementedAlerts =
+            await this.alertService.findAll(findAlertDTOs);
           for (const alert of toBeIncrementedAlerts) {
             alert.alertCount++;
           }
@@ -2301,7 +2474,7 @@ export class IotServerService {
         }
       }
 
-      this.logger.debug(`${fnName} : Outside currentOpenAlerts`);
+      this.logger.debug(`${fnName} : Outside currentOpenAlerts of ${assetID}`);
 
       toBeCreatedAlerts.push(...arrivedAlert2Map.values());
 
@@ -2309,37 +2482,26 @@ export class IotServerService {
         token,
         toBeCreatedAlerts,
       );
-      // 
 
       if (crtdAlerts && crtdAlerts.length > 0) {
         createdAlerts.push(...crtdAlerts);
       }
     }
 
-    // if (createdAlerts.length > 0) {
-    //   this.alertGateway.sendAlerts(assetID, AlertStatus.CREATED, createdAlerts);
-    // }
-
-    // if (closedAlerts.length > 0) {
-    //   this.alertGateway.sendAlerts(assetID, AlertStatus.CLOSED, closedAlerts);
-    // }
-
-    // if (incrementdAlerts.length > 0) {
-    //   this.alertGateway.sendAlerts(assetID, AlertStatus.INCREMENTED, incrementdAlerts);
-    // }
-
-    if (createdAlerts.length > 0) {
-      this.eventEmitter.emit('alert.created', createdAlerts);
+    const createdAndClosedAlerts = createdAlerts.concat(closedAlerts);
+    this.logger.debug(
+      `${fnName} : createdAndClosedAlerts length : ${createdAndClosedAlerts.length} for assetId : ${assetID} and virtual Device IDs : ${csvVirtualDeviceIDs}`,
+    );
+    if (createdAndClosedAlerts.length > 0) {
+      this.logger.debug(
+        `${fnName} : Sending ${createdAndClosedAlerts.length} alerts to Firebase`,
+      );
+      this.eventEmitter.emit(CreatedAndClosedAlerts, createdAndClosedAlerts);
+    } else {
+      this.logger.debug(`${fnName} : No alerts to send to Firebase`);
     }
 
-    if (closedAlerts.length > 0) {
-      this.eventEmitter.emit('alert.closed', closedAlerts);
-    }
-
-    if (incrementdAlerts.length > 0) {
-      this.eventEmitter.emit('alert.incremented', incrementdAlerts);
-    }
-
+    // Return the result
     return {
       createdAlerts: createdAlerts,
       //deletedCurrentOpenAlerts: deletedCurrentOpenAlerts,

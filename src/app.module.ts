@@ -50,6 +50,7 @@ import { AssetTypeCurrentPerformanceSourceModule } from './asset-type-current-pe
 import { CacheMappingModule } from './cache-maps/cache-maps.module';
 import { EventTypeModule } from './event-type/event-type.module';
 import { EventInstanceModule } from './event-instance/event-instance.module';
+import { ListenertModule } from './listeners/listeners.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -133,7 +134,9 @@ import { EventInstanceModule } from './event-instance/event-instance.module';
     CacheMappingModule,
 
     EventTypeModule,
-    EventInstanceModule
+    EventInstanceModule,
+
+    ListenertModule
   ],
   // providers: [
   //   {
@@ -538,6 +541,7 @@ export class AppModule { }
 // Jyotindra 
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"2026010008\")"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"I202607001\")"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" 
 
 // {"device_type":"invtr1","device_name":"huwai","device_id":"2026030003","date":"22/04/2026",

@@ -10,5 +10,6 @@ import { AlertModule } from 'src/alert/alert.module';
   imports: [TypeOrmModule.forFeature([EventInstance]), EventTypeModule, AlertModule],
   controllers: [EventInstanceController],
   providers: [EventInstanceService],
+  exports: [EventInstanceService],
 })
 export class EventInstanceModule { }

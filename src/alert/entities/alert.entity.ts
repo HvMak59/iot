@@ -123,9 +123,6 @@ export class Alert {
   @Column({ type: 'timestamptz' })
   openDateTime: Date | number;
 
-
-
-
   @OneToOne(() => EventInstance, (eventInstance) => eventInstance.alert)
   eventInstance?: EventInstance;
 

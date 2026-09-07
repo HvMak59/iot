@@ -189,3 +189,5 @@ export const SolarAsset = new Set([SolarPlant, SolarMotor]);
 
 export const ignoreStartHrForSolar = 21;
 export const ignoreEndHrForSolar = 5;
+
+export const CreatedAndClosedAlerts = 'alertCreatedOrClosed'; 

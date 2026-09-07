@@ -59,7 +59,6 @@ export class AssetService {
     }
 
     async findAssetOrgIdMap(assetIds: string[]) {
-
         const assets = await this.repo.find({
             select: {
                 id: true,
@@ -67,6 +66,24 @@ export class AssetService {
             },
             where: {
                 id: In(assetIds),
+            },
+        });
+
+        return new Map(
+            assets.map(asset => [asset.id, asset.orgId]),
+        );
+    }
+
+
+
+    async findOrgIDsByCSVAssetIDs(assetIds: string) {
+        const assets = await this.repo.find({
+            select: {
+                id: true,
+                orgId: true,
+            },
+            where: {
+                id: In(assetIds.split(',')),
             },
         });
 

@@ -5,7 +5,7 @@ import { KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EventInstance } from './entities/event-instance.entity';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { FindEventInstanceDto } from './dto/find-event-instance.dto';
 import serviceConfig from '../app_config/service.config.json';
 import { EventTypeService } from 'src/event-type/event-type.service';
@@ -17,7 +17,9 @@ import _ from 'lodash';
 export class EventInstanceService {
   private readonly logger = winstonServerLogger(EventInstanceService.name);
   private relations = serviceConfig.eventInstance.relations;
+
   private alertEventTypeId: any;
+
   constructor(
     @InjectRepository(EventInstance) private readonly repo: Repository<EventInstance>,
     private readonly eventTypeService: EventTypeService,
@@ -62,8 +64,10 @@ export class EventInstanceService {
   }
 
   async createEventInstancesForExistingAlerts() {
+    const fnName = this.createEventInstancesForExistingAlerts.name;
+
     this.logger.debug(
-      'Starting batch: Create EventInstances for existing Alerts',
+      `${fnName}: Starting batch: Create EventInstances for existing Alerts`,
     );
 
     const eventTypeId = await this.getEventTypeIdByName('Alert');
@@ -73,16 +77,15 @@ export class EventInstanceService {
     let created = 0;
 
     while (true) {
-      const alerts = await this.alertService.findAllOpenAlerts(
+      const alerts = await this.alertService.findAllAlerts(
         skip,
         take,
       );
 
-      this.logger.debug(
-        `Fetched ${alerts.length} open alerts. Skip: ${skip}`,
-      );
+      this.logger.debug(`Fetched ${alerts.length} open alerts. Skip: ${skip}`);
 
       if (alerts.length === 0) {
+        this.logger.error(`${NO_RECORD}: alerts not found`);
         break;
       }
 
@@ -107,9 +110,7 @@ export class EventInstanceService {
         endTime: alert.closeDateTime ? new Date(alert.closeDateTime) : undefined,
       }));
 
-
       try {
-        // await this.repo.save(eventInstancesToBeCreated);
         await this.createBulk(eventInstancesToBeCreated);
         created += eventInstancesToBeCreated.length;
 
@@ -125,7 +126,6 @@ export class EventInstanceService {
         throw error;
       }
     }
-
     this.logger.debug(
       `EventInstance batch completed. Total created: ${created}`,
     );
@@ -133,24 +133,6 @@ export class EventInstanceService {
     return {
       created
     };
-  }
-
-  async createEventInstanceOnAlertCreation(alerts: Alert[]) {
-    const fnName = this.createEventInstanceOnAlertCreation.name;
-    this.logger.debug(`${fnName}: Creating EventInstances for ${alerts.length} new alerts`);
-
-    const eventTypeId = await this.getEventTypeIdByName('Alert');
-
-    const eventInstancesToBeCreated = alerts.map((alert) => ({
-      assetId: alert.assetId,
-      deviceId: alert.deviceId,
-      virtualDeviceId: alert.virtualDeviceId,
-      eventTypeId: eventTypeId,
-      alertId: alert.id,
-      startTime: new Date(alert.openDateTime),
-    }));
-
-    return await this.createBulk(eventInstancesToBeCreated);
   }
 
   async closeEventInstance(id: string) {
@@ -162,6 +144,187 @@ export class EventInstanceService {
     this.logger.debug(`${fnName}: Calling update service`);
     return await this.update(id, { endTime: new Date() });
   }
+
+  async createOrCloseInstnceFromAlert(alerts: Alert[]) {
+    const fnName = this.createOrCloseInstnceFromAlert.name;
+    const input = `Input: alerts : ${JSON.stringify(alerts)}`;
+
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+    const createdAlerts = [];
+    const closedAlerts = [];
+
+    for (const alert of alerts) {
+      if (alert.closeDateTime) {
+        closedAlerts.push(alert);
+      }
+      else {
+        createdAlerts.push(alert);
+      }
+    }
+
+    const eventTypeId = await this.getEventTypeIdByName('Alert');
+    const eventInstancesToBeCreated: CreateEventInstanceDto[] = []
+
+    if (closedAlerts) {
+      const tobeUpdated: UpdateEventInstanceDto[] = [];
+
+      for (const closedAlert of closedAlerts) {
+
+        if (!closedAlert.eventInstance) {
+          this.logger.error(
+            `${fnName} : ${NO_RECORD} : No EventInstance linked for alertId : ${closedAlert.id}`,
+          );
+
+          eventInstancesToBeCreated.push({
+            assetId: closedAlert.assetId,
+            deviceId: closedAlert.deviceId,
+            virtualDeviceId: closedAlert.virtualDeviceId,
+            eventTypeId: eventTypeId,
+            alertId: closedAlert.id,
+            startTime: new Date(closedAlert.openDateTime),
+            endTime: closedAlert.closeDateTime ? new Date(closedAlert.closeDateTime) : undefined,
+          });
+        }
+        else {
+          tobeUpdated.push({
+            id: closedAlert.eventInstance.id,
+            endTime: new Date(closedAlert.closeDateTime!),
+          });
+        }
+      }
+      if (tobeUpdated) {
+        await this.bulkUpdateFromAlert(tobeUpdated);
+      }
+    }
+
+    if (createdAlerts) {
+      const toBeCreated = createdAlerts.map((alert) => ({
+        assetId: alert.assetId,
+        deviceId: alert.deviceId,
+        virtualDeviceId: alert.virtualDeviceId,
+        eventTypeId: eventTypeId,
+        alertId: alert.id,
+        startTime: new Date(alert.openDateTime),
+        endTime: alert.closeDateTime ? new Date(alert.closeDateTime) : undefined,
+      }));
+
+      eventInstancesToBeCreated.push(...toBeCreated);
+    }
+    if (eventInstancesToBeCreated) {
+      await this.createBulk(eventInstancesToBeCreated);
+    }
+  }
+
+  async bulkUpdateFromAlert(updateEventInstanceDtos: UpdateEventInstanceDto[]) {
+    const fnName = this.bulkUpdateFromAlert.name;
+    this.logger.debug(fnName + KEY_SEPARATOR + `Input : ${JSON.stringify(updateEventInstanceDtos)}`);
+
+    const preloadedInstances = [];
+
+    for (const dto of updateEventInstanceDtos) {
+      const preloaded = await this.repo.preload(dto);
+      if (!preloaded) {
+        this.logger.error(`${fnName} : ${NO_RECORD} : EventInstance id : ${dto.id} not found`);
+        throw new Error(`${NO_RECORD} : EventInstance id : ${dto.id} not found`);
+      }
+      preloadedInstances.push(preloaded);
+    }
+
+    return await this.repo.save(preloadedInstances);
+  }
+
+
+
+  // async createEventInstanceOnAlertCreation(alerts: Alert[]) {
+  //   const fnName = this.createEventInstanceOnAlertCreation.name;
+  //   this.logger.debug(`${fnName}: Creating EventInstances for ${alerts.length} new alerts`);
+
+  //   const eventTypeId = await this.getEventTypeIdByName('Alert');
+
+  //   const eventInstancesToBeCreated = alerts.map((alert) => ({
+  //     assetId: alert.assetId,
+  //     deviceId: alert.deviceId,
+  //     virtualDeviceId: alert.virtualDeviceId,
+  //     eventTypeId: eventTypeId,
+  //     alertId: alert.id,
+  //     startTime: new Date(alert.openDateTime),
+  //   }));
+
+  //   return await this.createBulk(eventInstancesToBeCreated);
+  // }
+
+
+  // async updateBulkByAlert(closedAlerts: Alert[]) {
+  //   const fnName = this.updateBulkByAlert.name;
+
+  //   if (closedAlerts.length === 0) {
+  //     return [];
+  //   }
+
+  //   const alertIds = closedAlerts.map(alert => alert.id);
+
+  //   const eventInstances = await this.repo.find({
+  //     where: {
+  //       alertId: In(alertIds),
+  //       endTime: IsNull()
+  //     },
+  //   });
+
+  //   const eventInstanceMap = new Map(
+  //     eventInstances.map(instance => [instance.alertId, instance]),
+  //   );
+
+  //   for (const alert of closedAlerts) {
+  //     const eventInstance = eventInstanceMap.get(alert.id);
+
+  //     if (!eventInstance) {
+  //       this.logger.error(
+  //         `${fnName} : EventInstance not found for Alert id : ${alert.id}`,
+  //       );
+  //       continue;
+  //     }
+
+  //     eventInstance.endTime = new Date(alert.closeDateTime!);
+  //   }
+
+  //   return await this.repo.save(eventInstances);
+  // }
+
+  // async updateBulk(updateEventInstanceDtos: UpdateEventInstanceDto[]) {
+  //   const fnName = this.updateBulk.name;
+  //   const input = `Input : Update Bulk EventInstance : ${JSON.stringify(updateEventInstanceDtos)}`;
+
+  //   this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+  //   if (!updateEventInstanceDtos.length) {
+  //     return [];
+  //   }
+
+  //   const eventInstances = [];
+
+  //   for (const dto of updateEventInstanceDtos) {
+  //     if (!dto.id) {
+  //       this.logger.error(`${fnName} : EventInstance Id not found`);
+  //       throw new Error('EventInstance Id not found');
+  //     }
+
+  //     const eventInstance = await this.repo.preload(dto);
+
+  //     if (!eventInstance) {
+  //       this.logger.error(
+  //         `${fnName}: ${NO_RECORD} : EventInstance id : ${dto.id} not found`,
+  //       );
+
+  //       throw new Error(`${NO_RECORD} : EventInstance id : ${dto.id} not found`);
+  //     }
+
+  //     eventInstances.push(eventInstance);
+  //   }
+
+  //   return await this.repo.save(eventInstances);
+  // }
+
 
   private correct = 'correct';
   // async closeEventInstanceByAlert(alerts: Alert[]) {
@@ -181,7 +344,7 @@ export class EventInstanceService {
   //   }
 
   //   this.logger.debug(`${fnName}: Closed EventInstances for alerts: ${JSON.stringify(alerts.map(alert => alert.id))}`);
-  // }
+  // } ,
 
 
   async closeEventInstanceByAlert(alerts: Alert[]) {
@@ -234,6 +397,7 @@ export class EventInstanceService {
       `${fnName}: Closed EventInstances for alerts: ${JSON.stringify(alertIds)}`,
     );
   }
+
 
   // async closeEventInstanceByAlert(alerts: Alert[]) {
   //   const fnName = this.closeEventInstanceByAlert.name;
@@ -319,7 +483,6 @@ export class EventInstanceService {
       relations: relation
     })
   }
-
 
   async update(id: string, updateEventInstanceDto: UpdateEventInstanceDto) {
     const fnName = this.update.name;

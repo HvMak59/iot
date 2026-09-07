@@ -11,8 +11,6 @@ export class FcmService {
 
 
     // for fcm use firebase or firebase/fcm folders 
-
-
     private readonly tokenToOrgMap = new Map<string, string>();
     private readonly orgToTokensMap = new Map<string, Set<string>>();
 

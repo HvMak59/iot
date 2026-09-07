@@ -25,10 +25,11 @@ import _, { isNull } from 'lodash';
 import { FindAlertForAPeriod } from './dto/find-alert-for-a-time-period.dto';
 import { close } from 'fs';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-import { KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
+import { CreatedAndClosedAlerts, KEY_SEPARATOR, NO_RECORD } from 'src/app_config/constants';
 import { FindAssetDto } from 'src/asset/dto/find-asset.dto';
 import { AlertGateway } from '../websocket/alert.gateway';
 import { AlertStatus } from 'src/utils/enums';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 // import { FindAssetDto } from 'asset/dto/find-asset.dto';
 
 @Injectable()
@@ -38,7 +39,8 @@ export class AlertService {
   private readonly logger = winstonServerLogger(AlertService.name);
   constructor(
     @InjectRepository(Alert) private readonly repo: Repository<Alert>,
-    private readonly alertGateway: AlertGateway
+    private readonly alertGateway: AlertGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) { }
 
   async createBulk(createAlertsDto: CreateAlertDto[]) {
@@ -266,7 +268,11 @@ export class AlertService {
         `${fnName} : Alerts to be added : ${JSON.stringify(alertToBeInserted)}`,
       );
     }
-    return await this.repo.save(alert);
+    const r = await this.repo.save(alert);
+    // this.eventEmitter.emit(CreatedAndClosedAlerts, [r]);
+    console.log('created');
+
+    return r;
   }
 
   save(alerts: Alert[]) {
@@ -357,7 +363,7 @@ export class AlertService {
     });
   }
 
-  async findAllOpenAlerts(skip = 0, take = 500) {
+  async findAllAlerts(skip = 0, take = 500) {
     const fnName = this.findAll.name;
     const input = `Input: Find all open alerts`;
 
@@ -365,12 +371,8 @@ export class AlertService {
     this.logger.debug(fnName + KEY_SEPARATOR + input);
 
     return await this.repo.find({
-      // where: {
-      // closeDateTime: IsNull()
-      // },
-      // relations: ['asset', 'virtualDevice', 'device'],
       order: {
-        id: 'ASC',
+        openDateTime: 'ASC',
       },
       skip,
       take,
@@ -585,7 +587,10 @@ export class AlertService {
         ? new Date(closeDateTime as number)
         : (closeDateTime as Date))
       : new Date(); */
-    const alertsTobeClosed = await this.repo.find({ where: findAlertDTOs });
+    const alertsTobeClosed = await this.repo.find({
+      where: findAlertDTOs,
+      relations: ['eventInstance']
+    });
 
     if (alertsTobeClosed.length > 0) {
       for (const alert of alertsTobeClosed) {
