@@ -589,6 +589,7 @@ export class AlertService {
       : new Date(); */
     const alertsTobeClosed = await this.repo.find({
       where: findAlertDTOs,
+
       relations: ['eventInstance']
     });
 
@@ -602,6 +603,7 @@ export class AlertService {
       return [];
     }
   }
+
 
   closeAlert(findAlertDto: FindAlertDto, closeDateTime?: Date | number) {
     return this.updateWithFindObject(findAlertDto, {

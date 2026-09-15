@@ -1087,6 +1087,8 @@ export class AppModule { }
 // prev corr           = 755.83    pending     755.83   but laptop 9174
 
 
+
+
 // tmp,flwrt,prs,corrct volume,daily volume
 
 // flwrt, volume  
@@ -1096,71 +1098,6 @@ export class AppModule { }
 
 
 
-
-
-
-
-// pas - phosprs , arsnic , antimony - p type
-// bag - boron, allumnm, glllm - n type 
-// barrier potential : Silicon → 0.7 V, Germanium → 0.3 V
-
-// Questionમાં keyword	તરત વિચાર
-// Rectification	       PN diode
-// Voltage regulation	   Zener
-// Emits light	         LED
-// Detects light	       Photodiode
-// Solar energy	         Solar cell
-// Fast switching	       Schottky
-// Variable capacitance	 Varactor
-
-// Rectifier : ac->dc (converssion)
-// Exam માટે મુખ્ય 3:
-// 1. Half-Wave Rectifier                  - one diode, one half cycle 
-// 2. Full-Wave Centre-Tapped Rectifier    - 2 diodes, full waves, centre-trapped transformer
-// 3. Full-Wave Bridge Rectifier           -
-
-//  half-wave freq = f             efficiency 
-//  full-wave freq = 2f            half-wave = 40.6
-//  bridge    freq = 2f            full-wave = 81.2
-
-// filter 
-// ac-dc conversion ma ripple(variation) aave 
-// aa ripple ne reduce krva filter use thay 
-
-// Capacitor filter
-// Inductor filter
-// LC filter
-// π (Pi) filter
-
-
-// XL = 2πfL
-//     XL = inductive reactance
-//     f = frequency
-//     L = inductance
-
-// Zener diode power Pz ​= Vz​*Iz​
-
-// Zener → Voltage Regulation
-// Zener → Reverse Bias
-// Zener → Breakdown Region
-// Series resistor → Current limiting
-
-// Transistor = Amplification અને Switching
-// NPN and PNP 
-
-// Doping order
-
-// Emitter → Heavy
-// Base → Light
-// Collector → Moderate
-
-// Transistor 
-// Ie = Ib + Ic (emitter currnt = base + cllctr)
-// β = Ic/​Ib
-// α = Ic/Ie 
-// amplifier = active region 
-// switch off = cut off
-// switch on = saturation
 
 
 
@@ -1194,5 +1131,27 @@ export class AppModule { }
 
 
 // txn id : RPD010920261744391788264879742
+
+
+// Election complaint id: NGS06G080926923364
+// Adhar complaint id : S2013196289000 (srn)
+
+
+
+
+// dropmms 
+
+
+
+// Marksheet index number : 24-08451
+
+// Free offers
+// https://resourify.com/latest?ref=header
+// deepgram : https://resourify.com/resources/deepgram?ref=body
+
+
+// prompts : 
+// grok : https://www.media.io/image-effects/grok-content-moderated-try-a-different-idea.html
+// alternateiv : https://ko2bot.com/join?ref=8UO676SV
 
 

@@ -1,5 +1,4 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { KEY_SEPARATOR } from 'src/app_config/constants';
 
 import { Alert } from '../entities/alert.entity';
 

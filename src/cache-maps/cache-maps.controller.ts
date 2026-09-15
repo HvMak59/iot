@@ -12,7 +12,7 @@ export class CacheMappingController {
 
     @Get('orgIds')
     async getOrgIds() {
-        const r = await this.cacheMappingService.getOrgIds([
+        const r = await this.cacheMappingService.getAssetOrgMap([
             'asset1', 'asset2', 'ChitraFilterPlant', 'compressor', 'FlowMeter', 'Lift', 'TestAsset'
         ]);
         console.log(r);

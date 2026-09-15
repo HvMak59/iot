@@ -62,10 +62,13 @@
 
 
 import { Injectable } from '@nestjs/common';
+import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { AssetService } from 'src/asset/asset.service';
 
 @Injectable()
 export class CacheMappingService {
+
+    private readonly logger = winstonServerLogger(CacheMappingService.name);
 
     private readonly assetOrgMap = new Map<string, string>();
     private topicSubscribersMap = new Map<String, String>();
@@ -74,8 +77,7 @@ export class CacheMappingService {
         private readonly assetService: AssetService,
     ) { }
 
-    async getOrgIds(assetIds: string[]) {
-
+    async getAssetOrgMap(assetIds: string[]) {
         const result = new Map<string, string>();
         const missingAssetIds: string[] = [];
 
@@ -104,15 +106,28 @@ export class CacheMappingService {
         }
     }
 
-    getOrgId(assetId: string) {
-        return this.assetOrgMap.get(assetId);
+    async getOrSetOrgId(assetId: string) {
+        if (this.assetOrgMap.has(assetId)) {
+            return this.assetOrgMap.get(assetId);
+        }
+        else {
+            const orgId = await this.assetService.findOrgId(assetId);
+
+            if (orgId) {
+                this.assetOrgMap.set(assetId, orgId);
+                return orgId;
+            }
+            else {
+                return;
+            }
+        }
     }
 
-    setOrgId(assetId: string, orgId: string) {
+    setOrgIdToMap(assetId: string, orgId: string) {
         this.assetOrgMap.set(assetId, orgId);
     }
 
-    deleteOrg(assetId: string) {
+    deleteOrgFromMap(assetId: string) {
         this.assetOrgMap.delete(assetId);
     }
 

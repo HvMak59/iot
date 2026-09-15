@@ -13,6 +13,7 @@ import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
 import { AssetCurrentPerformanceSourceModule } from 'src/asset-current-performance-source/asset-current-performance-source.module';
 import { AssetTypeCurrentPerformanceSourceModule } from 'src/asset-type-current-performance-source/asset-type-current-performance-source.module';
 import { DeviceTypeMetricsAttributeModule } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.module';
+import { CacheMappingModule } from 'src/cache-maps/cache-maps.module';
 // import { AssetCurrentPerformanceSourceModule } from 'src/asset-current-performance-source/asset-current-performance-source.module';
 // import { CurrentTelemetryPayloadModule } from 'src/current-telemetry-payload/current-telemetry-payload.module';
 // import { TelemetryPayloadModule } from 'src/telemetry-payload/telemetry-payload.module';
@@ -50,7 +51,9 @@ import { DeviceTypeMetricsAttributeModule } from 'src/device-type-metrics-attrib
     // DeviceModelAlertModule,
     // TodayTelemetryPayloadModule,
     PeriodTelemetryPayloadAuditModule,
-    VirtualDeviceModule
+    VirtualDeviceModule,
+
+    CacheMappingModule
   ],
   exports: [IotServerService],
   controllers: [IotServerController],

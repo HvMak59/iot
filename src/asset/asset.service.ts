@@ -22,7 +22,6 @@ export class AssetService {
 
         const asset = await this.repo.findOne({
             select: {
-                // 
                 id: true,
                 org: {
                     id: true,
@@ -53,7 +52,7 @@ export class AssetService {
                 orgId: true
             },
             where: { id }
-        })
+        });
 
         return asset?.orgId;
     }

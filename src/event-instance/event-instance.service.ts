@@ -85,7 +85,7 @@ export class EventInstanceService {
       this.logger.debug(`Fetched ${alerts.length} open alerts. Skip: ${skip}`);
 
       if (alerts.length === 0) {
-        this.logger.error(`${NO_RECORD}: alerts not found`);
+        this.logger.debug(`${NO_RECORD}: alerts not found`);
         break;
       }
 
@@ -186,6 +186,7 @@ export class EventInstanceService {
             endTime: closedAlert.closeDateTime ? new Date(closedAlert.closeDateTime) : undefined,
           });
         }
+
         else {
           tobeUpdated.push({
             id: closedAlert.eventInstance.id,
@@ -347,56 +348,56 @@ export class EventInstanceService {
   // } ,
 
 
-  async closeEventInstanceByAlert(alerts: Alert[]) {
-    const fnName = this.closeEventInstanceByAlert.name;
+  // async closeEventInstanceByAlert(alerts: Alert[]) {
+  //   const fnName = this.closeEventInstanceByAlert.name;
 
-    const alertIds = alerts.map((alert) => alert.id);
+  //   const alertIds = alerts.map((alert) => alert.id);
 
-    this.logger.debug(
-      fnName +
-      KEY_SEPARATOR +
-      `Input : Close EventInstances for alerts: ${JSON.stringify(alertIds)}`,
-    );
+  //   this.logger.debug(
+  //     fnName +
+  //     KEY_SEPARATOR +
+  //     `Input : Close EventInstances for alerts: ${JSON.stringify(alertIds)}`,
+  //   );
 
-    const eventInstances = await this.repo.find({
-      where: {
-        alertId: In(alertIds),
-      },
-    });
+  //   const eventInstances = await this.repo.find({
+  //     where: {
+  //       alertId: In(alertIds),
+  //     },
+  //   });
 
-    const eventInstanceMap = new Map(
-      eventInstances.map((eventInstance) => [
-        eventInstance.alertId,
-        eventInstance,
-      ]),
-    );
+  //   const eventInstanceMap = new Map(
+  //     eventInstances.map((eventInstance) => [
+  //       eventInstance.alertId,
+  //       eventInstance,
+  //     ]),
+  //   );
 
-    const eventInstancesToUpdate = [];
+  //   const eventInstancesToUpdate = [];
 
-    for (const alert of alerts) {
-      const eventInstance = eventInstanceMap.get(alert.id);
+  //   for (const alert of alerts) {
+  //     const eventInstance = eventInstanceMap.get(alert.id);
 
-      if (!eventInstance) {
-        this.logger.error(
-          `${fnName}: No EventInstance found for Alert id: ${alert.id}`,
-        );
+  //     if (!eventInstance) {
+  //       this.logger.error(
+  //         `${fnName}: No EventInstance found for Alert id: ${alert.id}`,
+  //       );
 
-        throw new Error(
-          `No EventInstance found for Alert id: ${alert.id}`,
-        );
-      }
+  //       throw new Error(
+  //         `No EventInstance found for Alert id: ${alert.id}`,
+  //       );
+  //     }
 
-      eventInstance.endTime = new Date(alert.closeDateTime!);
+  //     eventInstance.endTime = new Date(alert.closeDateTime!);
 
-      eventInstancesToUpdate.push(eventInstance);
-    }
+  //     eventInstancesToUpdate.push(eventInstance);
+  //   }
 
-    await this.repo.save(eventInstancesToUpdate);
+  //   await this.repo.save(eventInstancesToUpdate);
 
-    this.logger.debug(
-      `${fnName}: Closed EventInstances for alerts: ${JSON.stringify(alertIds)}`,
-    );
-  }
+  //   this.logger.debug(
+  //     `${fnName}: Closed EventInstances for alerts: ${JSON.stringify(alertIds)}`,
+  //   );
+  // }
 
 
   // async closeEventInstanceByAlert(alerts: Alert[]) {

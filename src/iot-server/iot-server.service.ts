@@ -67,6 +67,7 @@ import { FindDevicesPerformanceTelemetryDto } from './dto/find-devices-performan
 import { TelemetryPayloadV3DTO } from './dto/telemetry-payload-v3.dto';
 import { FindCurrentTelemetryDto } from 'src/current-telemetry-payload/dto/find-current-telemetry.dto';
 import { FindTelemetryPayloadDto } from 'src/telemetry-payload/dto/find-telemetry-payload.dto';
+import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
 // import { CurrentOpenAlertService } from 'current-open-alert/current-open-alert.service';
 // import { DEVICE_MODEL_WITH_ALERTS_URL, KEY_SEPARATOR } from 'src/app_config/constants';
 // import { AlertService } from 'alert/alert.service';
@@ -110,6 +111,9 @@ export class IotServerService {
     private readonly virtualDeviceService: VirtualDeviceService,
     private readonly assetCurrentPerformanceSourceService: AssetCurrentPerformanceSourceService,
     private readonly deviceTypeMetricsAttributeService: DeviceTypeMetricsAttributeService,
+
+
+    private readonly cacheMappingService: CacheMappingService,
   ) {
     this.schema = process.env['SCHEMA'];
     this.appServer = process.env['APP_SERVER'];
@@ -2388,8 +2392,7 @@ export class IotServerService {
     } */
     this.logger.debug(`${fnName} : searchObj : ${JSON.stringify(searchObj)}`);
 
-    const currentOpenAlerts =
-      await this.currentOpenAlertService.findAll(searchObj);
+    const currentOpenAlerts = await this.currentOpenAlertService.findAll(searchObj);
 
     if (_.isEmpty(arrivedAlerts2)) {
       this.logger.debug(`${fnName} : No arrived alerts for ${assetID}`);
@@ -2488,7 +2491,21 @@ export class IotServerService {
       }
     }
 
-    const createdAndClosedAlerts = createdAlerts.concat(closedAlerts);
+    const orgId = await this.cacheMappingService.getOrSetOrgId(assetID);
+
+    const createdAlertsWthOrgId = createdAlerts.map((alert) => ({
+      ...alert, // 
+      orgId
+    }));
+
+    const closedAlertsWthOrgId = closedAlerts.map((alert) => ({
+      ...alert,
+      orgId
+    }))
+    // here we have to add these code for getting orgId from assetId 
+    // const createdAndClosedAlerts = createdAlerts.concat(closedAlerts);
+    const createdAndClosedAlerts = createdAlertsWthOrgId.concat(closedAlertsWthOrgId);
+
     this.logger.debug(
       `${fnName} : createdAndClosedAlerts length : ${createdAndClosedAlerts.length} for assetId : ${assetID} and virtual Device IDs : ${csvVirtualDeviceIDs}`,
     );
@@ -2503,9 +2520,9 @@ export class IotServerService {
 
     // Return the result
     return {
-      createdAlerts: createdAlerts,
+      createdAlerts: createdAlertsWthOrgId,
       //deletedCurrentOpenAlerts: deletedCurrentOpenAlerts,
-      closedAlerts: closedAlerts,
+      closedAlerts: closedAlertsWthOrgId,
       //incrementedCurrentOpenAlerts: incrementedCurrentOpenAlerts,
       incrementedAlerts: incrementdAlerts,
     };
@@ -2533,6 +2550,7 @@ export class IotServerService {
       findOpenAlertDTOs,
       closeDateTime,
     );
+
 
     return {
       deletedCOAlerts,
