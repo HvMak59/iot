@@ -42,6 +42,7 @@ export class CreateAlertDto extends PartialType(Alert) {
     inputAlertDTO: InputAlert2Dto,
     alertMaster?: AlertMaster | null | undefined,
   ) {
+    console.log(alertMaster);
     return new CreateAlertDto({
       alertId: inputAlertDTO.alertId,
       //alertType: alertMaster?.alertType ?? AlertType.FAULT,

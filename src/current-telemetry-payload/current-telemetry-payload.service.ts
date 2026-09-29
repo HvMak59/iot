@@ -962,6 +962,10 @@ export class CurrentTelemetryPayloadService {
     // }
   }
 
+  findOne(searchCriteria: FindCurrentTelemetryDto) {
+    return this.repo.findOne({ where: searchCriteria });
+  }
+
   //   /* findAllWthRelations() {
   //     const msgTemplate = 'Find ' + this.serviceName + 's' + ' with relations';
   //     return findAll<CurrentTelemetryPayload>(

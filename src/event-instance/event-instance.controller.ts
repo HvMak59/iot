@@ -37,7 +37,7 @@ export class EventInstanceController {
 
   @Post('forExistingAlerts')
   createForAlerts(@UserId() userId: string) {
-    const fnName = this.create.name;
+    const fnName = this.createForAlerts.name;
     const input = `Input : Create eventInstance fro alerts`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -83,7 +83,7 @@ export class EventInstanceController {
 
   @Get('relation')
   findAllWthRelation(@Query() searchCriteria: FindEventInstanceDto) {
-    const fnName = this.findAll.name;
+    const fnName = this.findAllWthRelation.name;
     const input = `Input : Find eventInstance with searchCriteria: ${JSON.stringify(searchCriteria)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -104,7 +104,7 @@ export class EventInstanceController {
 
   @Get('findOne/relation')
   findOneWthRelation(@Query() searchCriteria: FindEventInstanceDto) {
-    const fnName = this.findAll.name;
+    const fnName = this.findOneWthRelation.name;
     const input = `Input : Find eventInstance with searchCriteria: ${JSON.stringify(searchCriteria)} with relation`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -115,7 +115,7 @@ export class EventInstanceController {
 
   @Get('id')
   findOneById(@Query('id') id: string) {
-    const fnName = this.findOne.name;
+    const fnName = this.findOneById.name;
     const input = `Input : FindOne eventInstance by id : ${id}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -129,7 +129,7 @@ export class EventInstanceController {
     @Query('id') id: string,
     @Body() updateEventInstanceDto: UpdateEventInstanceDto
   ) {
-    const fnName = this.findOne.name;
+    const fnName = this.update.name;
     const input = `Input : Id : ${id}, updateEventInstanceDto: ${JSON.stringify(updateEventInstanceDto)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -150,7 +150,7 @@ export class EventInstanceController {
     @UserId() userId: string,
     @Query('id') id: string
   ) {
-    const fnName = this.findOne.name;
+    const fnName = this.remove.name;
     const input = `Input : Delete eventInstance : ${id}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);

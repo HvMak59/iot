@@ -458,7 +458,7 @@ export class EventInstanceService {
   }
 
   findOne(searchCriteria: FindEventInstanceDto, relationsRequired: boolean = false) {
-    const fnName = this.findAll.name;
+    const fnName = this.findOne.name;
     const input = `Input : FindOne eventInstance with searchCriteria : ${JSON.stringify(searchCriteria)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);

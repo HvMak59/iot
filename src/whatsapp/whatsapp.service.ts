@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+import { Message } from 'firebase-admin/messaging';
 import { firstValueFrom } from 'rxjs';
 import { Alert } from 'src/alert/entities/alert.entity';
 import { AssetService } from 'src/asset/asset.service';
@@ -44,7 +45,7 @@ export class WhatsAppService {
             messaging_product: 'whatsapp',
             to: '916353921545',
             // to: phoneNumber,
-            // to,
+            // to, 
             type: 'template',
             template: {
                 name: 'alert_triggered',
@@ -83,6 +84,64 @@ export class WhatsAppService {
         //         },
         //     },
         // };
+
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post(url, payload, {
+                    headers: {
+                        Authorization: `Bearer ${this.accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            );
+            return response.data;
+        }
+
+        catch (error) {
+            console.error('Error sending WhatsApp message:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
+
+
+    async sendMessageToWp(messages: string) {
+        console.log("In wp");
+        const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
+
+        const phoneNumber = await this.assetService.findPhoneNumber('asset2');
+
+        console.log(messages);
+        const payload = {
+            messaging_product: 'whatsapp',
+            to: '916353921545',
+            // to: phoneNumber,
+            // to,
+            type: 'template',
+            template: {
+                name: 'alert_triggered',
+                language: {
+                    code: 'en',
+                },
+                components: [
+                    {
+                        type: 'body',
+                        parameters: [
+                            {
+                                type: 'text',
+                                parameter_name: 'alerts',
+                                text: messages,
+                            },
+                            {
+                                type: 'text',
+                                parameter_name: 'status',
+                                text: 'status',
+                            },
+                        ],
+                    },
+                ],
+            },
+        };
 
         try {
             const response = await firstValueFrom(

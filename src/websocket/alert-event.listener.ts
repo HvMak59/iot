@@ -114,7 +114,7 @@ export class AlertEventsListener {
     }
 
 
-    @OnEvent('alert.created')
+    // @OnEvent('alert.created')
     async handleCreated(alerts: Alert[]) {
         this.logger.debug('in created listener');
 
@@ -124,7 +124,7 @@ export class AlertEventsListener {
         );
     }
 
-    @OnEvent('alert.incremented')
+    // @OnEvent('alert.incremented')
     async handleIncremented(alerts: Alert[]) {
         this.logger.debug('in incremented listener');
 
@@ -134,7 +134,7 @@ export class AlertEventsListener {
         );
     }
 
-    @OnEvent('alert.closed')
+    // @OnEvent('alert.closed')
     async handleClosed(alerts: Alert[]) {
         this.logger.debug('in closed listener');
 

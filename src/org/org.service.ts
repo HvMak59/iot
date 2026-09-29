@@ -84,7 +84,7 @@ export class OrgService {
 
   findOneById(id: string) {
     //return findOne<Org>(this.repo, id, msgTemplate, "org");
-    return this.repo.findOne({ where: { id: id } });
+    return this.repo.findOne({ where: { id: id }, relations: ['assets'] });
   }
 
   findOneWithUsers(findOrgDTO: FindOrgDto) {

@@ -73,7 +73,7 @@ export class DeviceService {
     }
   }
 
-  async findAll(searchCriteria: FindDeviceDto, relation: Relations) {
+  async findAll(searchCriteria: FindDeviceDto, relation?: Relations) {
     const fnName = this.findAll.name;
     const input = `Input : ${JSON.stringify(searchCriteria)}`;
 
@@ -86,9 +86,15 @@ export class DeviceService {
           ? ILike(`%${searchCriteria.searchTerm}%`)
           : undefined,
       },
-      relations: this.getRelations(relation),
+      relations: this.getRelations(relation!),
     });
     return devices.map((device) => new DeviceDto(device));
+  }
+
+  findOne(searchCriteria: FindDeviceDto) {
+    return this.repo.findOne({
+      where: searchCriteria
+    })
   }
 
   // async findAll(searchCriteria: FindDeviceDto, relation: Relations) {

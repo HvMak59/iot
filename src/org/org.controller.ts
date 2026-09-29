@@ -97,6 +97,10 @@ export class OrgController {
     return this.orgService.findOneWithUsers(searchCriteria);
   }
 
+  @Get('id')
+  findOneById(@Query('id') id: string) {
+    return this.orgService.findOneById(id);
+  }
   @Get('allDescendents')
   findAllDescendentsWithoutAssets(@Query() findOrgsOrAssets: FindOrgsOrAssets) {
     const fnName = 'findAllDescendentsWithoutAssets()';

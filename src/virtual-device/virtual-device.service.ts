@@ -97,6 +97,13 @@ export class VirtualDeviceService {
     this.baseURL = `${this.schema}://${this.appServer}:${this.appPort}`;
     this.baseURL = 'http://localhost:3000'
   }
+
+
+
+  findAll(searchCriteria: FindVirtualDeviceDto) {
+    console.log("in vd find", JSON.stringify(searchCriteria))
+    return this.repo.find({ where: { assetId: searchCriteria.assetId } });
+  }
   //   async create(createVirtualDeviceDto: CreateVirtualDeviceDto, token: string) {
   //     const fnName = 'create()'
   //     const input = `Create object : ${JSON.stringify(createVirtualDeviceDto)}`
@@ -691,8 +698,8 @@ export class VirtualDeviceService {
   }
 
 
-  async findOne(options: any) {
-    // return this.repo.findOne(options);
+  async findOne(searchCriteria: FindVirtualDeviceDto) {
+    return this.repo.findOne({ where: searchCriteria });
   }
 
   async find(options: any) {

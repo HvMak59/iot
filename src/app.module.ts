@@ -51,6 +51,9 @@ import { CacheMappingModule } from './cache-maps/cache-maps.module';
 import { EventTypeModule } from './event-type/event-type.module';
 import { EventInstanceModule } from './event-instance/event-instance.module';
 import { ListenertModule } from './listeners/listeners.module';
+import { EmailModule } from './email/email.module';
+import { RtuCommandModule } from './rtu-command/rtu-command.module';
+import { TelemetryHeaderModule } from './telemetry-header/telemetry-header.module';
 // import { SmsModule } from './sms/sms.module';
 
 
@@ -136,7 +139,10 @@ import { ListenertModule } from './listeners/listeners.module';
     EventTypeModule,
     EventInstanceModule,
 
-    ListenertModule
+    ListenertModule,
+    EmailModule,
+    RtuCommandModule,
+    TelemetryHeaderModule
   ],
   // providers: [
   //   {
@@ -161,6 +167,7 @@ export class AppModule { }
 // mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P 4iHuC+=NL6R*t7=YU6Ew
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026010016 -u hermes -P 4iHuC+=NL6R*t7=YU6Ew
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026010016 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq 'select(.deviceId == "2026010016")'
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026070258 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" 
 
 
 // punasan:
@@ -1152,6 +1159,196 @@ export class AppModule { }
 
 // prompts : 
 // grok : https://www.media.io/image-effects/grok-content-moderated-try-a-different-idea.html
-// alternateiv : https://ko2bot.com/join?ref=8UO676SV
+// alternative : https://ko2bot.com/join?ref=8UO676SV
+
+
+
+// DigiWogen 
+// career@digiwagon.com, hello@digiwagon.com 
+// +91 97275 58794
+
+
+// Bhumio:
+// hiten.makwana7698@gmail.com 
+// Hitu.Makwana1
+
+// https://techseria.com/company/careers/jobs/nodejs-nestjs-backend-developer
+// Techseria : +91 6355 201016
+
+
+
+// Energy meter : 
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/DrRtvAttaV1/info/2026090001 -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+
+
+// {"device_type":"PUMP","device_name":"INVT","device_id":"2026090001","imei":"862360079548108",
+// "iccid":"8991980917987734135","date":"15/09/2026","time":"11:40:27","time_zone":"Asia/Kolkata",
+// "latitude":"23.249062","longitude":"72.634232","software_ver":"MGE-1.03.70.2025","signal_strength":"4",
+// "data":{"slave_id":1,"motor_speed":0.0,"dv_v":576.90,"dc_c":0.0,"motor_v":0,"motor_c":0.0,
+// "current_flow":212.5,"inst_power":0.0,"total_energy":1.5,"today_energy":1.1,"total_on_time":"1:54",
+// "today_on_time":"0:44","status":0,"fault_status":0,"current_sensor_status":1,"fault_code":0,
+// "total_flow":12298,"total_off_time":"3:46","today_off_time":"0:11","output_power":0.0}}
+
+
+// {"device_type":"Meter","device_name":"Wh_Meter","device_id":"2026090001","imei":"862360079548108",
+// "iccid":"8991980917987734135","date":"15/09/2026","time":"11:40:27","time_zone":"Asia/Kolkata",
+// "latitude":"23.249062","longitude":"72.634232","software_ver":"MGE-1.03.70.2025","signal_strength":"4",
+// "data":{"slave_id":2,"serial_number":88352385,"firmware_number":"DPMTM50","cat_code":"DPM96E300-2",
+// "protocol_version":3585,"modbus_baudrate":9600,"meter_type":"LT4","ct_primary":60.000,
+// "ct_secondary":5.000,"pt_primary":240.000,"pt_secondary":240.000,"modbus_resolution":"K",
+// "energy":0.595,"history_1":0.000,"history_2":0.001,"history_3":0.000,"history_4":0.000,
+// "history_5":0.000,"history_6":0.000,"energy_wh":595.303}}
+
+
+
+
+
+
+// private topicSubscribersMap = new Map<String, String>();
+
+// setSubscriberToTopic(token: string, topic: string) {
+//         this.topicSubscribersMap.set(topic, token);
+//     }
+
+//     getSubscriberForTopic(topic: string) {
+//         return this.topicSubscribersMap.get(topic);
+//     }
+
+//     deleteSubscriberForTopic(topic: string) {
+//         return this.topicSubscribersMap.delete(topic);
+//     }
+
+//     hasSubscriberToTopic(topic: string) {
+//         return this.topicSubscribersMap.has(topic);
+//     }
+
+
+
+
+
+// async getVirtualDeviceIds(assetIds: string[]): Promise<Map<string, string>> {
+
+//     const result = new Map<string, string>();
+//     const missingAssetIds: string[] = [];
+
+//     for (const assetId of assetIds) {
+
+//         const virtualDeviceId =
+//             this.assetVirtualDeviceMap.get(assetId);
+
+//         if (virtualDeviceId !== undefined) {
+
+//             result.set(
+//                 assetId,
+//                 virtualDeviceId,
+//             );
+
+//         } else {
+//             missingAssetIds.push(assetId);
+//         }
+//     }
+
+//     if (missingAssetIds.length === 0) {
+//         return result;
+//     }
+
+//     const missingAssetVdMap = await this.assetService.findAssetVirtualDeviceIdMap(
+//         missingAssetIds,
+//     );
+
+//     for (const [assetId, virtualDeviceId] of missingAssetVdMap) {
+
+//         this.assetVirtualDeviceMap.set(assetId, virtualDeviceId);
+
+//         result.set(assetId, virtualDeviceId);
+//     }
+
+//     return result;
+// }
+
+// getVirtualDeviceId(assetId: string) {
+//     return this.assetVirtualDeviceMap.get(
+//         assetId,
+//     );
+// }
+
+// setVirtualDeviceId(assetId: string, virtualDeviceId: string) {
+//     this.assetVirtualDeviceMap.set(
+//         assetId,
+//         virtualDeviceId,
+//     );
+// }
+
+// deleteVirtualDevice(assetId: string) {
+//     this.assetVirtualDeviceMap.delete(
+//         assetId,
+//     );
+// }
+
+
+
+// in capture service : after adaptor
+// assetID EnergyMeter
+// after metric atribute adaptor
+// after fetchign maa
+// after maa loop [ 'testMfg:test:trip' ]
+// After calculate
+// reqId 2d2a4fc2-8a56-487c-b1fa-5e42b8957a92
+// after save
+// No of telemetry alerts sent : 0
+// after manageAlert
+
+
+
+
+
+
+// {"device_type":"PUMP","device_name":"INVT","device_id":"2026090001","imei":"862360079548108","iccid":"8991980917987734135","date":"19/09/2026","time":"13:38:52","time_zone":"Asia/Kolkata","latitude":"23.248987","longitude":"72.634224","software_ver":"MGE-1.03.70.2025","signal_strength":"4","data":{"slave_id":1,"motor_speed":50.0,"dv_v":592.90,"dc_c":0.0,"motor_v":377,"motor_c":0.0,"current_flow":0.0,"inst_power":0.0,"total_energy":0.0,"today_energy":0.0,"total_on_time":"1:58","today_on_time":"1:58","status":1,"fault_status":0,"current_sensor_status":1,"fault_code":0,"total_flow":32,"total_off_time":"0:41","today_off_time":"0:39","output_power":0.0}}
+// {"device_type":"Meter","device_name":"Wh_Meter","device_id":"2026090001","imei":"862360079548108","iccid":"8991980917987734135","date":"19/09/2026","time":"13:38:52","time_zone":"Asia/Kolkata","latitude":"23.248987","longitude":"72.634224","software_ver":"MGE-1.03.70.2025","signal_strength":"4","data":{"slave_id":2,"serial_number":88352385,"firmware_number":"DPMTM50","cat_code":"DPM96E300-2","protocol_version":3585,"modbus_baudrate":9600,"meter_type":"LT4","ct_primary":60.000,"ct_secondary":5.000,"pt_primary":240.000,"pt_secondary":240.000,"modbus_resolution":"K","energy":0.641,"history_1":0.000,"history_2":0.001,"history_3":0.000,"history_4":0.000,"history_5":0.000,"history_6":0.000,"energy_wh":641.464}}
+
+
+
+// E-Samaj kalyan 
+// userId : 260614012
+
+
+// HrmsIOT/Rtv/{{RMU Device Id}}/Cmd/Pub
+// {
+// 	“msgId”: ‘9a2c689f’
+// 	“timestamp”: ‘2026-09-24 13:08:32’	RMU timestamp
+// 	“param”: ‘power’
+// 	“value”: 64,
+// 	“status”: ‘ok’		Possible values: ‘ok’/ ‘error’
+// 	“errDscr”: ‘timeout’	Applicable only if status == ‘error’
+// }
+
+
+// {
+// 	“slaveId”: ‘’,
+// 	“msgId”: ‘9a2c689f’,
+// 	“timestamp”: ‘2026-09-24 13:08:32’	Server timestamp
+// 	“type”: ‘config’		Possible values: config or ondemand. Config - write, ondemand - read
+// 	“param”: ‘interval’
+// 	“newValue”: 120	Applicable only for type = config
+// }
+
+
+// {
+// 	“msgId”: ‘9a2c689f’
+// 	“timestamp”: ‘2026-09-24 13:08:32’	RMU timestamp
+// 	“param”: ‘interval’
+// 	“value”: 120,
+// 	“status”: ‘ok’		Possible values: ‘ok’/ ‘error’
+// 	“errDscr”: ‘timeout’	Applicable only if status == ‘error’
+// }
+
+
+
+// Rtu-Command : 
+
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/EM-2026090001-2/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// Rmu : mosquitto_pub -h hermesmqtt.com -t HrmsIOT/Rtv/EM-2026090001-2/Cmd/Pub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" -m '{“msgId”: "5b3c4496c1c7",“timestamp”: "2026-09-28 09:57:32",“param”: "power",“value”: 64,“status”: "ok",“errDscr”: ""}'
+// mosquitto_pub -h hermesmqtt.com -t "HrmsIOT/Rtv/EM-2026090001-2/Cmd/Pub" -u "hermes" -P "4iHuC+=NL6R*t7=YU6Ew" -m "{\"msgId\":\"ff0d7592956f\",\"timestamp\":\"2026-09-28 09:57:32\",\"param\":\"power\",\"value\":64,\"status\":\"ok\",\"errDscr\":\"\"}"
+
 
 

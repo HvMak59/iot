@@ -64,6 +64,11 @@ export class DeviceModelService {
       relations: {
         origDeviceModel: true,
       },
+      // relations: {
+      //   alertMasterIdentifiers: {
+      //     alertMasterRecs: true,
+      //   },
+      // },
     });
   }
   // findAllWthAMIs(
@@ -78,7 +83,8 @@ export class DeviceModelService {
   //   });
   // }
 
-  findAlertsFromMultipleIDs(searchObj: FindDeviceModelAlertByMultipleIDs) {
+  async findAlertsFromMultipleIDs(searchObj: FindDeviceModelAlertByMultipleIDs) {
+    console.log("searchcriteria", JSON.stringify(searchObj));
     const fnName = this.findAlertsFromMultipleIDs.name;
     const input = `Input : Find DeviceModel Alerts with searchCriteria : ${JSON.stringify(
       searchObj,
@@ -86,7 +92,9 @@ export class DeviceModelService {
     this.logger.debug(fnName + KEY_SEPARATOR + input);
     const findDeviceModelDTO: FindDeviceModelDto =
       this.getFindDeviceModelDTO(searchObj);
-    return this.repo.find({
+
+    // console.log("dto", findDeviceModelDTO);
+    const result = await this.repo.find({
       where: findDeviceModelDTO,
       relations: {
         alertMasterIdentifiers: {
@@ -94,6 +102,10 @@ export class DeviceModelService {
         },
       },
     });
+
+
+    // console.log("result", result)
+    return result;
   }
 
   getFindDeviceModelDTO(searchObj: FindDeviceModelAlertByMultipleIDs) {
@@ -130,6 +142,7 @@ export class DeviceModelService {
           ...uniqueAlertIDs,
         ])}`,
       );
+      // console.log("uniquealertids", uniqueAlertIDs);
       const findAlertMasterDto: FindAlertMasterDto = {
         alertId: In(uniqueAlertIDs),
       };
@@ -146,6 +159,7 @@ export class DeviceModelService {
           searchCriteria.alertMasterIdentifiers,
         )}`,
       );
+      // 
     } else {
       this.logger.debug(`${fnName} : csvAlertIDs is not available.`);
     }

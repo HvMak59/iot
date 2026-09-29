@@ -47,7 +47,7 @@ export class EventTypeController {
     @UserId() userId: string,
     @Body() createEventTypeDto: CreateEventTypeDto[]
   ) {
-    const fnName = this.create.name;
+    const fnName = this.createBulk.name;
     const input = `Input : Create EventType : ${JSON.stringify(createEventTypeDto)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -77,7 +77,7 @@ export class EventTypeController {
 
   @Get('relation')
   findAllWthRelation(@Query() searchCriteria: FindEventTypeDto) {
-    const fnName = this.findAll.name;
+    const fnName = this.findAllWthRelation.name;
     const input = `Input : Find EventType with searchCriteria: ${JSON.stringify(searchCriteria)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -98,7 +98,7 @@ export class EventTypeController {
 
   @Get('findOne/relation')
   findOneWthRelation(@Query() searchCriteria: FindEventTypeDto) {
-    const fnName = this.findAll.name;
+    const fnName = this.findOneWthRelation.name;
     const input = `Input : Find EventType with searchCriteria: ${JSON.stringify(searchCriteria)} with relation`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -109,7 +109,7 @@ export class EventTypeController {
 
   @Get('id')
   findOneById(@Query('id') id: string) {
-    const fnName = this.findOne.name;
+    const fnName = this.findOneById.name;
     const input = `Input : FindOne EventType by id : ${id}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -123,7 +123,7 @@ export class EventTypeController {
     @Query('id') id: string,
     @Body() updateEventTypeDto: UpdateEventTypeDto
   ) {
-    const fnName = this.findOne.name;
+    const fnName = this.update.name;
     const input = `Input : Id : ${id}, updateEventTypeDto: ${JSON.stringify(updateEventTypeDto)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -144,7 +144,7 @@ export class EventTypeController {
     @UserId() userId: string,
     @Query('id') id: string
   ) {
-    const fnName = this.findOne.name;
+    const fnName = this.remove.name;
     const input = `Input : Delete EventType : ${id}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);

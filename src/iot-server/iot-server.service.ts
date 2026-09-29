@@ -185,12 +185,14 @@ export class IotServerService {
         DEVICE_MODEL_WITH_ALERTS_URL,
         this.baseURL,
       );
+      // console.log("Searchobject", searchObject);
       const deviceModelAlertResp = await firstValueFrom(
         this.httpService.get<DeviceModel[]>(deviceModelWithAlertsUrl.href, {
           params: searchObject,
         }),
       );
       const dvcMdlWthAlrts: DeviceModel[] = deviceModelAlertResp.data;
+      console.log('devicemodelaert', dvcMdlWthAlrts);
 
       if (!dvcMdlWthAlrts || dvcMdlWthAlrts.length == 0) {
         this.logger.debug(
@@ -227,6 +229,8 @@ export class IotServerService {
                     alert.alertId +
                     KEY_SEPARATOR +
                     alert.passthru;
+
+                  console.log("in key", key);
                   alertsByDeviceModel.set(key, alert);
                 }
               } else {
@@ -272,11 +276,12 @@ export class IotServerService {
             `Alert master level is : ${alertsByDeviceModel.get(key)?.alertLevel
             }`,
           );
+          console.log("key", key);
           const createAlertObj = CreateAlertDto.createFromInputAlert2DTO(
             inputAlertDTO,
             alertsByDeviceModel.get(key),
           );
-          // 
+          console.log("DeviceModelAlerts", alertsByDeviceModel);
           this.logger.debug(
             `${fnName} : createAlertObj level is : ${createAlertObj.alertLevel}`,
           );
@@ -2470,6 +2475,7 @@ export class IotServerService {
           for (const alert of toBeIncrementedAlerts) {
             alert.alertCount++;
           }
+          // 
           const incrmntdAlerts: Alert[] = await this.alertService.save(
             toBeIncrementedAlerts,
           );
@@ -2481,6 +2487,7 @@ export class IotServerService {
 
       toBeCreatedAlerts.push(...arrivedAlert2Map.values());
 
+      console.log('to be created', toBeCreatedAlerts);
       const crtdAlerts: Alert[] | undefined = await this.saveTelemetryAlerts3(
         token,
         toBeCreatedAlerts,
@@ -2494,7 +2501,7 @@ export class IotServerService {
     const orgId = await this.cacheMappingService.getOrSetOrgId(assetID);
 
     const createdAlertsWthOrgId = createdAlerts.map((alert) => ({
-      ...alert, // 
+      ...alert,
       orgId
     }));
 
@@ -2502,6 +2509,7 @@ export class IotServerService {
       ...alert,
       orgId
     }))
+    // 
     // here we have to add these code for getting orgId from assetId 
     // const createdAndClosedAlerts = createdAlerts.concat(closedAlerts);
     const createdAndClosedAlerts = createdAlertsWthOrgId.concat(closedAlertsWthOrgId);
@@ -2656,6 +2664,7 @@ export class IotServerService {
   }
 
   async saveTelemetryMetrics(telemetryPayloads: TelemetryPayload[]) {
+    // console.log("in iot save telemtry", telemetryPayloads);
     this.logger.debug(`Save Telemetry Metrics : Start`);
     const msgTemplate = `Save Telemetry Metrics : ${this.serviceName}`;
     const event = `Input : Nos are : ${telemetryPayloads.length}`;
@@ -2681,6 +2690,7 @@ export class IotServerService {
       const savedCurrentTelemetryPayloads =
         await this.currentTelemetryPayloadService.createV2(telemetryPayloads);
 
+      // console.log("saved", savedTelemetryPayloads);
       return savedTelemetryPayloads;
     } catch (error) {
       const errMsg = getTryCatchErrorStr(error);

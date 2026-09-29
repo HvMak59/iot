@@ -10,6 +10,11 @@ export class Metric {
     if (metric) {
       Object.assign(this, metric);
       /* this.txnCaptureTimeInEpoch = metric.txnCaptureTime?.valueOf(); */
+
+      this.txnCaptureTime = new Date(
+        metric.txnCaptureTime!,
+      );
+
       this.txnCapturePeriod = getPeriodTime(
         metric.txnCaptureTime!,
         metric.frequency,

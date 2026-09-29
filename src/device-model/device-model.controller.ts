@@ -87,15 +87,15 @@ export class DeviceModelController {
   //   return await this.deviceModelService.findUnits(csvIDs);
   // }
 
-  // @Get()
-  // async findAll(@Query() searchCriteria: FindDeviceModelDto) {
-  //   const fnName = 'findAll()';
-  //   const input = `Input : ${JSON.stringify(searchCriteria)}`;
-  //   this.logger.debug(fnName + KEY_SEPARATOR + input);
-  //   this.logger.debug(fnName + KEY_SEPARATOR + 'Start');
-  //   //const relationsRequired = true;
-  //   return await this.deviceModelService.findAll(searchCriteria);
-  // }
+  @Get()
+  async findAll(@Query() searchCriteria: FindDeviceModelDto) {
+    const fnName = 'findAll()';
+    const input = `Input : ${JSON.stringify(searchCriteria)}`;
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+    this.logger.debug(fnName + KEY_SEPARATOR + 'Start');
+    //const relationsRequired = true;
+    return await this.deviceModelService.findAll(searchCriteria);
+  }
 
   // @Get('relations')
   // findAllWthRelations(@Query() searchCriteria: FindDeviceModelDto) {

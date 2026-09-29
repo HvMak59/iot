@@ -22,6 +22,7 @@ import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { MetricsFrequency } from 'src/common';
 import { Device } from 'src/device/entities/device.entity';
 import { Asset } from 'src/asset/entities/asset.entity';
+import { TelemetryHeader } from 'src/telemetry-header/entities/telemetry-header.entity';
 
 @Entity()
 //@Unique(['virtualDeviceId', 'metric.metricsAttributeId'])
@@ -55,6 +56,11 @@ export class CurrentTelemetryPayload {
   })
   device?: Device;
 
+  @ManyToOne(
+    () => TelemetryHeader,
+    (telemetryHeader) => telemetryHeader.currentTelemetryPayloads,
+  )
+  telemetryHeader: TelemetryHeader;
 
   @Column('uuid', { nullable: true })
   telemetryHeaderId: string;
@@ -82,8 +88,8 @@ export class CurrentTelemetryPayload {
   /*@Column({ default: false })
   isDeviceGroup: boolean; */
 
-  // @Column({ nullable: true })
-  // slaveId?: string;
+  @Column({ nullable: true })
+  slaveId?: string;
 
   // @Column({ nullable: true })
   // deviceId?: string;

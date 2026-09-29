@@ -391,7 +391,7 @@ export class AlertEventsListener {
 
     private readonly orgIdByAssetId = new Map<string, string>();
 
-    @OnEvent(CreatedAndClosedAlerts)
+    // @OnEvent(CreatedAndClosedAlerts)
     async sendAlertNotificationToFirebase(
         alertsInput: Alert[] /* ,
     status: AlertStatus, */,

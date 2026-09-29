@@ -19,7 +19,7 @@ export class EventTypeService {
   ) { }
 
   create(createEventTypeDto: CreateEventTypeDto) {
-    const fnName = this.createBulk.name;
+    const fnName = this.create.name;
     const input = `Input: create eventType: ${JSON.stringify(createEventTypeDto)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -91,7 +91,7 @@ export class EventTypeService {
   }
 
   findOne(searchCriteria: FindEventTypeDto, relationsRequired: boolean = false) {
-    const fnName = this.findAll.name;
+    const fnName = this.findOne.name;
     const input = `Input : FindOne eventType with searchCriteria : ${JSON.stringify(searchCriteria)}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);
@@ -105,7 +105,7 @@ export class EventTypeService {
   }
 
   findOneById(id: string, relationsRequired: boolean = false) {
-    const fnName = this.findAll.name;
+    const fnName = this.findOneById.name;
     const input = `Input : FindOne eventType by id : ${id}`;
 
     this.logger.debug(fnName + KEY_SEPARATOR + input);

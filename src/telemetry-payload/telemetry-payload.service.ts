@@ -76,6 +76,7 @@ export class TelemetryPayloadService {
 
 
   async create(createTelemetryPayloadsDto: CreateTelemetryPayloadDto[]) {
+    console.log(createTelemetryPayloadsDto);
     const fnName = this.create.name;
     const input = `Input No of records : ${createTelemetryPayloadsDto.length}`;
     const msgTemplate = `${fnName} : ${input}`;

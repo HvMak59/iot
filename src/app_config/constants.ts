@@ -190,4 +190,85 @@ export const SolarAsset = new Set([SolarPlant, SolarMotor]);
 export const ignoreStartHrForSolar = 21;
 export const ignoreEndHrForSolar = 5;
 
-export const CreatedAndClosedAlerts = 'alertCreatedOrClosed'; 
+export const CreatedAndClosedAlerts = 'alertCreatedOrClosed';
+
+
+
+
+// These are for 2-way rmu 
+export const RTU_MQTT_TOPIC_PREFIX = 'HrmsIOT/Rtv';
+
+export const RTU_MQTT_COMMAND_SUFFIX = 'Cmd/Sub';
+
+export const RTU_MQTT_RESPONSE_SUFFIX = 'Cmd/Pub';
+
+export const RTU_MQTT_RESPONSE_TOPIC = 'HrmsIOT/Rtv/+/Cmd/Pub';
+
+/**
+ * One wildcard subscription catches responses from all RMUs.
+ *
+ * Example:
+ * HrmsIOT/Rtv/2026090001/Cmd/Pub
+ * HrmsIOT/Rtv/2026090002/Cmd/Pub
+ */
+// export const RTU_MQTT_RESPONSE_TOPIC =
+//   `${RTU_MQTT_TOPIC_PREFIX}/+/` +
+//   `${RTU_MQTT_RESPONSE_SUFFIX}`;
+
+/**
+ * MQTT QoS used for RTU commands.
+ *
+ * Change only if your RMU protocol requires another QoS.
+ */
+export const RTU_MQTT_QOS = 1 as const;
+
+/**
+ * Commands are never retained.
+ */
+export const RTU_MQTT_RETAIN = false;
+
+/**
+ * Maximum time to wait for RMU response.
+ */
+export const RTU_RESPONSE_TIMEOUT_MS = 10_000;
+
+/**
+ * Short message ID length.
+ *
+ * UUID v4 is generated and then shortened.
+ */
+export const RTU_MSG_ID_LENGTH = 12;
+
+/**
+ * ------------------------------------------------------------------
+ * Protocol-specific fields
+ * ------------------------------------------------------------------
+ *
+ * IMPORTANT:
+ * These values were isolated here because the exact RMU protocol
+ * specification/sample is not available in the current source.
+ *
+ * Replace these with the exact values from your RMU protocol.
+ */
+
+export const RTU_DATA_TYPE = 'uint16';
+
+export const RTU_VALUE_TYPE = 'HoldingRegister';
+
+export const RTU_MULTIPLIER = 0.1;
+
+export const RTU_FIELD_SIZE = 1;
+
+/**
+ * Command types.
+ */
+export const RTU_COMMAND_TYPE_READ = 'read' as const;
+
+export const RTU_COMMAND_TYPE_WRITE = 'write' as const;
+
+
+
+
+export const RTU_MQTT_COMMAND_TOPIC_PREFIX = 'HrmsIOT/Rtv';
+
+export const RTU_MQTT_COMMAND_TOPIC_SUFFIX = 'Cmd/Pub';

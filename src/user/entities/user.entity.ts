@@ -42,17 +42,33 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ nullable: true })
-  phoneNumber: string;
+  // @Column({ nullable: true })
+  // phoneNumber: string;
+
+  @Column({ nullable: true, unique: true })
+  phoneNo?: string;
 
   @Column({ nullable: true })
   searchTerm: string;
+
+  // @BeforeInsert()
+  // @BeforeUpdate()
+  // setSearchTerm() {
+  //   this.searchTerm =
+  //     this.id + KEY_SEPARATOR + this.name + KEY_SEPARATOR + (this.email ?? '');
+  // }
 
   @BeforeInsert()
   @BeforeUpdate()
   setSearchTerm() {
     this.searchTerm =
-      this.id + KEY_SEPARATOR + this.name + KEY_SEPARATOR + (this.email ?? '');
+      this.id +
+      KEY_SEPARATOR +
+      this.name +
+      KEY_SEPARATOR +
+      (this.email ?? '') +
+      KEY_SEPARATOR +
+      (this.phoneNo ?? '');
   }
 
   /* @ManyToMany(() => Org, {

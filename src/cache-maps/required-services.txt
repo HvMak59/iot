@@ -1,0 +1,68 @@
+iot-server.service.ts 
+
+  constructor(
+    private readonly cacheMappingService: CacheMappingService,
+  ) {}
+
+
+In manageAlerts2 ....
+ 
+  const createdAndClosedAlerts = createdAlerts.concat(closedAlerts);
+  Find this line at the end of the code and Replace with below code 
+
+
+  const orgId = await this.cacheMappingService.getOrSetOrgId(assetID);
+
+    const createdAlertsWthOrgId = createdAlerts.map((alert) => ({
+      ...alert,
+      orgId
+    }));
+
+    const closedAlertsWthOrgId = closedAlerts.map((alert) => ({
+      ...alert,
+      orgId
+    }))
+
+    const createdAndClosedAlerts = createdAlertsWthOrgId.concat(closedAlertsWthOrgId);
+
+    .... 
+    ....
+    ....
+    
+rest of the remaining code as it is 
+
+
+
+
+
+AssetService : 
+
+ async findOrgId(id: string) {
+        const asset = await this.repo.findOne({
+            select: {
+                id: true,
+                orgId: true
+            },
+            where: { id }
+        });
+
+        return asset?.orgId;
+    }
+
+
+
+async findAssetOrgIdMap(assetIds: string[]) {
+        const assets = await this.repo.find({
+            select: {
+                id: true,
+                orgId: true,
+            },
+            where: {
+                id: In(assetIds),
+            },
+        });
+
+        return new Map(
+            assets.map(asset => [asset.id, asset.orgId]),
+        );
+    }
