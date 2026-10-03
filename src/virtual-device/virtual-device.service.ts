@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 // import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-import { In, IsNull, Not, Repository, TreeRepository } from 'typeorm';
+import { In, IsNull, Like, Not, Repository, TreeRepository } from 'typeorm';
 // import {
 //   deleteRec,
 //   findAll,
@@ -103,6 +103,78 @@ export class VirtualDeviceService {
   findAll(searchCriteria: FindVirtualDeviceDto) {
     console.log("in vd find", JSON.stringify(searchCriteria))
     return this.repo.find({ where: { assetId: searchCriteria.assetId } });
+  }
+
+  async findRmusForRtuCommand(assetId: string) {
+    const vds = await this.repo.find({
+      select: {
+        id: true,
+        name: true,
+        device: {
+          id: true,
+          serialNo: true,
+          clientDeviceId: true
+        }
+      },
+      where: { assetId, deviceTypeId: 'RMU' },
+      relations: ['device']
+    })
+
+    const rmuClientDeviceIds = vds.map((vd) => vd.device?.clientDeviceId);
+
+    return rmuClientDeviceIds;
+  }
+
+  // findVDevicesForRtuCommand(virtualDeviceId: string, rmuClientDeviceId: string) {
+  findVDevicesForRtuCommand(assetId: string) {
+    console.log("here");
+    return this.repo.find({
+      select: {
+        id: true,
+        name: true,
+        deviceTypeId: true,
+        device: {
+          id: true,
+          serialNo: true,
+          // deviceTypeId: true
+        }
+      },
+      // where: {
+      //   device: {
+      //     // clientDeviceId: "VFD-2026090001-1",
+      //     clientDeviceId: Like(`%${rmuClientDeviceId}%`),
+      //   }
+      // },
+      where: [
+        {
+          assetId: assetId,
+          // id: virtualDeviceId
+        },
+        // {
+        //   device: {
+        //     // clientDeviceId: "VFD-2026090001-1",
+        //     clientDeviceId: Like(`%${rmuClientDeviceId}%`),
+        //   }
+        // }
+      ],
+      relations: ['device']
+    })
+  }
+
+  findAllVdForRtuCommand(assetId: string) {
+    return this.repo.find({
+      select: {
+        id: true,
+        name: true,
+        device: {
+          id: true,
+          serialNo: true,
+          clientDeviceId: true
+        }
+      },
+      where: { assetId },
+      relations: ['device']
+    })
   }
   //   async create(createVirtualDeviceDto: CreateVirtualDeviceDto, token: string) {
   //     const fnName = 'create()'

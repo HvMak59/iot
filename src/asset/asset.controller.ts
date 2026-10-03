@@ -48,7 +48,12 @@ export class AssetController {
 
     @Get('id')
     async findOneById(@Query('id') id: string) {
-        return this.assetService.findOneById(id)
+        return await this.assetService.findOneById(id)
+    }
+
+    @Get('findAll')
+    async findAll() {
+        return await this.assetService.findAll();
     }
 
     @Patch('changeOrg')

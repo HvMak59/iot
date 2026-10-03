@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RTU Command Tester</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .field {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[readonly] {
+            background: #eeeeee;
+        }
+
+        button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #111;
+        }
+
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .load-btn {
+            width: 180px;
+            margin-top: 23px;
+        }
+
+        /* =====================================================
+           SEND CONTROL
+           ===================================================== */
+
+        .send-btn {
+            margin-top: 10px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        .send-btn:hover {
+            background: #111;
+        }
+
+        .send-btn.disabled {
+            background: #aaa;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        #response {
+            margin-top: 25px;
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            min-height: 50px;
+        }
+
+        #error {
+            margin-top: 15px;
+            color: red;
+            font-weight: bold;
+        }
+
+        .info {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 700px) {
+
+            .row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .load-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <div class="container">
+
+        <h2>RTU Command Tester</h2>
+
+
+        <!-- ================================================= -->
+        <!-- Asset ID -->
+        <!-- ================================================= -->
+
+        <div class="row">
+
+            <div class="field">
+
+                <label for="assetId">
+                    Asset ID
+                </label>
+
+                <input type="text" id="assetId" placeholder="Enter Asset ID">
+
+            </div>
+
+
+            <div class="field">
+
+                <button type="button" class="load-btn" id="loadVdBtn">
+                    Load Virtual Devices
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Virtual Device -->
+        <!-- ================================================= -->
+
+        <div class="row">
+
+            <div class="field">
+
+                <label for="virtualDevice">
+                    Virtual Device
+                </label>
+
+                <select id="virtualDevice" disabled>
+
+                    <option value="">
+                        Select Virtual Device
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Slave ID + RMU ID -->
+        <!-- ================================================= -->
+
+        <div class="row">
+
+            <div class="field">
+
+                <label for="slaveIdSelect">
+                    Slave ID
+                </label>
+
+
+                <!-- Slave dropdown -->
+
+                <select id="slaveIdSelect" disabled>
+
+                    <option value="">
+                        Select Slave
+                    </option>
+
+                </select>
+
+
+                <!-- Manual slave input -->
+
+                <input type="text" id="slaveIdInput" placeholder="Enter Slave ID manually" style="display: none;">
+
+
+                <div class="info">
+                    If no slave is found, you can enter it manually.
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- RMU ID -->
+            <!-- ================================================= -->
+
+            <div class="field">
+
+                <label for="rmuId">
+                    RMU ID
+                </label>
+
+                <select id="rmuId" disabled>
+
+                    <option value="">
+                        Select RMU
+                    </option>
+
+                </select>
+
+                <div class="info">
+                    Select RMU for this command.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Command Type -->
+        <!-- ================================================= -->
+
+        <div class="row">
+
+            <div class="field">
+
+                <label for="type">
+                    Command Type
+                </label>
+
+                <select id="type">
+
+                    <option value="read">
+                        Read
+                    </option>
+
+                    <option value="write">
+                        Write
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Address + Parameter -->
+        <!-- ================================================= -->
+
+        <div class="row">
+
+            <div class="field">
+
+                <label for="addr">
+                    Address
+                </label>
+
+                <input type="text" id="addr" placeholder="Enter address">
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="param">
+                    Parameter
+                </label>
+
+                <input type="text" id="param" placeholder="Enter parameter">
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Write Value -->
+        <!-- ================================================= -->
+
+        <div class="row" id="valueRow" style="display: none;">
+
+            <div class="field">
+
+                <label for="value">
+                    Value
+                </label>
+
+                <input type="text" id="value" placeholder="Enter value to write">
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- SEND -->
+        <!-- No button, no form submission -->
+        <!-- ================================================= -->
+
+        <div class="send-btn" id="sendBtn" role="button" tabindex="0">
+            Send RTU Command
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- Error -->
+        <!-- ================================================= -->
+
+        <div id="error"></div>
+
+
+        <!-- ================================================= -->
+        <!-- Response -->
+        <!-- ================================================= -->
+
+        <div id="response">
+            Response will appear here...
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // =====================================================
+        // Backend URL
+        // =====================================================
+
+        const API_BASE_URL =
+            "http://localhost:3002/rtu-command";
+
+
+        // =====================================================
+        // STORE VIRTUAL DEVICES
+        // =====================================================
+
+        let virtualDevices = [];
+
+
+        // =====================================================
+        // DOM ELEMENTS
+        // =====================================================
+
+        const assetIdInput =
+            document.getElementById("assetId");
+
+        const loadVdBtn =
+            document.getElementById("loadVdBtn");
+
+        const virtualDeviceSelect =
+            document.getElementById("virtualDevice");
+
+        const slaveSelect =
+            document.getElementById("slaveIdSelect");
+
+        const slaveInput =
+            document.getElementById("slaveIdInput");
+
+        const rmuInput =
+            document.getElementById("rmuId");
+
+        const typeSelect =
+            document.getElementById("type");
+
+        const addrInput =
+            document.getElementById("addr");
+
+        const paramInput =
+            document.getElementById("param");
+
+        const valueInput =
+            document.getElementById("value");
+
+        const valueRow =
+            document.getElementById("valueRow");
+
+        const sendBtn =
+            document.getElementById("sendBtn");
+
+        const responseBox =
+            document.getElementById("response");
+
+        const errorBox =
+            document.getElementById("error");
+
+
+        // =====================================================
+        // EVENTS
+        // =====================================================
+
+        loadVdBtn.addEventListener(
+            "click",
+            loadVirtualDevices
+        );
+
+
+        virtualDeviceSelect.addEventListener(
+            "change",
+            loadSlaves
+        );
+
+
+        typeSelect.addEventListener(
+            "change",
+            handleTypeChange
+        );
+
+
+        // =====================================================
+        // SEND CLICK
+        // =====================================================
+
+        sendBtn.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+                sendCommand();
+            }
+        );
+
+
+        // =====================================================
+        // SEND ENTER / SPACE
+        // =====================================================
+
+        sendBtn.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+                    sendCommand();
+                }
+            }
+        );
+
+
+        // =====================================================
+        // Load Virtual Devices
+        // =====================================================
+
+        async function loadVirtualDevices() {
+
+            const assetId =
+                assetIdInput
+                    .value
+                    .trim();
+
+
+            if (!assetId) {
+
+                showError(
+                    "Please enter Asset ID"
+                );
+
+                return;
+            }
+
+
+            clearError();
+
+
+            loadVdBtn.disabled =
+                true;
+
+            loadVdBtn.textContent =
+                "Loading...";
+
+
+            virtualDeviceSelect.innerHTML =
+                '<option value="">Loading...</option>';
+
+            virtualDeviceSelect.disabled =
+                true;
+
+
+
+
+            resetSlaveFields();
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_BASE_URL}/vds?assetId=${encodeURIComponent(assetId)}`,
+                        {
+                            method: "GET"
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `HTTP Error: ${response.status}`
+                    );
+                }
+
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * Store the complete response globally.
+                 */
+                virtualDevices =
+                    await response.json();
+
+
+                console.log(
+                    "Virtual Devices:",
+                    virtualDevices
+                );
+
+
+                virtualDeviceSelect.innerHTML =
+                    '<option value="">Select Virtual Device</option>';
+
+
+                if (
+                    !Array.isArray(virtualDevices) ||
+                    virtualDevices.length === 0
+                ) {
+
+                    showError(
+                        "No virtual devices found."
+                    );
+
+                    return;
+                }
+
+
+                // =================================================
+                // FIND ALL RMUs
+                // =================================================
+
+                const rmuDevices =
+                    virtualDevices.filter(
+                        vd =>
+                            String(
+                                vd.deviceTypeId
+                            ).toUpperCase() === "RMU" &&
+                            vd.device?.serialNo
+                    );
+
+
+                // =================================================
+                // RESET RMU DROPDOWN
+                // =================================================
+
+                rmuInput.innerHTML =
+                    '<option value="">Select RMU</option>';
+
+
+                // =================================================
+                // POPULATE ALL RMUs
+                //
+                // Example:
+                // 2026090006
+                // 2026090007
+                // =================================================
+
+                rmuDevices.forEach(rmu => {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    option.value =
+                        rmu.device.serialNo;
+
+
+                    option.textContent =
+                        rmu.device.serialNo;
+
+
+                    rmuInput.appendChild(
+                        option
+                    );
+
+                });
+
+
+                // Enable RMU dropdown if at least
+                // one RMU is available.
+
+                rmuInput.disabled =
+                    rmuDevices.length === 0;
+
+
+                console.log(
+                    "RMU Devices:",
+                    rmuDevices
+                );
+
+
+                console.log(
+                    "RMU IDs:",
+                    rmuDevices.map(
+                        rmu =>
+                            rmu.device.serialNo
+                    )
+                );
+
+
+                // =================================================
+                // POPULATE VIRTUAL DEVICES
+                // =================================================
+
+                virtualDevices.forEach(vd => {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    // Actual value sent/used internally
+
+                    option.value =
+                        vd.id;
+
+
+                    // Display:
+                    // RMU1-2026010001
+                    // Inv1-2101076532WPR9057335
+
+                    option.textContent =
+                        vd.name &&
+                            vd.device?.serialNo
+
+                            ? `${vd.name}-${vd.device.serialNo}`
+
+                            : vd.name ||
+                            vd.device?.serialNo ||
+                            vd.id;
+
+
+                    virtualDeviceSelect.appendChild(
+                        option
+                    );
+
+                });
+
+
+                virtualDeviceSelect.disabled =
+                    false;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Load Virtual Devices Error:",
+                    error
+                );
+
+
+                virtualDevices =
+                    [];
+
+
+                rmuInput.innerHTML =
+                    '<option value="">Select RMU</option>';
+
+
+                rmuInput.disabled =
+                    true;
+
+
+                virtualDeviceSelect.innerHTML =
+                    '<option value="">Failed to load</option>';
+
+
+                showError(
+                    "Failed to load virtual devices: "
+                    + error.message
+                );
+
+
+            } finally {
+
+                loadVdBtn.disabled =
+                    false;
+
+                loadVdBtn.textContent =
+                    "Load Virtual Devices";
+            }
+        }
+
+
+        // =====================================================
+        // Load Slaves
+        // =====================================================
+
+        async function loadSlaves() {
+
+            const virtualDeviceId =
+                virtualDeviceSelect.value;
+
+
+            clearError();
+
+
+            slaveSelect.innerHTML =
+                '<option value="">Loading...</option>';
+
+            slaveSelect.disabled =
+                true;
+
+            slaveSelect.style.display =
+                "block";
+
+
+            slaveInput.style.display =
+                "none";
+
+            slaveInput.value =
+                "";
+
+
+            /*
+             * DO NOT clear RMU ID here.
+             *
+             * RMU ID comes from the RMU
+             * dropdown and is independent
+             * of telemetry slave data.
+             */
+
+
+            if (!virtualDeviceId) {
+
+                slaveSelect.innerHTML =
+                    '<option value="">Select Slave</option>';
+
+                return;
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_BASE_URL}/slaveIds?virtualDeviceId=${encodeURIComponent(virtualDeviceId)}`,
+                        {
+                            method: "GET"
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `HTTP Error: ${response.status}`
+                    );
+                }
+
+
+                const slaves =
+                    await response.json();
+
+
+                console.log(
+                    "Slaves:",
+                    slaves
+                );
+
+
+                // -------------------------------------------------
+                // No slaves
+                // -------------------------------------------------
+
+                if (
+                    !Array.isArray(slaves) ||
+                    slaves.length === 0
+                ) {
+
+                    slaveSelect.style.display =
+                        "none";
+
+
+                    slaveInput.style.display =
+                        "block";
+
+
+                    slaveInput.disabled =
+                        false;
+
+
+                    return;
+                }
+
+
+                // -------------------------------------------------
+                // Slaves found
+                // -------------------------------------------------
+
+                slaveSelect.style.display =
+                    "block";
+
+
+                slaveInput.style.display =
+                    "none";
+
+
+                slaveSelect.innerHTML =
+                    '<option value="">Select Slave</option>';
+
+
+                slaves.forEach(slave => {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    option.value =
+                        slave.slaveId;
+
+
+                    option.textContent =
+                        `Slave ${slave.slaveId}`;
+
+
+                    slaveSelect.appendChild(
+                        option
+                    );
+
+                });
+
+
+                slaveSelect.disabled =
+                    false;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Load Slaves Error:",
+                    error
+                );
+
+
+                // -------------------------------------------------
+                // API failure -> manual slave
+                // -------------------------------------------------
+
+                slaveSelect.style.display =
+                    "none";
+
+
+                slaveInput.style.display =
+                    "block";
+
+
+                slaveInput.disabled =
+                    false;
+
+
+                showError(
+                    "Could not load slaves. "
+                    + "You can enter Slave ID manually."
+                );
+            }
+        }
+
+
+        // =====================================================
+        // Read / Write
+        // =====================================================
+
+        function handleTypeChange() {
+
+            const type =
+                typeSelect.value;
+
+
+            if (type === "write") {
+
+                valueRow.style.display =
+                    "flex";
+
+                valueInput.required =
+                    true;
+
+            } else {
+
+                valueRow.style.display =
+                    "none";
+
+                valueInput.required =
+                    false;
+
+                valueInput.value =
+                    "";
+            }
+        }
+
+
+        // =====================================================
+        // SEND RTU COMMAND
+        // =====================================================
+
+        async function sendCommand() {
+
+            clearError();
+
+
+            // -------------------------------------------------
+            // Get values
+            // -------------------------------------------------
+
+            const virtualDeviceId =
+                virtualDeviceSelect.value;
+
+
+            const rmuDeviceId =
+                rmuInput
+                    .value
+                    .trim();
+
+
+            const type =
+                typeSelect.value;
+
+
+            const addr =
+                addrInput
+                    .value
+                    .trim();
+
+
+            const param =
+                paramInput
+                    .value
+                    .trim();
+
+
+            const value =
+                valueInput
+                    .value
+                    .trim();
+
+
+            // -------------------------------------------------
+            // Get Slave ID
+            // -------------------------------------------------
+
+            let slaveId;
+
+
+            if (
+                slaveInput.style.display !==
+                "none"
+            ) {
+
+                slaveId =
+                    slaveInput
+                        .value
+                        .trim();
+
+            } else {
+
+                slaveId =
+                    slaveSelect.value;
+            }
+
+
+            // -------------------------------------------------
+            // Validation
+            // -------------------------------------------------
+
+            if (!virtualDeviceId) {
+
+                showError(
+                    "Please select Virtual Device"
+                );
+
+                return;
+            }
+
+
+            if (!slaveId) {
+
+                showError(
+                    "Please enter/select Slave ID"
+                );
+
+                return;
+            }
+
+
+            if (!rmuDeviceId) {
+
+                showError(
+                    "Please select RMU ID"
+                );
+
+                return;
+            }
+
+
+            if (!addr) {
+
+                showError(
+                    "Please enter Address"
+                );
+
+                return;
+            }
+
+
+            if (!param) {
+
+                showError(
+                    "Please enter Parameter"
+                );
+
+                return;
+            }
+
+
+            if (
+                type === "write" &&
+                !value
+            ) {
+
+                showError(
+                    "Please enter Value for Write command"
+                );
+
+                return;
+            }
+
+
+            // -------------------------------------------------
+            // REQUEST BODY
+            // -------------------------------------------------
+
+            const payload = {
+
+                rmuDeviceId:
+                    rmuDeviceId,
+
+                slaveId:
+                    slaveId,
+
+                param:
+                    param,
+
+                addr:
+                    addr,
+
+                type:
+                    type,
+
+                ...(type === "write"
+                    ? {
+                        value:
+                            value
+                    }
+                    : {})
+            };
+
+
+            console.log(
+                "RTU Command Request Body:",
+                payload
+            );
+
+
+            // -------------------------------------------------
+            // Disable send
+            // -------------------------------------------------
+
+            sendBtn.classList.add(
+                "disabled"
+            );
+
+            sendBtn.textContent =
+                "Sending...";
+
+
+            responseBox.textContent =
+                "Sending RTU command...";
+
+
+            try {
+
+                // =================================================
+                // POST JSON BODY
+                // =================================================
+
+                const response =
+                    await fetch(
+                        `${API_BASE_URL}/sendCommand`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type": "application/json",
+                                'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYWNoaW4iLCJpYXQiOjE3Nzc0NDAyODksImV4cCI6MTc3NzUyNjY4OX0.t5Gb4ZeKXVvN3Aw9eyRE5jKPQtidUyRRanh2MgOl8YA'
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+                        }
+                    );
+
+
+                // -------------------------------------------------
+                // HTTP error
+                // -------------------------------------------------
+
+                if (!response.ok) {
+
+                    let errorMessage =
+                        `HTTP Error: ${response.status}`;
+
+
+                    try {
+
+                        const errorBody =
+                            await response.json();
+
+
+                        if (
+                            errorBody &&
+                            errorBody.message
+                        ) {
+
+                            errorMessage =
+                                Array.isArray(
+                                    errorBody.message
+                                )
+                                    ? errorBody.message.join(
+                                        ", "
+                                    )
+                                    : errorBody.message;
+                        }
+
+                    } catch (_) {
+
+                        // Ignore response parse error
+                    }
+
+
+                    throw new Error(
+                        errorMessage
+                    );
+                }
+
+
+                // -------------------------------------------------
+                // Success response
+                // -------------------------------------------------
+
+                const result =
+                    await response.json();
+
+
+                console.log(
+                    "RTU Response:",
+                    result
+                );
+
+
+                responseBox.textContent =
+                    JSON.stringify(
+                        result,
+                        null,
+                        4
+                    );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Send RTU Command Error:",
+                    error
+                );
+
+
+                responseBox.textContent =
+                    "Command failed.";
+
+
+                showError(
+                    "Failed to send command: "
+                    + error.message
+                );
+
+
+            } finally {
+
+                sendBtn.classList.remove(
+                    "disabled"
+                );
+
+                sendBtn.textContent =
+                    "Send RTU Command";
+            }
+        }
+
+
+        // =====================================================
+        // Reset Slave Fields
+        // =====================================================
+
+        function resetSlaveFields() {
+
+            slaveSelect.innerHTML =
+                '<option value="">Select Slave</option>';
+
+
+            slaveSelect.style.display =
+                "block";
+
+
+            slaveSelect.disabled =
+                true;
+
+
+            slaveInput.style.display =
+                "none";
+
+
+            slaveInput.value =
+                "";
+
+
+            /*
+             * RMU dropdown is reset only when
+             * loading a completely new asset.
+             */
+
+            rmuInput.innerHTML =
+                '<option value="">Select RMU</option>';
+
+
+            rmuInput.disabled =
+                true;
+        }
+
+
+        // =====================================================
+        // Error Helpers
+        // =====================================================
+
+        function showError(message) {
+
+            errorBox.textContent =
+                message;
+        }
+
+
+        function clearError() {
+
+            errorBox.textContent =
+                "";
+        }
+
+
+        // =====================================================
+        // Initial State
+        // =====================================================
+
+        handleTypeChange();
+
+    </script>
+
+</body>
+
+</html>

@@ -39,7 +39,7 @@ import { diffToEndOfDayThreshold, KEY_SEPARATOR } from 'src/app_config/constants
 import { convertpossibleStringTypeToInt, getTryCatchErrorStr } from 'src/utils/others';
 import { InputAlert2Dto } from 'src/alert/dto/input-alert2.dto';
 import { IotServerService } from 'src/iot-server/iot-server.service';
-import _ from 'lodash';
+import _, { uniqBy } from 'lodash';
 import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
 
 @Injectable()
@@ -960,6 +960,47 @@ export class CurrentTelemetryPayloadService {
     //   this.logger.error(fnName + KEY_SEPARATOR + errMsg);
     //   throw new HttpException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
     // }
+  }
+
+  findAllSlaves(searchCriteria: FindCurrentTelemetryDto) {
+    return this.repo.find({
+      select: {
+        slaveId: true,
+        telemetryHeader: {
+          rmuId: true
+        }
+      },
+      where: searchCriteria,
+      relations: ['telemetryHeader']
+    });
+  }
+
+  async findAllSlavesForVd(virtualDeviceId: string) {
+    const slaveIds = await this.repo.find({
+      select: {
+        slaveId: true,
+        telemetryHeader: {
+          rmuId: true
+        }
+      },
+      where: { virtualDeviceId },
+      relations: ['telemetryHeader']
+    });
+
+
+    return uniqBy(
+      slaveIds.map(({ slaveId, telemetryHeader }) => ({
+        slaveId,
+        rmuId: telemetryHeader?.rmuId,
+      })),
+      'slaveId',
+    );
+
+    // console.log(slaveIds);
+    // const uniqueSlaveIds = [
+    //   ...new Set(slaveIds.map(({ slaveId }) => slaveId)),
+    // ];
+    // return uniqueSlaveIds;
   }
 
   findOne(searchCriteria: FindCurrentTelemetryDto) {

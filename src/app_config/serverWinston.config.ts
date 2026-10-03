@@ -148,3 +148,65 @@ export const winstonScheduledServiceLogger = (serviceName: string) => {
     return logger;
   }
 };
+
+
+export const winstonRtuCommunicationLogger = (
+  serviceName: string,
+) => {
+  if (loggerMap.has(serviceName)) {
+    return loggerMap.get(serviceName)!;
+  } else {
+    const myFormat = format.printf((info) => {
+      // const { message, ...rest } = info;
+
+      // const logMessage =
+      //   typeof message === 'object'
+      //     ? JSON.stringify(message)
+      //     : message;
+
+      return `[${info.level}] [${info.timestamp}] [${serviceName}] ${info.message}`;
+    });
+
+    const logger = createLogger({
+      level: 'debug',
+      format: format.combine(
+        format.timestamp({
+          format: 'YYYY-MM-DD HH:mm:ss.SSS',
+        }),
+        format.colorize(),
+        myFormat,
+      ),
+      transports: [
+        new transports.Console({
+          format: format.combine(
+            format.colorize(),
+            format.timestamp({
+              format: 'YYYY-MM-DD HH:mm:ss.SSS',
+            }),
+            myFormat,
+          ),
+        }),
+        new DailyRotateFile({
+          filename: `logs/rtu/rtu-communication.%DATE%.log`,
+          datePattern: 'YYYY-MM-DD',
+          //zippedArchive: true,
+          //maxSize: '20m',
+          maxFiles: '10d',
+          // frequency : '1m'
+        }),
+        new DailyRotateFile({
+          filename: `logs/rtu/rtu-communication.%DATE%.error`,
+          level: 'error',
+          datePattern: 'YYYY-MM-DD',
+          //zippedArchive: true,
+          //maxSize: '20m',
+          maxFiles: '10d',
+          //frequency:'1m'
+        }),
+      ],
+    });
+
+    loggerMap.set(serviceName, logger);
+    return logger;
+  }
+}

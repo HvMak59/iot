@@ -34,31 +34,13 @@
 //     clientDeviceId?: string;
 // }
 
-import {
-    IsInt,
-    IsNumber,
-    IsOptional,
-    IsString,
-} from 'class-validator';
 
 export class WriteRtuCommandDto {
-    @IsString()
-    assetId: string;
-
-    @IsOptional()
-    @IsInt()
-    slaveId?: string;
-
-    @IsOptional()
-    @IsString()
-    clientDeviceId?: string;
-
-    @IsString()
+    // assetId: string;
+    slaveId: string;
+    // clientDeviceId?: string;
+    rmuDeviceId: string;
     param: string;
-
-    @IsInt()
-    addr: number;
-
-    @IsNumber()
-    value: number;
+    addr: string;
+    value: string;
 }

@@ -165,6 +165,9 @@ export class Device {
   @Column({ nullable: true })
   phoneNumber?: string;
 
+  // @Column({ nullable: true })
+  // deviceTypeId?: string;
+
   // isRMU(): boolean {
   //   return (
   //     this.deviceModel?.deviceTypeId === RMU ||

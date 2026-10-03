@@ -1,349 +1,77 @@
-import {
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+// import { Injectable } from '@nestjs/common';
+// import { CurrentTelemetryPayloadService } from '../current-telemetry-payload/current-telemetry-payload.service';
+// import { RtuCommandService } from './rtu-command.service';
+// import { ReadRtuCommandDto, sendRtuCommandDto } from './dto/read-rtu-command.dto';
+// import { WriteRtuCommandDto } from './dto/write-rtu-command.dto';
+// import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
+// import { winstonRtuCommunicationLogger } from 'src/app_config/serverWinston.config';
+// import { KEY_SEPARATOR } from 'src/app_config/constants';
+// import { RtuCommandType } from 'src/utils/enums';
 
-import { AssetService } from '../asset/asset.service';
-import { DeviceService } from '../device/device.service';
-import {
-    CurrentTelemetryPayloadService,
-} from '../current-telemetry-payload/current-telemetry-payload.service';
+// @Injectable()
+// export class RtuCommandMasterService {
+//     private readonly logger = winstonRtuCommunicationLogger(RtuCommandMasterService.name);
+//     constructor(
+//         private readonly virtualDeviceService: VirtualDeviceService,
+//         private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
+//         private readonly rtuCommandService: RtuCommandService,
+//     ) { }
 
-import { RtuCommandService } from './rtu-command.service';
+//     async getVDevices(assetId: string) {
+//         const fnName = this.getVDevices.name;
+//         const input = `Input: AssetId: ${assetId}`;
 
-import { ReadRtuCommandDto } from './dto/read-rtu-command.dto';
-import { WriteRtuCommandDto } from './dto/write-rtu-command.dto';
-import { FindDeviceDto } from 'src/device/dto/find-device.dto';
-import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
-import { FindVirtualDeviceDto } from 'src/virtual-device/dto/find-virtual-device.dto';
+//         this.logger.debug(fnName + KEY_SEPARATOR + input);
+//         this.logger.debug('Calling getVDevices service');
+//         return await this.virtualDeviceService.findVDevicesForRtuCommand(assetId);
+//     }
 
-@Injectable()
-export class RtuCommandMasterService {
-    constructor(
-        private readonly assetService: AssetService,
-        private readonly deviceService: DeviceService,
-        private readonly virtualDeviceService: VirtualDeviceService,
-        private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
-        private readonly rtuCommandService: RtuCommandService,
-    ) { }
+//     getSlaveIds(virtualDeviceId: string) {
+//         const fnName = this.getSlaveIds.name;
+//         const input = `Input: VirtualDeviceId: ${virtualDeviceId}`;
 
+//         this.logger.debug(fnName + KEY_SEPARATOR + input);
+//         this.logger.debug('Calling findAllSlavesForVd service');
+//         return this.currentTelemetryPayloadService.findAllSlavesForVd(virtualDeviceId);
+//     }
 
-    async getVDevices(assetId: string) {
-        return this.virtualDeviceService.findAll(assetId as FindVirtualDeviceDto);
-        // return this.deviceService.findAll(assetId as FindDeviceDto);
-    }
+//     async sendRtuCommand(dto: sendRtuCommandDto) {
+//         const fnName = this.sendRtuCommand.name;
+//         const input = `Input: sendRtuCommandDto: ${JSON.stringify(dto)}`;
 
-    async getSlaveId(assetId: string, deviceId: string) {
-        const searchCriteria = {
-            assetId, deviceId
-        }
-        const currTeleMPylds = await this.currentTelemetryPayloadService.findAll(searchCriteria);
+//         this.logger.debug(fnName + KEY_SEPARATOR + input);
 
-        let slaveIds: (string | undefined)[] = []
-        if (currTeleMPylds) {
-            slaveIds = currTeleMPylds.map((pyld) => pyld.slaveId);
-        }
-        console.log("slaveIds", slaveIds);
-        return slaveIds;
-    }
+//         if (dto.type == RtuCommandType.read) {
+//             const readDto: ReadRtuCommandDto = {
+//                 rmuDeviceId: dto.rmuDeviceId,
+//                 slaveId: dto.slaveId,
+//                 param: dto.param,
+//                 addr: dto.addr,
+//             };
 
-    private working = 4;
-    // async sendRtuCommand(assetId: string, rmuDeviceId: string, param: string, addr: number) {
-    //     console.log("master-send");
-    //     const dto: ReadRtuCommandDto = { assetId, rmuDeviceId, param, addr }
-    //     const r = await this.rtuCommandService.read(dto);
-    //     // console.log(r);
-    //     return r;
-    // }
+//             this.logger.debug('Calling read service');
 
-    async getRtuTarget(
-        assetId: string,
-        virtualDeviceId: string,
-    ) {
-        const virtualDevice = await this.virtualDeviceService.findOne({
-            id: virtualDeviceId,
-            assetId,
-        });
+//             return this.rtuCommandService.read(readDto);
+//         }
+//         if (dto.type == RtuCommandType.write) {
+//             const writeDto: WriteRtuCommandDto = {
+//                 rmuDeviceId: dto.rmuDeviceId,
+//                 slaveId: dto.slaveId,
+//                 param: dto.param,
+//                 addr: dto.addr,
+//                 value: dto.value,
+//             };
 
-        if (!virtualDevice) {
-            throw new NotFoundException(
-                'Virtual device not found for this asset',
-            );
-        }
-
-        if (!virtualDevice.deviceId) {
-            return {
-                virtualDeviceId,
-                deviceId: undefined,
-                slaveId: undefined,
-                rmuId: undefined,
-            };
-        }
-
-        const payloads = await this.currentTelemetryPayloadService.findAll({
-            assetId,
-            virtualDeviceId,
-        });
-
-        const payload = payloads?.find(
-            (item) =>
-                !!item.slaveId &&
-                !!item.telemetryHeader?.rmuId,
-        );
-
-        return {
-            virtualDeviceId,
-            deviceId: virtualDevice.deviceId,
-            slaveId: payload?.slaveId,
-            rmuId: payload?.telemetryHeader?.rmuId,
-        };
-    }
-
-    async sendRtuCommand(
-        assetId: string,
-        deviceId: string,
-        param: string,
-        addr: number,
-        slaveId?: string,
-    ) {
-        const target =
-            await this.getRtuTarget(
-                assetId,
-                deviceId,
-            );
-
-        const finalSlaveId = slaveId ?? target.slaveId;
-
-        if (!finalSlaveId) {
-            throw new Error(
-                'Slave ID is not available. Please provide slave ID manually.',
-            );
-        }
-
-        if (!target.rmuId) {
-            throw new Error(
-                'RMU ID could not be determined for the selected device.',
-            );
-        }
-
-        const dto: ReadRtuCommandDto = {
-            assetId,
-            rmuDeviceId: target.rmuId,
-            slaveId: finalSlaveId,
-            param,
-            addr,
-        };
-
-        return this.rtuCommandService.read(dto);
-    }
+//             this.logger.debug('Calling write service');
+//             return this.rtuCommandService.write(writeDto);
+//         }
+//     }
 
 
+//     // async getRmus(assetId: string) {
+//     //     return this.virtualDeviceService.findRmusForRtuCommand(
+//     //         assetId
+//     //     );
+//     // }
 
-
-    // /**
-    //  * Get devices available for an asset.
-    //  */
-    // async getDevices(assetId: string) {
-    //     const asset =
-    //         await this.assetService.findOneById(
-    //             assetId,
-    //         );
-
-    //     if (!asset) {
-    //         throw new NotFoundException(
-    //             `Asset ${assetId} not found`,
-    //         );
-    //     }
-
-    //     /**
-    //      * IMPORTANT:
-    //      *
-    //      * Use your existing DeviceService method
-    //      * for asset/device relationship here.
-    //      *
-    //      * Replace this call with your actual
-    //      * DeviceService method if its name differs.
-    //      */
-    //     return this.deviceService.findAll(assetId as FindDeviceDto);
-    // }
-
-    // /**
-    //  * Resolve the RTU target.
-    //  *
-    //  * Flow:
-    //  *
-    //  * asset
-    //  *   ↓
-    //  * device
-    //  *   ↓
-    //  * current telemetry
-    //  *   ↓
-    //  * slaveId
-    //  *
-    //  * If slaveId is manually provided, use it.
-    //  */
-    // async resolveTarget(input: {
-    //     assetId: string;
-    //     deviceId: string;
-    //     slaveId?: string;
-    // }) {
-    //     const asset =
-    //         await this.assetService.findOneById(
-    //             input.assetId,
-    //         );
-
-    //     if (!asset) {
-    //         throw new NotFoundException(
-    //             `Asset ${input.assetId} not found`,
-    //         );
-    //     }
-
-    //     const device =
-    //         await this.deviceService.findOne({
-    //             id: input.deviceId,
-    //         });
-
-    //     if (!device) {
-    //         throw new NotFoundException(
-    //             `Device ${input.deviceId} not found`,
-    //         );
-    //     }
-
-    //     /**
-    //      * Validate device belongs to selected asset.
-    //      *
-    //      * Keep this check according to your actual
-    //      * Asset/Device relationship.
-    //      */
-    //     await this.validateDeviceBelongsToAsset(
-    //         input.assetId,
-    //         device,
-    //     );
-
-    //     /**
-    //      * User manually supplied slaveId.
-    //      *
-    //      * In this case we don't need telemetry to
-    //      * determine the slave ID.
-    //      */
-    //     if (
-    //         input.slaveId !== undefined &&
-    //         input.slaveId !== null &&
-    //         input.slaveId.trim() !== ''
-    //     ) {
-    //         return {
-    //             assetId: input.assetId,
-    //             deviceId: device.id,
-    //             clientDeviceId:
-    //                 device.clientDeviceId,
-    //             slaveId: input.slaveId.trim(),
-    //         };
-    //     }
-
-    //     /**
-    //      * No slaveId supplied.
-    //      *
-    //      * Find current telemetry for:
-    //      *
-    //      * assetId + deviceId
-    //      */
-    //     const telemetry =
-    //         await this.currentTelemetryPayloadService.findOne(
-    //             {
-    //                 assetId: input.assetId,
-    //                 deviceId: device.id,
-    //             },
-    //         );
-
-    //     if (!telemetry) {
-    //         throw new Error(
-    //             `Slave ID not found for device ${device.id}. Please provide slaveId manually.`,
-    //         );
-    //     }
-
-    //     if (
-    //         telemetry.slaveId === undefined ||
-    //         telemetry.slaveId === null ||
-    //         String(telemetry.slaveId).trim() === ''
-    //     ) {
-    //         throw new Error(
-    //             `Slave ID is not available for device ${device.id}. Please provide slaveId manually.`,
-    //         );
-    //     }
-
-    //     return {
-    //         assetId: input.assetId,
-    //         deviceId: device.id,
-    //         clientDeviceId:
-    //             device.clientDeviceId,
-    //         slaveId: String(
-    //             telemetry.slaveId,
-    //         ),
-    //     };
-    // }
-
-    // /**
-    //  * Execute READ workflow.
-    //  */
-    // async read(dto: ReadRtuCommandDto) {
-    //     const target =
-    //         await this.resolveTarget({
-    //             assetId: dto.assetId,
-    //             deviceId: dto.deviceId,
-    //             slaveId: dto.slaveId,
-    //         });
-
-    //     return this.rtuCommandService.read(
-    //         {
-    //             clientDeviceId:
-    //                 target.clientDeviceId,
-    //             slaveId: target.slaveId,
-    //         },
-    //         dto,
-    //     );
-    // }
-
-    // /**
-    //  * Execute WRITE workflow.
-    //  */
-    // async write(dto: WriteRtuCommandDto) {
-    //     const target =
-    //         await this.resolveTarget({
-    //             assetId: dto.assetId,
-    //             deviceId: dto.deviceId,
-    //             slaveId: dto.slaveId,
-    //         });
-
-    //     return this.rtuCommandService.write(
-    //         {
-    //             clientDeviceId:
-    //                 target.clientDeviceId,
-    //             slaveId: target.slaveId,
-    //         },
-    //         dto,
-    //     );
-    // }
-
-    // /**
-    //  * Keep asset/device relationship validation
-    //  * isolated so it can match your actual
-    //  * DeviceService implementation.
-    //  */
-    // private async validateDeviceBelongsToAsset(
-    //     assetId: string,
-    //     device: any,
-    // ): Promise<void> {
-    //     /**
-    //      * Implement according to your existing
-    //      * Device entity/service relationship.
-    //      *
-    //      * Example:
-    //      *
-    //      * if (device.assetId !== assetId) {
-    //      *     throw new Error(
-    //      *         'Selected device does not belong to selected asset',
-    //      *     );
-    //      * }
-    //      */
-    // }
-}
+// }

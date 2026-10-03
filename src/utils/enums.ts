@@ -140,3 +140,9 @@ export enum aggregationStatus {
     processing = 'processing',
     completed = 'completed'
 }
+
+
+export enum RtuCommandType {
+    read = 'read',
+    write = 'write',
+}

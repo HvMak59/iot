@@ -74,8 +74,8 @@ import { TelemetryHeaderModule } from './telemetry-header/telemetry-header.modul
         database: config.get('DB_NAME', 'hermes'),
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
-        synchronize: true, // for my db use this 
-        // synchronize: false, // to connect with sir database use these 2 
+        // synchronize: true, // for my db use this 
+        synchronize: false, // to connect with sir database use these 2 
         migrationsRun: false,
         // logging: true
       }),
@@ -1347,8 +1347,28 @@ export class AppModule { }
 // Rtu-Command : 
 
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/EM-2026090001-2/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/2026090001/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // Rmu : mosquitto_pub -h hermesmqtt.com -t HrmsIOT/Rtv/EM-2026090001-2/Cmd/Pub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" -m '{“msgId”: "5b3c4496c1c7",“timestamp”: "2026-09-28 09:57:32",“param”: "power",“value”: 64,“status”: "ok",“errDscr”: ""}'
-// mosquitto_pub -h hermesmqtt.com -t "HrmsIOT/Rtv/EM-2026090001-2/Cmd/Pub" -u "hermes" -P "4iHuC+=NL6R*t7=YU6Ew" -m "{\"msgId\":\"ff0d7592956f\",\"timestamp\":\"2026-09-28 09:57:32\",\"param\":\"power\",\"value\":64,\"status\":\"ok\",\"errDscr\":\"\"}"
+// mosquitto_pub -h hermesmqtt.com -t "HrmsIOT/Rtv/2026090001/Cmd/Pub" -u "hermes" -P "4iHuC+=NL6R*t7=YU6Ew" -m "{\"msgId\":\"ff0d7592956f\",\"timestamp\":\"2026-09-30 10:57:32\",\"param\":\"power\",\"value\":64,\"status\":\"ok\",\"errDscr\":\"\"}"
+// mosquitto_pub -h hermesmqtt.com -t "HrmsIOT/Rtv/2026090001/Cmd/Pub" -u "hermes" -P "4iHuC+=NL6R*t7=YU6Ew" -m "{"msgId":"ff0d7592956f","timestamp":"2026-09-30 10:57:32","param":"power","value":64,"status":"ok","errDscr":""}"
 
+
+
+
+
+
+
+
+
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/TestRMU1/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// B-84 =        mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/HT2W250201/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// ram prakash = mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/2025040069/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+
+
+// {"slaveId":"2","msgId":"58180b8f1f6b","timestamp":"2026-10-01T11:24:25.073Z","type":"read","addr":"6235","param":"power","dataType":"uint16","valueType":"HoldingRegister","multiplier":0.1,"fieldSize":1}
+
+
+
+// sunita pan :  [0218482083] 
 
 

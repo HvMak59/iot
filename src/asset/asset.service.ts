@@ -112,6 +112,10 @@ export class AssetService {
     }
 
 
+
+    findAll() {
+        return this.repo.find();
+    }
     async findOrgId(id: string) {
         const asset = await this.repo.findOne({
             select: {
