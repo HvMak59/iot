@@ -11,13 +11,14 @@ import {
     RTU_MSG_ID_LENGTH,
     KEY_SEPARATOR,
 } from 'src/app_config/constants';
-import { ReadRtuCommandDto, sendRtuCommandDto } from './dto/read-rtu-command.dto';
+import { ReadRtuCommandDto } from './dto/read-rtu-command.dto';
 import { WriteRtuCommandDto } from './dto/write-rtu-command.dto';
 import { winstonRtuCommunicationLogger } from 'src/app_config/serverWinston.config';
 import { RtuCommand, RtuReadCommand, RtuWriteCommand } from './interfaces/rtu-command.interface';
 import { VirtualDeviceService } from 'src/virtual-device/virtual-device.service';
 import { CurrentTelemetryPayloadService } from 'src/current-telemetry-payload/current-telemetry-payload.service';
 import { RtuCommandType } from 'src/utils/enums';
+import { sendRtuCommandDto } from './dto/send-rtu-command.dto';
 
 @Injectable()
 export class RtuCommandService {
@@ -36,7 +37,7 @@ export class RtuCommandService {
         this.logger.debug(fnName + KEY_SEPARATOR + input);
 
         const command: RtuReadCommand = {
-            slaveId: dto.slaveId!,
+            slaveId: Number(dto.slaveId!),
             msgId: this.generateMsgId(),
             timestamp: this.generateTimestamp(),
             type: RTU_COMMAND_TYPE_READ,
@@ -63,7 +64,7 @@ export class RtuCommandService {
         this.logger.debug(fnName + KEY_SEPARATOR + input);
 
         const command: RtuWriteCommand = {
-            slaveId: dto.slaveId!,
+            slaveId: Number(dto.slaveId!),
             msgId: this.generateMsgId(),
             timestamp: this.generateTimestamp(),
             type: RTU_COMMAND_TYPE_WRITE,
@@ -80,6 +81,7 @@ export class RtuCommandService {
             command,
         );
     }
+
 
     private async publishCommand(
         rmuDeviceId: string,
@@ -130,9 +132,8 @@ export class RtuCommandService {
     }
 
     private generateTimestamp(): string {
-        console.log(new Date());
-        console.log(new Date().toLocaleString());
-        return new Date().toISOString();
+        // return new Date().toISOString();          // utc time 
+        return new Date().toLocaleString('sv-SE')    // local time 
     }
 
 
@@ -154,6 +155,7 @@ export class RtuCommandService {
 
         this.logger.debug(fnName + KEY_SEPARATOR + input);
         this.logger.debug('Calling findAllSlavesForVd service');
+
         return this.currentTelemetryPayloadService.findAllSlavesForVd(virtualDeviceId);
     }
 
@@ -166,11 +168,10 @@ export class RtuCommandService {
         if (dto.type == RtuCommandType.read) {
             const readDto: ReadRtuCommandDto = {
                 rmuDeviceId: dto.rmuDeviceId,
-                slaveId: dto.slaveId,
+                slaveId: dto.slaveId!,
                 param: dto.param,
-                addr: dto.addr,
+                addr: Number(dto.addr),
             };
-            //  
             this.logger.debug('Calling read service');
 
             return this.read(readDto);
@@ -178,10 +179,10 @@ export class RtuCommandService {
         if (dto.type == RtuCommandType.write) {
             const writeDto: WriteRtuCommandDto = {
                 rmuDeviceId: dto.rmuDeviceId,
-                slaveId: dto.slaveId,
+                slaveId: Number(dto.slaveId!),
                 param: dto.param,
-                addr: dto.addr,
-                value: dto.value,
+                addr: Number(dto.addr),
+                value: Number(dto.value),
             };
 
             this.logger.debug('Calling write service');

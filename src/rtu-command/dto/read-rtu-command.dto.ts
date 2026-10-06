@@ -1,15 +1,6 @@
 export class ReadRtuCommandDto {
-    slaveId: string;
+    slaveId: number;
     rmuDeviceId: string;
     param: string;
-    addr: string;
-}
-
-export class sendRtuCommandDto {
-    slaveId: string;
-    rmuDeviceId: string;
-    type: string;
-    param: string;
-    addr: string;
-    value: string;
+    addr: number;
 }

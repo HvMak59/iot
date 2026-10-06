@@ -1,10 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { Message } from 'firebase-admin/messaging';
 import { firstValueFrom } from 'rxjs';
 import { Alert } from 'src/alert/entities/alert.entity';
 import { AssetService } from 'src/asset/asset.service';
-import { AlertStatus, AlertType } from 'src/utils/enums';
+import { AlertStatus } from 'src/utils/enums';
 
 @Injectable()
 export class WhatsAppService {
@@ -112,11 +111,12 @@ export class WhatsAppService {
         const phoneNumber = await this.assetService.findPhoneNumber('asset2');
 
         console.log(messages);
+        // 
         const payload = {
             messaging_product: 'whatsapp',
             to: '916353921545',
             // to: phoneNumber,
-            // to,
+            // to, 
             type: 'template',
             template: {
                 name: 'alert_triggered',

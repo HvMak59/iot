@@ -2,9 +2,9 @@ export interface RtuReadCommand {
     msgId: string;
     timestamp: string;
     type: string;
-    slaveId: string;
+    slaveId: number;
     param: string;
-    addr: string;
+    addr: number;
     dataType: string;
     valueType: string;
     multiplier: number;
@@ -12,13 +12,13 @@ export interface RtuReadCommand {
 }
 
 export interface RtuWriteCommand {
-    slaveId: string;
+    slaveId: number;
     msgId: string;
     timestamp: string;
     type: string;
-    addr: string;
+    addr: number;
     param: string;
-    value: string;
+    value: number;
     dataType: string;
     valueType: string;
 }

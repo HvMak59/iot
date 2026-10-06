@@ -1363,6 +1363,8 @@ export class AppModule { }
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/TestRMU1/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // B-84 =        mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/HT2W250201/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // ram prakash = mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/2025040069/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/I202610001/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"I202610001\")"
 
 
 // {"slaveId":"2","msgId":"58180b8f1f6b","timestamp":"2026-10-01T11:24:25.073Z","type":"read","addr":"6235","param":"power","dataType":"uint16","valueType":"HoldingRegister","multiplier":0.1,"fieldSize":1}

@@ -237,7 +237,7 @@ export const RTU_RESPONSE_TIMEOUT_MS = 10_000;
  *
  * UUID v4 is generated and then shortened.
  */
-export const RTU_MSG_ID_LENGTH = 12;
+export const RTU_MSG_ID_LENGTH = 8;
 
 /**
  * ------------------------------------------------------------------
@@ -251,7 +251,7 @@ export const RTU_MSG_ID_LENGTH = 12;
  * Replace these with the exact values from your RMU protocol.
  */
 
-export const RTU_DATA_TYPE = 'uint16';
+export const RTU_DATA_TYPE = 'uint16_ab';
 
 export const RTU_VALUE_TYPE = 'HoldingRegister';
 

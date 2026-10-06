@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { RtuCommandService } from './rtu-command.service';
-import { ReadRtuCommandDto, sendRtuCommandDto } from './dto/read-rtu-command.dto';
+import { ReadRtuCommandDto } from './dto/read-rtu-command.dto';
 import { WriteRtuCommandDto } from './dto/write-rtu-command.dto';
 // import { RtuCommandMasterService } from './rtu-command-master.service';
 import { UserId } from 'src/utils/req-user-id.decorator';
 import { winstonRtuCommunicationLogger } from 'src/app_config/serverWinston.config';
 import { KEY_SEPARATOR, USER_NOT_IN_REQUEST_HEADER } from 'src/app_config/constants';
+import { sendRtuCommandDto } from './dto/send-rtu-command.dto';
 
 @Controller('rtu-command')
 export class RtuCommandController {

@@ -187,7 +187,7 @@ export const winstonRtuCommunicationLogger = (
           ),
         }),
         new DailyRotateFile({
-          filename: `logs/rtu/rtu-communication.%DATE%.log`,
+          filename: `logs/rtu/rtu-command.%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           //zippedArchive: true,
           //maxSize: '20m',
