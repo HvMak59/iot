@@ -232,18 +232,16 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import * as _ from 'lodash';
-
 import { AssetService } from 'src/asset/asset.service';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { EmailService } from 'src/email/email.service';
-
 import { Alert } from 'src/alert/entities/alert.entity';
 import { Message } from 'firebase-admin/messaging';
-
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
 import { CreatedAndClosedAlerts } from 'src/app_config/constants';
 import { getTryCatchErrorStr } from 'src/utils/others';
+import { WhatsAppService } from 'src/whatsapp/whatsapp.service';
 
 // @Injectable()
 // export class AlertEventsListener {
@@ -296,7 +294,7 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 
 //         // fetch email 
 //         const emailsByAssetId = await this.assetService.findEmailsByAssetIDs(assetIds);
-        
+
 //         const alertsByOrgId = new Map<string,Alert[]>();
 
 //         for (const [assetId, alerts] of Object.entries(alertsByAssetId)) {
@@ -328,7 +326,7 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 //             const notificationMessages: string[] = [];
 
 //             for (const alert of alerts) {
-      
+
 //                 const dataAlert = {
 //                     id: alert.id,
 //                     asset: {
@@ -344,7 +342,7 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 //                 };
 
 //                 dataAlerts.push(dataAlert);
-  
+
 //                 const alertBodyStatus = alert.closeDateTime  ? 'closed': 'created';
 //                 const alertMsgDesc = alert.message ?? alert.id;
 //                 const alertMsg = `Alert ${alertMsgDesc} ${alertBodyStatus} on asset: ${alert.assetId}`;
@@ -367,7 +365,7 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 //                     ),
 //                 },
 //             });
-            
+
 //             const orgEmails = new Set<string>();
 
 //             for (const alert of alerts) {
@@ -385,7 +383,7 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 //                         orgId,
 //                         alerts,
 //                     );
- 
+
 //                 emailJobs.push(
 //                     this.emailService.sendEmail({
 //                         to: Array.from(orgEmails),
@@ -394,12 +392,12 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 //                         // html: emailHtml,
 //                     }),
 //                 );
-                
-        
+
+
 //                 this.logger.info(
 //                     `${fnName} : Org id : ${orgId} : Email recipients : ${orgEmails.size}`,
 //                 );
-                
+
 //             } else {
 //                 this.logger.info(
 //                     `${fnName} : Org id : ${orgId} : No email recipients found`,
@@ -586,307 +584,588 @@ import { getTryCatchErrorStr } from 'src/utils/others';
 
 @Injectable()
 export class AlertEventsListener {
-  constructor(
-    private readonly assetService: AssetService,
-    private readonly firebaseService: FirebaseService,
-    private readonly cacheSrvcService: CacheMappingService,
-  ) {}
+	constructor(
+		private readonly assetService: AssetService,
+		private readonly firebaseService: FirebaseService,
+		private readonly cacheSrvcService: CacheMappingService,
+		private readonly whatsAppService: WhatsAppService,
+		private readonly emailService: EmailService,
+	) { }
 
-  private readonly logger = winstonServerLogger(AlertEventsListener.name);
+	private readonly logger = winstonServerLogger(AlertEventsListener.name);
 
-  //private readonly orgIdByAssetId = new Map<string, string>();
 
-  @OnEvent(CreatedAndClosedAlerts)
-  async sendAlertNotificationToFirebase(
-    alertsInput: Alert[] /* ,
-    status: AlertStatus, */,
-  ) {
-    const fnName = this.sendAlertNotificationToFirebase.name;
-    const groupedByAsset: Record<string, Alert[]> = {};
-    const assetIdsWithMissingOrgIds = new Set<string>();
+	//   @OnEvent(CreatedAndClosedAlerts)
+	//   async sendAlertNotificationToFirebase(
+	//     alertsInput: Alert[] /* ,
+	//     status: AlertStatus, */,
+	//   ) {
+	//     const fnName = this.sendAlertNotificationToFirebase.name;
+	//     const groupedByAsset: Record<string, Alert[]> = {};
+	//     const assetIdsWithMissingOrgIds = new Set<string>();
 
-    this.logger.debug(`${fnName} : Start`);
+	//     this.logger.debug(`${fnName} : Start`);
 
-    this.logger.info(
-      `${fnName} Received number of alerts : ${alertsInput.length}`,
-    );
+	//     this.logger.info(
+	//       `${fnName} Received number of alerts : ${alertsInput.length}`,
+	//     );
 
-    const alertsByAssetId = _.groupBy(alertsInput, (alert) => alert.assetId);
+	//     const alertsByAssetId = _.groupBy(alertsInput, (alert) => alert.assetId);
 
-    this.logger.info(
-      `${fnName} : alertsByAssetId size : ${Object.keys(alertsByAssetId).length}`,
-    );
+	//     this.logger.info(
+	//       `${fnName} : alertsByAssetId size : ${Object.keys(alertsByAssetId).length}`,
+	//     );
 
-    const assetIds = Object.keys(alertsByAssetId);
+	//     const assetIds = Object.keys(alertsByAssetId);
 
-    const orgIdsByAssetIds = await this.assetService.findOrgIDsByCSVAssetIDs(
-      assetIds.join(','),
-    );
-    const alertsByOrgId: Map<string, Alert[]> = new Map();
-    for (const [assetId, alerts] of Object.entries(alertsByAssetId)) {
-      const orgId = orgIdsByAssetIds.get(assetId);
-      if (orgId) {
-        const alertsForAnOrgId = alertsByOrgId.get(orgId) || [];
-        alertsForAnOrgId.push(...alerts);
-        alertsByOrgId.set(orgId, alertsForAnOrgId);
-      }
-    } // Assuming alertsByAssetId is already grouped by orgId for simplicity
+	//     const orgIdsByAssetIds = await this.assetService.findOrgIDsByCSVAssetIDs(
+	//       assetIds.join(','),
+	//     );
+	//     const alertsByOrgId: Map<string, Alert[]> = new Map();
+	//     for (const [assetId, alerts] of Object.entries(alertsByAssetId)) {
+	//       const orgId = orgIdsByAssetIds.get(assetId);
+	//       if (orgId) {
+	//         const alertsForAnOrgId = alertsByOrgId.get(orgId) || [];
+	//         alertsForAnOrgId.push(...alerts);
+	//         alertsByOrgId.set(orgId, alertsForAnOrgId);
+	//       }
+	//     } // Assuming alertsByAssetId is already grouped by orgId for simplicity
 
-    const messages: Message[] = [];
+	//     const messages: Message[] = [];
 
-    for (const [orgId, alerts] of alertsByOrgId.entries()) {
-      const dataAlerts = [];
-      for (const alert of alerts) {
-        const dataAlert = {
-          id: alert.id,
-          asset: {
-            orgId: orgId,
-          },
-          assetId: alert.assetId,
-          deviceId: alert.deviceId,
-          virtualDeviceId: alert.virtualDeviceId,
-          alertId: alert.alertId,
-          message: alert.message,
-          openDateTime: alert.openDateTime,
-          closeDateTime: alert.closeDateTime,
-        };
-        dataAlerts.push(dataAlert);
-        const alertBodyStatus = alert.closeDateTime ? 'closed' : 'created';
-        const alertMsgDesc = alert.message ?? alert.id;
-        const alertMsg = `Alert ${alertMsgDesc} ${alertBodyStatus} on asset: ${alert.assetId}`;
-        console.log('consolelog',alertMsg);
-        messages.push({
-          topic: orgId,
-          notification: {
-            //title: status,
-            body: alertMsg,
-          },
-        });
-      }
-      this.logger.info(
-        `${fnName} : Org id : ${orgId} : No of Notification Alerts to be sent : ${messages.length}`,
-      );
-      messages.push({
-        topic: orgId,
-        data: {
-          //status,
-          alerts: JSON.stringify([...dataAlerts]),
-        },
-      });
-      this.logger.debug(
-        `${fnName} : Org id : ${orgId} : Data alerts are : ${JSON.stringify([
-          ...dataAlerts,
-        ])}`,
-      );
-      this.logger.info(
-        `${fnName} : Org id : ${orgId} : No of Data Alerts to be sent : ${dataAlerts.length}`,
-      );
-    }
+	//     for (const [orgId, alerts] of alertsByOrgId.entries()) {
+	//       const dataAlerts = [];
+	//       for (const alert of alerts) {
+	//         const dataAlert = {
+	//           id: alert.id,
+	//           asset: {
+	//             orgId: orgId,
+	//           },
+	//           assetId: alert.assetId,
+	//           deviceId: alert.deviceId,
+	//           virtualDeviceId: alert.virtualDeviceId,
+	//           alertId: alert.alertId,
+	//           message: alert.message,
+	//           openDateTime: alert.openDateTime,
+	//           closeDateTime: alert.closeDateTime,
+	//         };
+	//         dataAlerts.push(dataAlert);
+	//         const alertBodyStatus = alert.closeDateTime ? 'closed' : 'created';
+	//         const alertMsgDesc = alert.message ?? alert.id;
+	//         const alertMsg = `Alert ${alertMsgDesc} ${alertBodyStatus} on asset: ${alert.assetId}`;
+	//         console.log('consolelog',alertMsg);
+	//         const emails = this.assetService.findEmailsByAssetIDs(assetIds); 
+	//         messages.push({
+	//           topic: orgId,
+	//           notification: {
+	//             //title: status,
+	//             body: alertMsg,
+	//           }, 
+	//         });
+	//       }
+	//       this.logger.info(
+	//         `${fnName} : Org id : ${orgId} : No of Notification Alerts to be sent : ${messages.length}`,
+	//       );
+	//       messages.push({
+	//         topic: orgId,
+	//         data: {
+	//           //status,
+	//           alerts: JSON.stringify([...dataAlerts]),
+	//         },
+	//       });
+	//       this.logger.debug(
+	//         `${fnName} : Org id : ${orgId} : Data alerts are : ${JSON.stringify([
+	//           ...dataAlerts,
+	//         ])}`,
+	//       );
+	//       this.logger.info(
+	//         `${fnName} : Org id : ${orgId} : No of Data Alerts to be sent : ${dataAlerts.length}`,
+	//       );
+	//     }
 
-    if (messages.length === 0) {
-      this.logger.info('No messages to send');
-      return;
-    }
+	//     if (messages.length === 0) {
+	//       this.logger.info('No messages to send');
+	//       return;
+	//     }
 
-    try {
-      const response =
-        await this.firebaseService.sendNotificationToTopic(messages);
-      this.logger.debug(
-        `${fnName} : Firebase response : ${JSON.stringify(response)}`,
-      );
-      if (response.failureCount > 0) {
-        this.logger.error(
-          `${response.failureCount} notifications failed to send`,
-        );
-      }
-      this.logger.info(
-        `${response.successCount} notifications sent successfully`,
-      );
-    } catch (error) {
-      const errMsg = getTryCatchErrorStr(error);
-      this.logger.error('Notification sending failed', error);
-    }
-  }
+	//     try {
+	//       const response =
+	//         await this.firebaseService.sendNotificationToTopic(messages);
+	//       this.logger.debug(
+	//         `${fnName} : Firebase response : ${JSON.stringify(response)}`,
+	//       );
+	//       if (response.failureCount > 0) {
+	//         this.logger.error(
+	//           `${response.failureCount} notifications failed to send`,
+	//         );
+	//       }
+	//       this.logger.info(
+	//         `${response.successCount} notifications sent successfully`,
+	//       );
+	//     } catch (error) {
+	//       const errMsg = getTryCatchErrorStr(error);
+	//       this.logger.error('Notification sending failed', error);
+	//     }
+	//   }
+
+
+	private a = 5;
+	@OnEvent(CreatedAndClosedAlerts)
+	async sendAlertNotificationToFirebase(alertsInput: Alert[]) {
+		const fnName = this.sendAlertNotificationToFirebase.name;
+
+		this.logger.debug(`${fnName} : Start`);
+		this.logger.info(
+			`${fnName} Received number of alerts : ${alertsInput.length}`,
+		);
+
+		const alertsByAssetId = _.groupBy(
+			alertsInput,
+			(alert) => alert.assetId,
+		);
+
+		const assetIds = Object.keys(alertsByAssetId);
+
+		const orgIdsByAssetIds =
+			await this.assetService.findOrgIDsByCSVAssetIDs(
+				assetIds.join(','),
+			);
+
+		const alertsByOrgId = new Map<string, Alert[]>();
+
+		for (const [assetId, alerts] of Object.entries(alertsByAssetId)) {
+			const orgId = orgIdsByAssetIds.get(assetId);
+
+			if (!orgId) {
+				this.logger.warn(
+					`${fnName} : No orgId found for assetId : ${assetId}`,
+				);
+				continue;
+			}
+
+			const alertsForOrg = alertsByOrgId.get(orgId) || [];
+			alertsForOrg.push(...alerts);
+			alertsByOrgId.set(orgId, alertsForOrg);
+		}
+
+		const firebaseMessages: Message[] = [];
+
+		//   for (const [orgId, alerts] of alertsByOrgId.entries()) {
+		//     const dataAlerts = [];
+
+		//     for (const alert of alerts) {
+		//       const dataAlert = {
+		//         id: alert.id,
+		//         asset: {
+		//           orgId,
+		//         },
+		//         assetId: alert.assetId,
+		//         deviceId: alert.deviceId,
+		//         virtualDeviceId: alert.virtualDeviceId,
+		//         alertId: alert.alertId,
+		//         message: alert.message,
+		//         openDateTime: alert.openDateTime,
+		//         closeDateTime: alert.closeDateTime,
+		//       };
+
+		//       dataAlerts.push(dataAlert);
+
+		//       const alertBodyStatus = alert.closeDateTime
+		//         ? 'closed'
+		//         : 'created';
+
+		//       const alertMsgDesc = alert.message ?? alert.id;
+
+		//       const alertMsg =
+		//         `Alert ${alertMsgDesc} ${alertBodyStatus} on asset: ${alert.assetId}`;
+
+		//       // Firebase notification
+		//       firebaseMessages.push({
+		//         topic: orgId,
+		//         notification: {
+		//           body: alertMsg,
+		//         },
+		//       });
+		//     }
+
+		//     // Firebase data message
+		//     firebaseMessages.push({
+		//       topic: orgId,
+		//       data: {
+		//         alerts: JSON.stringify(dataAlerts),
+		//       },
+		//     });
+
+		//     // WhatsApp
+		//     const whatsappMessage = alerts
+		//       .map((alert) => {
+		//         const status = alert.closeDateTime
+		//           ? 'closed'
+		//           : 'created';
+
+		//         return `Alert ${alert.message ?? alert.id} ${status} on asset: ${alert.assetId}`;
+		//       })
+		//       .join('\n');
+
+		//    const phoneNumbers = await this.assetService.findPhoneNumbers(alerts[0].assetId);
+		//    console.log(phoneNumbers);
+
+		// for (const phoneNumber of phoneNumbers) {
+		//   try {
+		//     await this.whatsAppService.sendMessageToWp(
+		//       phoneNumber,
+		//       whatsappMessage,
+		//       'created',
+		//     );
+		//   } catch (error) {
+		//     this.logger.error(
+		//       `WhatsApp failed for ${phoneNumber}`,
+		//       error,
+		//     );
+		//   }
+		// }
+		//   }
+
+		for (const [orgId, alerts] of alertsByOrgId.entries()) {
+
+			const dataAlerts = [];
+
+			for (const alert of alerts) {
+
+				const dataAlert = {
+					id: alert.id,
+					asset: {
+						orgId,
+					},
+					assetId: alert.assetId,
+					deviceId: alert.deviceId,
+					virtualDeviceId: alert.virtualDeviceId,
+					alertId: alert.alertId,
+					message: alert.message,
+					openDateTime: alert.openDateTime,
+					closeDateTime: alert.closeDateTime,
+				};
+
+				dataAlerts.push(dataAlert);
+
+				const status = alert.closeDateTime
+					? 'closed'
+					: 'created';
+
+				const alertMsgDesc = alert.message ?? alert.id;
+
+				const alertMsg =
+					`Alert ${alertMsgDesc} ${status} on asset: ${alert.assetId}`;
+
+				// Firebase
+				firebaseMessages.push({
+					topic: orgId,
+					notification: {
+						body: alertMsg,
+					},
+				});
+			}
+
+			// Firebase data message
+			firebaseMessages.push({
+				topic: orgId,
+				data: {
+					alerts: JSON.stringify(dataAlerts),
+				},
+			});
+
+
+			const assetId = alerts[0].assetId;
+
+			const contacts = await this.assetService.findNotificationContacts(assetId);
+			console.log(contacts);
+
+			const whatsappMessage = alerts
+				.map((alert) => {
+
+					const status = alert.closeDateTime
+						? 'closed'
+						: 'created';
+
+					return `Alert ${alert.message} ${status} on asset: ${alert.assetId}`;
+
+				})
+				.join('\n');
+
+
+			for (const phoneNumber of contacts.phoneNumbers) {
+
+				try {
+
+					await this.whatsAppService.sendMessageToWp(
+						phoneNumber,
+						whatsappMessage,
+						alerts.some((alert) => !alert.closeDateTime)
+							? 'created'
+							: 'closed',
+					);
+
+				} catch (error) {
+
+					this.logger.error(
+						`${fnName} : WhatsApp notification failed for ${phoneNumber}`,
+						error,
+					);
+				}
+			}
+
+			const emailMessage = alerts
+				.map((alert) => {
+
+					const status = alert.closeDateTime
+						? 'closed'
+						: 'created';
+
+					return (
+						`${alert.message} alert is ${status} on asset ${alert.assetId}`
+					);
+
+				})
+				.join('\n\n');
+
+
+			if (contacts.emailAddresses.length > 0) {
+
+				try {
+					await this.emailService.sendEmail({
+						to: contacts.emailAddresses,
+						subject: 'Hermes Alert Notification',
+						text: emailMessage,
+					});
+
+				} catch (error) {
+
+					this.logger.error(
+						`${fnName} : Email notification failed`,
+						error,
+					);
+
+				}
+			}
+		}
+
+		if (firebaseMessages.length === 0) {
+			this.logger.info('No messages to send');
+			return;
+		}
+
+		try {
+			const response =
+				await this.firebaseService.sendNotificationToTopic(
+					firebaseMessages,
+				);
+
+			this.logger.debug(
+				`${fnName} : Firebase response : ${JSON.stringify(response)}`,
+			);
+
+			if (response.failureCount > 0) {
+				this.logger.error(
+					`${response.failureCount} notifications failed to send`,
+				);
+			}
+
+			this.logger.info(
+				`${response.successCount} notifications sent successfully`,
+			);
+		} catch (error) {
+			const errMsg = getTryCatchErrorStr(error);
+
+			this.logger.error(
+				`${fnName} : Notification sending failed : ${errMsg}`,
+			);
+		}
+	}
+
+	// import { Injectable } from '@nestjs/common';
+	// import { OnEvent } from '@nestjs/event-emitter';
+	// import { Alert } from 'src/alert/entities/alert.entity';
+	// import { AssetService } from 'src/asset/asset.service';
+	// import { FirebaseService } from 'src/firebase/firebase.service';
+	// // import { winstonServerLogger } from 'app_config/serverWinston.config';
+	// // import { CreatedAndClosedAlerts } from 'app_config/constants';
+	// // import { getTryCatchErrorStr } from 'utils/others';
+	// import { Message } from 'firebase-admin/messaging';
+	// import _ from 'lodash';
+	// import { winstonServerLogger } from 'src/app_config/serverWinston.config';
+	// import { CreatedAndClosedAlerts } from 'src/app_config/constants';
+	// import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
+	// import { getTryCatchErrorStr } from 'src/utils/others';
+	// // import { CacheSrvcService } from 'src/cache-srvc/cache-srvc.service';
+
+	// @Injectable()
+	// export class AlertEventsListener {
+	//     constructor(
+	//         private readonly assetService: AssetService,
+	//         private readonly firebaseService: FirebaseService,
+	//         private readonly cacheSrvcService: CacheMappingService,
+	//     ) { }
+
+	//     private readonly logger = winstonServerLogger(AlertEventsListener.name);
+
+	//     //private readonly orgIdByAssetId = new Map<string, string>();
+
+	//     @OnEvent(CreatedAndClosedAlerts)
+	//     async sendAlertNotificationToFirebase(
+	//         alertsInput: Alert[] /* ,
+	//     status: AlertStatus, */,
+	//     ) {
+	//         const fnName = this.sendAlertNotificationToFirebase.name;
+	//         const groupedByAsset: Record<string, Alert[]> = {};
+	//         const assetIdsWithMissingOrgIds = new Set<string>();
+
+	//         this.logger.debug(`${fnName} : Start`);
+
+	//         this.logger.info(
+	//             `${fnName} Received number of alerts : ${alertsInput.length}`,
+	//         );
+
+	//         const alertsByAssetId = _.groupBy(alertsInput, (alert) => alert.assetId);
+
+	//         this.logger.info(
+	//             `${fnName} : alertsByAssetId size : ${Object.keys(alertsByAssetId).length}`,
+	//         );
+
+	//         const assetIds = Object.keys(alertsByAssetId);
+
+	//         const orgIdsByAssetIds = await this.assetService.findOrgIDsByCSVAssetIDs(
+	//             assetIds.join(','),
+	//         );
+
+	//         const alertsByOrgId: Map<string, Alert[]> = new Map();
+	//         for (const [assetId, alerts] of Object.entries(alertsByAssetId)) {
+	//             const orgId = orgIdsByAssetIds.get(assetId);
+	//             if (orgId) {
+	//                 const alertsForAnOrgId = alertsByOrgId.get(orgId) || [];
+	//                 alertsForAnOrgId.push(...alerts);
+	//                 alertsByOrgId.set(orgId, alertsForAnOrgId);
+	//             }
+	//         } // Assuming alertsByAssetId is already grouped by orgId for simplicity
+
+	//         const messages: Message[] = [];
+	//         let emailSubject;
+	//         let emailText;
+
+	//         for (const [orgId, alerts] of alertsByOrgId.entries()) {
+	//             const dataAlerts = [];
+	//             for (const alert of alerts) {
+	//                 const dataAlert = {
+	//                     id: alert.id,
+	//                     asset: {
+	//                         orgId: orgId,
+	//                     },
+	//                     assetId: alert.assetId,
+	//                     deviceId: alert.deviceId,
+	//                     virtualDeviceId: alert.virtualDeviceId,
+	//                     alertId: alert.alertId,
+	//                     message: alert.message,
+	//                     openDateTime: alert.openDateTime,
+	//                     closeDateTime: alert.closeDateTime,
+	//                 };
+	//                 dataAlerts.push(dataAlert);
+	//                 const alertBodyStatus = alert.closeDateTime ? 'closed' : 'created';
+	//                 const alertMsgDesc = alert.message ?? alert.id;
+	//                 const alertMsg = `Alert ${alertMsgDesc} ${alertBodyStatus} on asset: ${alert.assetId}`;
+	//                 messages.push({
+	//                     topic: orgId,
+	//                     notification: {
+	//                         //title: status,
+	//                         body: alertMsg,
+	//                     },
+	//                 });
+	//             }
+	//             this.logger.info(
+	//                 `${fnName} : Org id : ${orgId} : No of Notification Alerts to be sent : ${messages.length}`,
+	//             );
+	//             messages.push({
+	//                 topic: orgId,
+	//                 data: {
+	//                     //status,
+	//                     alerts: JSON.stringify([...dataAlerts]),
+	//                 },
+	//             });
+	//             this.logger.debug(
+	//                 `${fnName} : Org id : ${orgId} : Data alerts are : ${JSON.stringify([
+	//                     ...dataAlerts,
+	//                 ])}`,
+	//             );
+	//             this.logger.info(
+	//                 `${fnName} : Org id : ${orgId} : No of Data Alerts to be sent : ${dataAlerts.length}`,
+	//             );
+	//         }
+
+	//         if (messages.length === 0) {
+	//             this.logger.info('No messages to send');
+	//             return;
+	//         }
+
+	//         try {
+	//             const response =
+	//                 await this.firebaseService.sendNotificationToTopic(messages);
+	//             this.logger.debug(
+	//                 `${fnName} : Firebase response : ${JSON.stringify(response)}`,
+	//             );
+	//             if (response.failureCount > 0) {
+	//                 this.logger.error(
+	//                     `${response.failureCount} notifications failed to send`,
+	//                 );
+	//             }
+	//             this.logger.info(
+	//                 `${response.successCount} notifications sent successfully`,
+	//             );
+	//         } catch (error) {
+	//             const errMsg = getTryCatchErrorStr(error);
+	//             this.logger.error('Notification sending failed', error);
+	//         }
+	//     }
+
+
+	//     /* @OnEvent('alert.created')
+	//     async handleCreated(alerts: Alert[]) {
+	//       this.logger.debug('in created listener');
+
+	//       await this.sendAlertNotificationToFirebase(alerts, AlertStatus.created);
+	//     }
+
+	//     @OnEvent('alert.incremented')
+	//     async handleIncremented(alerts: Alert[]) {
+	//       this.logger.debug('in incremented listener');
+
+	//       await this.sendAlertNotificationToFirebase(alerts, AlertStatus.incremented);
+	//     }
+
+	//     @OnEvent('alert.closed')
+	//     async handleClosed(alerts: Alert[]) {
+	//       this.logger.debug('in closed listener');
+
+	//       await this.sendAlertNotificationToFirebase(alerts, AlertStatus.closed);
+	//     } */
+	// }
+
+	//  async findAssetOrgIdMap(assetIds: string[]) {
+
+	//     const assets = await this.repo.find({
+	//         select: {
+	//             id: true,
+	//             orgId: true,
+	//         },
+	//         where: {
+	//             id: In(assetIds),
+	//         },
+	//     });
+
+	//     return new Map(
+	//         assets.map(asset => [asset.id, asset.orgId]),
+	//     );
+	// }
+
+
 }
 
-// import { Injectable } from '@nestjs/common';
-// import { OnEvent } from '@nestjs/event-emitter';
-// import { Alert } from 'src/alert/entities/alert.entity';
-// import { AssetService } from 'src/asset/asset.service';
-// import { FirebaseService } from 'src/firebase/firebase.service';
-// // import { winstonServerLogger } from 'app_config/serverWinston.config';
-// // import { CreatedAndClosedAlerts } from 'app_config/constants';
-// // import { getTryCatchErrorStr } from 'utils/others';
-// import { Message } from 'firebase-admin/messaging';
-// import _ from 'lodash';
-// import { winstonServerLogger } from 'src/app_config/serverWinston.config';
-// import { CreatedAndClosedAlerts } from 'src/app_config/constants';
-// import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
-// import { getTryCatchErrorStr } from 'src/utils/others';
-// // import { CacheSrvcService } from 'src/cache-srvc/cache-srvc.service';
-
-// @Injectable()
-// export class AlertEventsListener {
-//     constructor(
-//         private readonly assetService: AssetService,
-//         private readonly firebaseService: FirebaseService,
-//         private readonly cacheSrvcService: CacheMappingService,
-//     ) { }
-
-//     private readonly logger = winstonServerLogger(AlertEventsListener.name);
-
-//     //private readonly orgIdByAssetId = new Map<string, string>();
-
-//     @OnEvent(CreatedAndClosedAlerts)
-//     async sendAlertNotificationToFirebase(
-//         alertsInput: Alert[] /* ,
-//     status: AlertStatus, */,
-//     ) {
-//         const fnName = this.sendAlertNotificationToFirebase.name;
-//         const groupedByAsset: Record<string, Alert[]> = {};
-//         const assetIdsWithMissingOrgIds = new Set<string>();
-
-//         this.logger.debug(`${fnName} : Start`);
-
-//         this.logger.info(
-//             `${fnName} Received number of alerts : ${alertsInput.length}`,
-//         );
-
-//         const alertsByAssetId = _.groupBy(alertsInput, (alert) => alert.assetId);
-
-//         this.logger.info(
-//             `${fnName} : alertsByAssetId size : ${Object.keys(alertsByAssetId).length}`,
-//         );
-
-//         const assetIds = Object.keys(alertsByAssetId);
-
-//         const orgIdsByAssetIds = await this.assetService.findOrgIDsByCSVAssetIDs(
-//             assetIds.join(','),
-//         );
-
-//         const alertsByOrgId: Map<string, Alert[]> = new Map();
-//         for (const [assetId, alerts] of Object.entries(alertsByAssetId)) {
-//             const orgId = orgIdsByAssetIds.get(assetId);
-//             if (orgId) {
-//                 const alertsForAnOrgId = alertsByOrgId.get(orgId) || [];
-//                 alertsForAnOrgId.push(...alerts);
-//                 alertsByOrgId.set(orgId, alertsForAnOrgId);
-//             }
-//         } // Assuming alertsByAssetId is already grouped by orgId for simplicity
-
-//         const messages: Message[] = [];
-//         let emailSubject;
-//         let emailText;
-
-//         for (const [orgId, alerts] of alertsByOrgId.entries()) {
-//             const dataAlerts = [];
-//             for (const alert of alerts) {
-//                 const dataAlert = {
-//                     id: alert.id,
-//                     asset: {
-//                         orgId: orgId,
-//                     },
-//                     assetId: alert.assetId,
-//                     deviceId: alert.deviceId,
-//                     virtualDeviceId: alert.virtualDeviceId,
-//                     alertId: alert.alertId,
-//                     message: alert.message,
-//                     openDateTime: alert.openDateTime,
-//                     closeDateTime: alert.closeDateTime,
-//                 };
-//                 dataAlerts.push(dataAlert);
-//                 const alertBodyStatus = alert.closeDateTime ? 'closed' : 'created';
-//                 const alertMsgDesc = alert.message ?? alert.id;
-//                 const alertMsg = `Alert ${alertMsgDesc} ${alertBodyStatus} on asset: ${alert.assetId}`;
-//                 messages.push({
-//                     topic: orgId,
-//                     notification: {
-//                         //title: status,
-//                         body: alertMsg,
-//                     },
-//                 });
-//             }
-//             this.logger.info(
-//                 `${fnName} : Org id : ${orgId} : No of Notification Alerts to be sent : ${messages.length}`,
-//             );
-//             messages.push({
-//                 topic: orgId,
-//                 data: {
-//                     //status,
-//                     alerts: JSON.stringify([...dataAlerts]),
-//                 },
-//             });
-//             this.logger.debug(
-//                 `${fnName} : Org id : ${orgId} : Data alerts are : ${JSON.stringify([
-//                     ...dataAlerts,
-//                 ])}`,
-//             );
-//             this.logger.info(
-//                 `${fnName} : Org id : ${orgId} : No of Data Alerts to be sent : ${dataAlerts.length}`,
-//             );
-//         }
-
-//         if (messages.length === 0) {
-//             this.logger.info('No messages to send');
-//             return;
-//         }
-
-//         try {
-//             const response =
-//                 await this.firebaseService.sendNotificationToTopic(messages);
-//             this.logger.debug(
-//                 `${fnName} : Firebase response : ${JSON.stringify(response)}`,
-//             );
-//             if (response.failureCount > 0) {
-//                 this.logger.error(
-//                     `${response.failureCount} notifications failed to send`,
-//                 );
-//             }
-//             this.logger.info(
-//                 `${response.successCount} notifications sent successfully`,
-//             );
-//         } catch (error) {
-//             const errMsg = getTryCatchErrorStr(error);
-//             this.logger.error('Notification sending failed', error);
-//         }
-//     }
 
 
-//     /* @OnEvent('alert.created')
-//     async handleCreated(alerts: Alert[]) {
-//       this.logger.debug('in created listener');
-  
-//       await this.sendAlertNotificationToFirebase(alerts, AlertStatus.created);
-//     }
-  
-//     @OnEvent('alert.incremented')
-//     async handleIncremented(alerts: Alert[]) {
-//       this.logger.debug('in incremented listener');
-  
-//       await this.sendAlertNotificationToFirebase(alerts, AlertStatus.incremented);
-//     }
-  
-//     @OnEvent('alert.closed')
-//     async handleClosed(alerts: Alert[]) {
-//       this.logger.debug('in closed listener');
-  
-//       await this.sendAlertNotificationToFirebase(alerts, AlertStatus.closed);
-//     } */
-// }
-
-//  async findAssetOrgIdMap(assetIds: string[]) {
-
-//     const assets = await this.repo.find({
-//         select: {
-//             id: true,
-//             orgId: true,
-//         },
-//         where: {
-//             id: In(assetIds),
-//         },
-//     });
-
-//     return new Map(
-//         assets.map(asset => [asset.id, asset.orgId]),
-//     );
-// }

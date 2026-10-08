@@ -29,7 +29,7 @@ export class TelemetryEventsListener {
     // }
 
     private second = 4;
-    @OnEvent('telemetry.inserted')
+    // @OnEvent('telemetry.inserted')
     async handleTelemetryInserted(
         payloads: CurrentTelemetryPayload[],
     ) {

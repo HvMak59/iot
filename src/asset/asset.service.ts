@@ -47,10 +47,85 @@ export class AssetService {
         return phoneNumber;
     }
 
+
+    async findPhoneNumbers(id: string): Promise<string[]> {
+        const asset = await this.repo.findOne({
+            select: {
+                id: true,
+                org: {
+                    id: true,
+                    orgUsers: {
+                        orgId: true,
+                        user: {
+                            id: true,
+                            phoneNo: true,
+                        },
+                    },
+                },
+            },
+            where: { id },
+            relations: ['org', 'org.orgUsers', 'org.orgUsers.user'],
+        });
+
+        return (
+            asset?.org?.orgUsers
+                ?.map((orgUser) => orgUser.user?.phoneNo)
+                .filter((phone): phone is string => !!phone) ?? []
+        );
+    }
+
+    async findNotificationContacts(id: string) {
+        const fnName = this.findNotificationContacts.name;
+
+        this.logger.debug(
+            `${fnName} : Find notification contacts for asset : ${id}`,
+        );
+
+        const asset = await this.repo.findOne({
+            select: {
+                id: true,
+                org: {
+                    id: true,
+                    orgUsers: {
+                        orgId: true,
+                        user: {
+                            id: true,
+                            phoneNo: true,
+                            email: true,
+                        },
+                    },
+                },
+            },
+            where: { id },
+            relations: ['org', 'org.orgUsers', 'org.orgUsers.user'],
+        });
+
+        if (!asset?.org?.orgUsers) {
+            return {
+                phoneNumbers: [],
+                emailAddresses: [],
+            };
+        }
+
+        const phoneNumbers = asset.org.orgUsers
+            .map((orgUser) => orgUser.user?.phoneNo)
+            .filter((phone): phone is string => !!phone);
+
+        const emailAddresses = asset.org.orgUsers
+            .map((orgUser) => orgUser.user?.email)
+            .filter((email): email is string => !!email);
+
+        return {
+            phoneNumbers: [...new Set(phoneNumbers)],
+            emailAddresses: [...new Set(emailAddresses)],
+        };
+    }
+
     async findEmailsByAssetIDs(assetIds: string[]) {
         const fnName = this.findEmailsByAssetIDs.name;
 
         this.logger.debug(
+            //            
             `${fnName} : Finding email IDs for asset IDs : ${assetIds.join(',')}`,
         );
 
@@ -85,6 +160,7 @@ export class AssetService {
             ],
         });
 
+
         for (const asset of assets) {
             // const emails =
             //     asset.org?.orgUsers
@@ -103,7 +179,7 @@ export class AssetService {
 
             result.set(asset.id, emails);
         }
-        // this service is for email finiding 
+        // 
         this.logger.debug(
             `${fnName} : Email mapping created for ${result.size} assets`,
         );

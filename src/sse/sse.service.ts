@@ -223,6 +223,7 @@ export class SseService {
     private readonly logger = winstonServerLogger(SseService.name);
     // private readonly streams = new Map<string, Subject<MessageEvent>>();
     private streams = new Map<string, ReplaySubject<MessageEvent>>();
+    private rtuStreams = new Map<string, ReplaySubject<MessageEvent>>();
 
     constructor(
         private readonly telemetryPayloadService: TelemetryPayloadService,
@@ -307,6 +308,61 @@ export class SseService {
                 }
             }),
         );
+    }
+
+
+    subscribeRtu(msgId: string): Observable<MessageEvent> {
+
+        let stream = this.rtuStreams.get(msgId);
+
+        if (!stream) {
+            stream = new ReplaySubject<MessageEvent>(1);
+            this.rtuStreams.set(msgId, stream);
+        }
+
+        this.logger.debug(
+            `RTU SSE client subscribed: ${msgId}`,
+        );
+
+        return stream.pipe(
+            finalize(() => {
+
+                this.logger.debug(
+                    `RTU SSE client disconnected: ${msgId}`,
+                );
+
+                if (!stream!.observed) {
+                    this.rtuStreams.delete(msgId);
+
+                    this.logger.debug(
+                        `Removed RTU SSE stream: ${msgId}`,
+                    );
+                }
+            }),
+        );
+    }
+
+
+    publishRtu(
+        msgId: string,
+        message: MessageEvent,
+    ) {
+        const stream = this.rtuStreams.get(msgId);
+
+        if (stream) {
+
+            this.logger.debug(
+                `Publishing RTU response to stream: ${msgId}`,
+            );
+
+            stream.next(message);
+
+        } else {
+
+            this.logger.warn(
+                `No RTU SSE stream found for msgId: ${msgId}`,
+            );
+        }
     }
 
     private correctWorking = 1;

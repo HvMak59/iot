@@ -5,18 +5,23 @@ import { RtuMqttService } from './mqtt/rtu-mqtt.service';
 import { RtuCommunicationLogger } from './logger/rtu-communication.logger';
 import { CurrentTelemetryPayloadModule } from 'src/current-telemetry-payload/current-telemetry-payload.module';
 import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
+import { RtuCommandGateway } from './websocket-gateway/rtu-command.gateway';
+import { SseModule } from 'src/sse/sse.module';
 
 @Module({
     imports: [
         CurrentTelemetryPayloadModule,
-        VirtualDeviceModule
+        VirtualDeviceModule,
+
+        SseModule
     ],
     controllers: [RtuCommandController],
     providers: [
         RtuMqttService,
         RtuCommandService,
         RtuCommunicationLogger,
-        // RtuCommandMasterService
+        // RtuCommandMasterService,
+        RtuCommandGateway
     ]
 })
 export class RtuCommandModule { }

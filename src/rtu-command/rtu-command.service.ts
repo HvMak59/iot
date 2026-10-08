@@ -45,6 +45,7 @@ export class RtuCommandService {
             param: dto.param,
             dataType: RTU_DATA_TYPE,
             valueType: RTU_VALUE_TYPE,
+            // valueType: 'InputRegister',
             multiplier: RTU_MULTIPLIER,
             fieldSize: RTU_FIELD_SIZE,
         };
@@ -70,9 +71,10 @@ export class RtuCommandService {
             type: RTU_COMMAND_TYPE_WRITE,
             addr: dto.addr,
             param: dto.param,
-            value: dto.value,
+            value: dto.value * 10,
             dataType: RTU_DATA_TYPE,
-            valueType: RTU_VALUE_TYPE,
+            valueType: 'Single',
+            // valueType: RTU_VALUE_TYPE,
         };
 
         this.logger.debug(`${fnName}: Calling publishCommand service`);
@@ -82,13 +84,53 @@ export class RtuCommandService {
         );
     }
 
+    // const a = 'this is correct'
+    // private async publishCommand(
+    //     rmuDeviceId: string,
+    //     command: RtuCommand,
+    // ) {
+    //     const fnName = this.publishCommand.name;
+    //     const input = `Input: RmuDeviceId: ${rmuDeviceId}, Command: ${JSON.stringify(command)}`;
+
+    //     this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+    //     const topic = this.buildCommandTopic(
+    //         rmuDeviceId,
+    //     );
+
+    //     const payload = JSON.stringify(command);
+
+    //     await this.rtuMqttService.publish(
+    //         topic,
+    //         payload
+    //     );
+
+    //     this.logger.debug(
+    //         JSON.stringify({
+    //             direction: 'OUTGOING',
+    //             topic,
+    //             command,
+    //         }),
+    //     );
+    //     return {
+    //         success: true,
+    //         message: 'RTU command published successfully',
+    //         sseUrl: `sse/rtu/${command.msgId}`,
+    //         msgId: command.msgId,
+    //         topic,
+    //         command,
+    //     };
+    // }
+
 
     private async publishCommand(
         rmuDeviceId: string,
         command: RtuCommand,
     ) {
         const fnName = this.publishCommand.name;
-        const input = `Input: RmuDeviceId: ${rmuDeviceId}, Command: ${JSON.stringify(command)}`;
+
+        const input =
+            `Input: RmuDeviceId: ${rmuDeviceId}, Command: ${JSON.stringify(command)}`;
 
         this.logger.debug(fnName + KEY_SEPARATOR + input);
 
@@ -98,27 +140,50 @@ export class RtuCommandService {
 
         const payload = JSON.stringify(command);
 
+        const responsePromise = this.rtuMqttService.waitForResponse(
+            command.msgId,
+        );
+
         await this.rtuMqttService.publish(
             topic,
-            payload
+            payload,
         );
 
         this.logger.debug(
             JSON.stringify({
                 direction: 'OUTGOING',
-                msgId: command.msgId,
                 topic,
                 command,
             }),
         );
+
+        // Wait for matching RMU response
+        const rtuResponse = await responsePromise;
+
+        // this.logger.debug(
+        //     JSON.stringify({
+        //         direction: 'INCOMING',
+        //         topic: rtuResponse.topic,
+        //         response: rtuResponse.response,
+        //     }),
+        // );
+
+        const a = {
+            ...command,
+            value: rtuResponse.response.value
+        }
         return {
             success: true,
-            message: 'RTU command published successfully',
+            message: 'RTU command completed successfully',
             msgId: command.msgId,
             topic,
-            command,
+            a
+            // command,
+            // response: rtuResponse.response,
         };
     }
+
+
     private buildCommandTopic(
         rmuDeviceId: string,
     ) {

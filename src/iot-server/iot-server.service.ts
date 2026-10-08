@@ -2665,6 +2665,9 @@ export class IotServerService {
 
   async saveTelemetryMetrics(telemetryPayloads: TelemetryPayload[]) {
     // console.log("in iot save telemtry", telemetryPayloads);
+
+    console.log("here in iot save telemetry line 2669");
+
     this.logger.debug(`Save Telemetry Metrics : Start`);
     const msgTemplate = `Save Telemetry Metrics : ${this.serviceName}`;
     const event = `Input : Nos are : ${telemetryPayloads.length}`;

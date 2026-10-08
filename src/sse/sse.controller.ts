@@ -34,4 +34,12 @@ export class SseController {
     handleEvent(@Query('assetId') assetId: string) {
         // return this.sseService.handleTelemetryInserted(assetId);
     }
+
+
+    @Sse('rtu')
+    rtuResponse(
+        @Query('msgId') msgId: string,
+    ) {
+        return this.sseService.subscribeRtu(msgId);
+    }
 }

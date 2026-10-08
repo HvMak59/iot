@@ -104,7 +104,7 @@ export class WhatsAppService {
 
 
 
-    async sendMessageToWp(messages: string) {
+    async sendMessageToWpWorking(messages: string) {
         console.log("In wp");
         const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
 
@@ -160,4 +160,70 @@ export class WhatsAppService {
             throw error;
         }
     }
+
+
+    async sendMessageToWp(
+        phoneNumber: string,
+        messages: string,
+        status: string,
+    ) {
+        console.log("in wp");
+        const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
+
+        const payload = {
+            messaging_product: 'whatsapp',
+            to: phoneNumber,
+            type: 'template',
+            template: {
+                name: 'alert_triggered',
+                language: {
+                    code: 'en',
+                },
+                components: [
+                    {
+                        type: 'body',
+                        parameters: [
+                            {
+                                type: 'text',
+                                parameter_name: 'alerts',
+                                text: messages,
+                            },
+                            {
+                                type: 'text',
+                                parameter_name: 'status',
+                                text: status,
+                            },
+                        ],
+                    },
+                ],
+            },
+        };
+
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post(url, payload, {
+                    headers: {
+                        Authorization: `Bearer ${this.accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            );
+
+            console.log("wp sent successfully")
+            console.log('WP RESPONSE:', JSON.stringify(response.data, null, 2));
+            console.log('WP STATUS:', response.status);
+
+            return response.data;
+
+        } catch (error) {
+            console.error(
+                'Error sending WhatsApp message:',
+                error.response?.data || error.message,
+            );
+
+            throw error;
+        }
+    }
 }
+
+

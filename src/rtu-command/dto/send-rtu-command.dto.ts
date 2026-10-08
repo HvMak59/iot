@@ -4,5 +4,5 @@ export class sendRtuCommandDto {
     type: string;
     param: string;
     addr: number;
-    value: number;
+    value?: number | undefined;
 }

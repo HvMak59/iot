@@ -4,6 +4,8 @@ import * as mqtt from 'mqtt';
 import { MqttClient } from 'mqtt';
 import { RTU_MQTT_COMMAND_TOPIC_PREFIX, RTU_MQTT_COMMAND_TOPIC_SUFFIX, RTU_MQTT_QOS, RTU_MQTT_RESPONSE_TOPIC, RTU_MQTT_RETAIN } from 'src/app_config/constants';
 import { winstonRtuCommunicationLogger } from 'src/app_config/serverWinston.config';
+import { RtuCommandGateway } from '../websocket-gateway/rtu-command.gateway';
+import { SseService } from 'src/sse/sse.service';
 
 @Injectable()
 export class RtuMqttService implements OnModuleInit {
@@ -11,9 +13,18 @@ export class RtuMqttService implements OnModuleInit {
 
     private mqttClient?: MqttClient;
     private isConnected = false;
-
+    private pendingResponses = new Map<
+        string,
+        {
+            resolve: (value: any) => void;
+            reject: (error: Error) => void;
+            timeout: NodeJS.Timeout;
+        }
+    >();
     constructor(
         private readonly configService: ConfigService,
+        private readonly rtuCommandGateway: RtuCommandGateway,
+        private readonly sseService: SseService,
     ) { }
 
     async onModuleInit() {
@@ -89,22 +100,142 @@ export class RtuMqttService implements OnModuleInit {
             },
         );
 
+
+        // this.mqttClient.on(
+        //     'message',
+        //     (topic, message) => {
+
+        //         try {
+
+        //             const response = JSON.parse(message.toString());
+
+        //             this.logger.debug(
+        //                 JSON.stringify({
+        //                     direction: 'INCOMING',
+        //                     topic,
+        //                     response,
+        //                 }),
+        //             );
+
+        //             // Send RTU response to UI
+        //             this.rtuCommandGateway.sendRtuResponse({
+        //                 topic,
+        //                 ...response,
+        //             });
+
+        //         } catch (error) {
+
+        //             this.logger.error(
+        //                 `Failed to process RTU MQTT response: ${error.message} `,
+        //             );
+
+        //         }
+
+        //     },
+        // );
+
+
+
         this.mqttClient.on(
             'message',
             (topic, message) => {
-                const response = JSON.parse(message.toString());
 
-                this.logger.debug(
-                    JSON.stringify({
-                        direction: 'INCOMING',
+                try {
+
+                    const response = JSON.parse(
+                        message.toString(),
+                    );
+
+                    this.logger.debug(
+                        JSON.stringify({
+                            direction: 'INCOMING',
+                            topic,
+                            response,
+                        }),
+                    );
+                    const pending = this.pendingResponses.get(response.msgId);
+
+                    if (!pending) {
+                        return;
+                    }
+
+                    clearTimeout(pending.timeout);
+
+                    this.pendingResponses.delete(
+                        response.msgId,
+                    );
+
+                    pending.resolve({
                         topic,
                         response,
-                    }),
-                );
+                    });
+
+                } catch (error) {
+
+                    this.logger.error(
+                        `Failed to process RTU MQTT response: ${error.message}`,
+                    );
+
+                }
             },
         );
+        // this.mqttClient.on(
+        //     'message',
+        //     (topic, message) => {
+        //         const response = JSON.parse(message.toString());
+
+        //         this.logger.debug(
+        //             JSON.stringify({
+        //                 direction: 'INCOMING',
+        //                 topic,
+        //                 response,
+        //             }),
+        //         );
+        //     },
+        // );
+
+
+        const r = ''
+        //  this.mqttClient.on(
+        //     'message',
+        //     (topic, message) => {
+
+        //         try {
+
+        //             const response = JSON.parse(
+        //                 message.toString(),
+        //             );
+
+        //             this.logger.debug(
+        //                 JSON.stringify({
+        //                     direction: 'INCOMING',
+        //                     topic,
+        //                     response,
+        //                 }),
+        //             );
+
+        //             this.sseService.publishRtu(
+        //                 response.msgId,
+        //                 {
+        //                     data: {
+        //                         topic,
+        //                         ...response,
+        //                     },
+        //                 },
+        //             );
+
+        //         } catch (error) {
+
+        //             this.logger.error(
+        //                 `Failed to process RTU MQTT response: ${error.message}`,
+        //             );
+
+        //         }
+        //     },
+        // );
 
     }
+
 
     private async subscribeToResponses() {
         const fnName = this.subscribeToResponses.name;
@@ -181,6 +312,96 @@ export class RtuMqttService implements OnModuleInit {
                 );
             },
         );
+    }
+
+    // async waitForResponse(msgId: string): Promise<any> {
+    //     if (!this.mqttClient) {
+    //         throw new Error('RTU MQTT client is not initialized');
+    //     }
+
+    //     return new Promise((resolve, reject) => {
+
+    //         const timeout = setTimeout(() => {
+    //             this.mqttClient!.removeListener('message', messageHandler);
+
+    //             reject(
+    //                 new Error(
+    //                     `Timeout waiting for RTU response. msgId: ${msgId}`,
+    //                 ),
+    //             );
+    //         }, 10000);
+
+    //         const messageHandler = (
+    //             topic: string,
+    //             message: Buffer,
+    //         ) => {
+
+    //             try {
+
+    //                 const response = JSON.parse(
+    //                     message.toString(),
+    //                 );
+
+    //                 if (response.msgId !== msgId) {
+    //                     return;
+    //                 }
+
+    //                 clearTimeout(timeout);
+
+    //                 this.mqttClient!.removeListener(
+    //                     'message',
+    //                     messageHandler,
+    //                 );
+
+    //                 resolve({
+    //                     topic,
+    //                     response,
+    //                 });
+
+    //             } catch (error) {
+    //                 // Ignore messages which are not valid JSON
+    //             }
+    //         };
+
+    //         this.mqttClient!.on(
+    //             'message',
+    //             messageHandler,
+    //         );
+    //     });
+    // }
+
+    async waitForResponse(msgId: string): Promise<any> {
+
+        if (!this.mqttClient) {
+            throw new Error(
+                'RTU MQTT client is not initialized',
+            );
+        }
+
+        return new Promise((resolve, reject) => {
+
+            const timeout = setTimeout(() => {
+
+                this.pendingResponses.delete(msgId);
+
+                reject(
+                    new Error(
+                        `Timeout waiting for RTU response. msgId: ${msgId}`,
+                    ),
+                );
+
+            }, 10000);
+
+            this.pendingResponses.set(
+                msgId,
+                {
+                    resolve,
+                    reject,
+                    timeout,
+                },
+            );
+
+        });
     }
 
 

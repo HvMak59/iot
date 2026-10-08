@@ -220,7 +220,7 @@ export const RTU_MQTT_RESPONSE_TOPIC = 'HrmsIOT/Rtv/+/Cmd/Pub';
  *
  * Change only if your RMU protocol requires another QoS.
  */
-export const RTU_MQTT_QOS = 1 as const;
+export const RTU_MQTT_QOS = 1;
 
 /**
  * Commands are never retained.
@@ -262,9 +262,9 @@ export const RTU_FIELD_SIZE = 1;
 /**
  * Command types.
  */
-export const RTU_COMMAND_TYPE_READ = 'read' as const;
+export const RTU_COMMAND_TYPE_READ = 'read';
 
-export const RTU_COMMAND_TYPE_WRITE = 'write' as const;
+export const RTU_COMMAND_TYPE_WRITE = 'write';
 
 
 

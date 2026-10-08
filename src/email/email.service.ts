@@ -61,6 +61,7 @@ export class EmailService {
 
     async sendEmail(options: EmailOptions) {
         // async sendEmail(to: string) {
+        // 
         console.log('in email');
         try {
             const mailOptions = {

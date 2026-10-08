@@ -1364,13 +1364,24 @@ export class AppModule { }
 // B-84 =        mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/HT2W250201/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // ram prakash = mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/2025040069/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/I202610001/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/I202610001/Cmd/Pub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"I202610001\")"
 
 
 // {"slaveId":"2","msgId":"58180b8f1f6b","timestamp":"2026-10-01T11:24:25.073Z","type":"read","addr":"6235","param":"power","dataType":"uint16","valueType":"HoldingRegister","multiplier":0.1,"fieldSize":1}
 
+// Testing : 
+// command send  for write = {"slaveId":1,"msgId":"2d75a5da","timestamp":"2026-10-08 11:40:46","type":"write","addr":1078,"param":"power","value":1000,"dataType":"uint16_ab","valueType":"Single"}
+// response from rmu write = {"msgId":"2d75a5da","timestamp":"2026-10-08 11:40:48","param":"power","value":1000,"status":"ok"}
 
 
-// sunita pan :  [0218482083] 
+
+// sunita pan :  [0218482083]  
+// N-881134115712841
+
+
+// remove class level variables from telemtrycapture service(do like adaptors)
+// 
+
 
 
