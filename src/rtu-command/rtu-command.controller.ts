@@ -26,9 +26,7 @@ export class RtuCommandController {
 
         this.logger.debug(fnName + KEY_SEPARATOR + input);
         if (userId) {
-            return this.rtuCommandService.read(
-                dto,
-            );
+            // return this.rtuCommandService.read( dto );
         }
         else {
             this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
@@ -79,6 +77,18 @@ export class RtuCommandController {
         this.logger.debug(fnName + KEY_SEPARATOR + input);
         this.logger.debug('Calling getSlaveIds service');
         return this.rtuCommandService.getSlaveIds(virtualDeviceId);
+    }
+
+    @Get('params')
+    getParams(
+        @Query('deviceTypeId') deviceTypeId: string
+    ) {
+        const fnName = this.getParams.name;
+        const input = `Input: DeviceTypeId: ${deviceTypeId}`;
+
+        this.logger.debug(fnName + KEY_SEPARATOR + input);
+        this.logger.debug('Calling getParams service');
+        return this.rtuCommandService.getParams(deviceTypeId);
     }
 
     @Post('sendCommand')

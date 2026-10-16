@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTU Command Tester</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: white;
+        }
+
+        input[readonly] {
+            background: #eee;
+        }
+
+        button {
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #111;
+        }
+
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .load-btn {
+            width: 180px;
+            margin-top: 23px;
+        }
+
+        .send-btn {
+            margin-top: 10px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        .send-btn:hover {
+            background: #111;
+        }
+
+        .send-btn.disabled {
+            background: #aaa;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        #response {
+            margin-top: 25px;
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-family: monospace;
+            min-height: 50px;
+        }
+
+        #error {
+            margin-top: 15px;
+            color: red;
+            font-weight: bold;
+        }
+
+        .info {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        select.auto-filled {
+            color: #111827;
+            background-color: #fff;
+            opacity: 1;
+            cursor: default;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 18px;
+            }
+
+            .row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .load-btn {
+                width: 100%;
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>RTU Command Tester</h2>
+
+        <!-- Asset -->
+        <div class="row">
+            <div class="field">
+                <label for="assetId">Asset ID</label>
+                <select id="assetId">
+                    <option value="">Select Asset</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <button type="button" class="load-btn" id="loadVdBtn">
+                    Load Virtual Devices
+                </button>
+            </div>
+        </div>
+
+        <!-- Virtual Device -->
+        <div class="row">
+            <div class="field">
+                <label for="virtualDevice">Virtual Device</label>
+                <select id="virtualDevice" disabled>
+                    <option value="">Select Virtual Device</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Slave and RMU -->
+        <div class="row">
+            <div class="field">
+                <label for="slaveIdSelect">Slave ID</label>
+
+                <select id="slaveIdSelect" disabled>
+                    <option value="">Select Slave</option>
+                </select>
+
+                <input type="number" id="slaveIdInput" placeholder="Enter Slave ID manually" style="display: none;">
+
+                <div class="info">
+                    If no slave is found, you can enter it manually.
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="rmuId">RMU ID</label>
+
+                <select id="rmuId" disabled>
+                    <option value="">Select RMU</option>
+                </select>
+
+                <div class="info">
+                    RMU is populated automatically when telemetry mapping exists.
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Type -->
+        <div class="row">
+            <div class="field">
+                <label for="type">Command Type</label>
+
+                <select id="type">
+                    <option value="read">Read</option>
+                    <option value="write">Write</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Parameter -->
+        <div class="row">
+            <div class="field">
+                <label for="param">Parameter</label>
+
+                <select id="param" disabled>
+                    <option value="">Select a Virtual Device first</option>
+                </select>
+
+                <div class="info" id="paramInfo">
+                    Parameters will be loaded according to the selected device type.
+                </div>
+            </div>
+        </div>
+
+        <!-- Write Value -->
+        <div class="row" id="valueRow" style="display: none;">
+            <div class="field">
+                <label for="value">Value</label>
+                <input type="number" id="value" placeholder="Enter value to write" step="any">
+            </div>
+        </div>
+
+        <!-- Send -->
+        <div class="send-btn" id="sendBtn" role="button" tabindex="0">
+            Send RTU Command
+        </div>
+
+        <div id="error"></div>
+
+        <div id="response">Response will appear here...</div>
+
+    </div>
+
+    <script>
+        // =====================================================
+        // CONFIGURATION
+        // =====================================================
+
+        const API_BASE_URL = "http://localhost:3002";
+
+        // Do not hardcode a real JWT in a publicly accessible HTML file.
+        // If authentication is required, retrieve the token from your
+        // application's existing secure authentication flow.
+        function getAuthHeaders() {
+            return {};
+        }
+
+        // =====================================================
+        // STATE
+        // =====================================================
+
+        let virtualDevices = [];
+        let assetsLoaded = false;
+        let isSending = false;
+        let requestVersion = 0;
+
+        // =====================================================
+        // DOM ELEMENTS
+        // =====================================================
+
+        const assetIdInput = document.getElementById("assetId");
+        const loadVdBtn = document.getElementById("loadVdBtn");
+        const virtualDeviceSelect = document.getElementById("virtualDevice");
+
+        const slaveSelect = document.getElementById("slaveIdSelect");
+        const slaveInput = document.getElementById("slaveIdInput");
+        const rmuInput = document.getElementById("rmuId");
+
+        const typeSelect = document.getElementById("type");
+        const paramSelect = document.getElementById("param");
+        const paramInfo = document.getElementById("paramInfo");
+
+        const valueInput = document.getElementById("value");
+        const valueRow = document.getElementById("valueRow");
+
+        const sendBtn = document.getElementById("sendBtn");
+        const responseBox = document.getElementById("response");
+        const errorBox = document.getElementById("error");
+
+        // =====================================================
+        // API HELPER
+        // =====================================================
+
+        async function apiRequest(url, options = {}) {
+            const headers = {
+                ...getAuthHeaders(),
+                ...(options.headers || {})
+            };
+
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            const text = await response.text();
+
+            let data = null;
+
+            if (text) {
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+            }
+
+            if (!response.ok) {
+                let message = `HTTP Error: ${response.status}`;
+
+                if (data && typeof data === "object" && data.message) {
+                    message = Array.isArray(data.message)
+                        ? data.message.join(", ")
+                        : data.message;
+                } else if (typeof data === "string" && data.trim()) {
+                    message = data;
+                }
+
+                throw new Error(message);
+            }
+
+            return data;
+        }
+
+        // =====================================================
+        // EVENT LISTENERS
+        // =====================================================
+
+        assetIdInput.addEventListener("focus", async () => {
+            if (!assetsLoaded) {
+                await loadAssets();
+            }
+        });
+
+        // Also load when the asset dropdown is opened by mouse.
+        assetIdInput.addEventListener("click", async () => {
+            if (!assetsLoaded) {
+                await loadAssets();
+            }
+        });
+
+        loadVdBtn.addEventListener("click", loadVirtualDevices);
+
+        // virtualDeviceSelect.addEventListener("change", async () => {
+        //     await loadSlaves();
+        //     await loadParams();
+        // });
+
+        virtualDeviceSelect.addEventListener("change", async () => {
+            resetParams();
+            await Promise.all([
+                loadSlaves(),
+                loadParams()
+            ]);
+        });
+
+        typeSelect.addEventListener("change", handleTypeChange);
+
+        sendBtn.addEventListener("click", sendCommand);
+
+        sendBtn.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                sendCommand();
+            }
+        });
+
+        // =====================================================
+        // LOAD ASSETS
+        // =====================================================
+
+        async function loadAssets() {
+            clearError();
+
+            assetIdInput.disabled = true;
+            assetIdInput.innerHTML =
+                '<option value="">Loading assets...</option>';
+
+            try {
+                const assets = await apiRequest(
+                    `${API_BASE_URL}/asset/findAll`
+                );
+
+                assetIdInput.innerHTML =
+                    '<option value="">Select Asset</option>';
+
+                if (!Array.isArray(assets) || assets.length === 0) {
+                    assetIdInput.innerHTML =
+                        '<option value="">No assets found</option>';
+
+                    assetsLoaded = true;
+                    return;
+                }
+
+                assets.forEach(asset => {
+                    const option = document.createElement("option");
+
+                    option.value = asset.id;
+                    option.textContent = asset.name || asset.id;
+
+                    assetIdInput.appendChild(option);
+                });
+
+                assetsLoaded = true;
+
+            } catch (error) {
+                console.error("Load Assets Error:", error);
+
+                assetIdInput.innerHTML =
+                    '<option value="">Failed to load assets</option>';
+
+                showError("Failed to load assets: " + error.message);
+
+            } finally {
+                assetIdInput.disabled = false;
+            }
+        }
+
+        // =====================================================
+        // LOAD VIRTUAL DEVICES
+        // =====================================================
+
+        async function loadVirtualDevices() {
+            const assetId = assetIdInput.value.trim();
+
+            clearError();
+
+            if (!assetId) {
+                showError("Please select Asset ID.");
+                return;
+            }
+
+            loadVdBtn.disabled = true;
+            loadVdBtn.textContent = "Loading...";
+
+            virtualDeviceSelect.disabled = true;
+            virtualDeviceSelect.innerHTML =
+                '<option value="">Loading...</option>';
+
+            virtualDevices = [];
+            resetSlaveFields();
+            resetParams();
+
+            try {
+                const url =
+                    `${API_BASE_URL}/rtu-command/vds?assetId=` +
+                    encodeURIComponent(assetId);
+
+                const result = await apiRequest(url);
+
+                if (!Array.isArray(result) || result.length === 0) {
+                    virtualDeviceSelect.innerHTML =
+                        '<option value="">No virtual devices found</option>';
+
+                    return;
+                }
+
+                virtualDevices = result;
+
+                virtualDeviceSelect.innerHTML =
+                    '<option value="">Select Virtual Device</option>';
+
+                virtualDevices.forEach(vd => {
+                    const option = document.createElement("option");
+
+                    option.value = vd.id;
+
+                    option.textContent =
+                        vd.name && vd.device?.serialNo
+                            ? `${vd.name}-${vd.device.serialNo}`
+                            : vd.name || vd.device?.serialNo || vd.id;
+
+                    virtualDeviceSelect.appendChild(option);
+                });
+
+                virtualDeviceSelect.disabled = false;
+
+            } catch (error) {
+                console.error("Load Virtual Devices Error:", error);
+
+                virtualDevices = [];
+
+                virtualDeviceSelect.innerHTML =
+                    '<option value="">Failed to load</option>';
+
+                showError(
+                    "Failed to load virtual devices: " + error.message
+                );
+
+            } finally {
+                loadVdBtn.disabled = false;
+                loadVdBtn.textContent = "Load Virtual Devices";
+            }
+        }
+
+        // =====================================================
+        // GET SELECTED VIRTUAL DEVICE
+        // =====================================================
+
+        function getSelectedVirtualDevice() {
+            const selectedId = virtualDeviceSelect.value;
+
+            return virtualDevices.find(
+                vd => String(vd.id) === String(selectedId)
+            );
+        }
+
+        // =====================================================
+        // LOAD PARAMETERS BY DEVICE TYPE
+        // GET /rtu-command/params?deviceTypeId=...
+        // =====================================================
+
+
+        let cachedParams = [];
+        let cachedDeviceTypeId = null;
+        let isLoadingParams = false;
+
+        async function loadParams() {
+            const vd = getSelectedVirtualDevice();
+
+            if (!vd) {
+                resetParams();
+                return;
+            }
+
+            // The endpoint expects deviceTypeId, e.g. "Inverter"
+            const deviceTypeId = vd.deviceTypeId;
+
+            if (!deviceTypeId) {
+                paramSelect.innerHTML =
+                    '<option value="">Missing device type</option>';
+                paramSelect.disabled = true;
+                paramInfo.textContent = "Selected virtual device has no deviceTypeId.";
+                return;
+            }
+
+            paramSelect.disabled = true;
+            paramSelect.innerHTML =
+                '<option value="">Loading parameters...</option>';
+            paramInfo.textContent = `Loading parameters for ${deviceTypeId}...`;
+
+            try {
+                const url =
+                    `${API_BASE_URL}/rtu-command/params?deviceTypeId=${encodeURIComponent(deviceTypeId)}`;
+
+                console.log("Fetching parameters:", url);
+
+                const result = await apiRequest(url);
+
+                // Check the actual response format.
+                console.log("Parameters API response:", result);
+
+                const params = Array.isArray(result)
+                    ? result
+                    : Array.isArray(result?.data)
+                        ? result.data
+                        : [];
+
+                const parameterNames = params
+                    .map(item => {
+                        if (typeof item === "string") {
+                            return item;
+                        }
+
+                        return item?.metricsAttributeId;
+                    })
+                    .filter(name =>
+                        typeof name === "string" && name.trim() !== ""
+                    );
+
+                paramSelect.innerHTML = "";
+
+                if (parameterNames.length === 0) {
+                    paramSelect.innerHTML =
+                        '<option value="">No parameters found</option>';
+                    paramSelect.disabled = true;
+                    paramInfo.textContent =
+                        "The API returned no usable parameter names.";
+                    return;
+                }
+
+                const placeholder = document.createElement("option");
+                placeholder.value = "";
+                placeholder.textContent = "Select Parameter";
+                paramSelect.appendChild(placeholder);
+
+                parameterNames.forEach(name => {
+                    const option = document.createElement("option");
+                    option.value = name;
+                    option.textContent = name;
+                    paramSelect.appendChild(option);
+                });
+
+                paramSelect.disabled = false;
+                paramInfo.textContent =
+                    `${parameterNames.length} parameter(s) available.`;
+
+            } catch (error) {
+                console.error("Failed to load parameters:", error);
+
+                paramSelect.innerHTML =
+                    '<option value="">Failed to load parameters</option>';
+                paramSelect.disabled = true;
+                paramInfo.textContent = "Unable to load parameters.";
+
+                showError(`Failed to load parameters: ${error.message}`);
+            }
+        }
+
+        // async function loadParams(forceRefresh = false) {
+        //     const version = ++requestVersion;
+        //     const vd = getSelectedVirtualDevice();
+
+        //     if (!vd) {
+        //         resetParams();
+        //         return;
+        //     }
+
+        //     const deviceTypeId = vd.deviceTypeId;
+
+        //     if (
+        //         deviceTypeId === undefined ||
+        //         deviceTypeId === null ||
+        //         String(deviceTypeId).trim() === ""
+        //     ) {
+        //         resetParams();
+        //         paramInfo.textContent =
+        //             "The selected Virtual Device has no deviceTypeId.";
+        //         showError("Cannot load parameters: deviceTypeId is missing.");
+        //         return;
+        //     }
+
+        //     // Reuse parameters already fetched for this device type.
+        //     if (
+        //         !forceRefresh &&
+        //         cachedDeviceTypeId === String(deviceTypeId) &&
+        //         cachedParams.length > 0
+        //     ) {
+        //         displayParams(cachedParams);
+        //         return;
+        //     }
+
+        //     if (isLoadingParams) {
+        //         return;
+        //     }
+
+        //     isLoadingParams = true;
+        //     paramSelect.disabled = true;
+        //     paramSelect.innerHTML =
+        //         '<option value="">Loading parameters...</option>';
+
+        //     paramInfo.textContent =
+        //         `Loading parameters for device type ${deviceTypeId}...`;
+
+        //     try {
+        //         const url =
+        //             `${API_BASE_URL}/rtu-command/params?deviceTypeId=` +
+        //             encodeURIComponent(deviceTypeId);
+
+        //         const result = await apiRequest(url);
+
+        //         // Ignore stale responses if the selected device changed.
+        //         if (
+        //             version !== requestVersion ||
+        //             virtualDeviceSelect.value !== String(vd.id)
+        //         ) {
+        //             return;
+        //         }
+
+        //         const params = Array.isArray(result)
+        //             ? result
+        //             : result && Array.isArray(result.data)
+        //                 ? result.data
+        //                 : [];
+
+        //         cachedParams = params
+        //             .map(item =>
+        //                 typeof item === "string" || typeof item === "number"
+        //                     ? String(item)
+        //                     : item?.metricsAttributeId
+        //             )
+        //             .filter(value =>
+        //                 value !== undefined &&
+        //                 value !== null &&
+        //                 String(value).trim() !== ""
+        //             )
+        //             .map(String);
+
+        //         cachedDeviceTypeId = String(deviceTypeId);
+
+        //         displayParams(cachedParams);
+
+        //     } catch (error) {
+        //         if (version !== requestVersion) {
+        //             return;
+        //         }
+
+        //         console.error("Load Parameters Error:", error);
+
+        //         paramSelect.innerHTML =
+        //             '<option value="">Failed to load parameters</option>';
+
+        //         paramInfo.textContent = "Unable to load parameters.";
+
+        //         showError("Failed to load parameters: " + error.message);
+
+        //     } finally {
+        //         isLoadingParams = false;
+        //     }
+        // }
+
+        function displayParams(params) {
+            paramSelect.innerHTML =
+                '<option value="">Select Parameter</option>';
+
+            params.forEach(param => {
+                const option = document.createElement("option");
+                option.value = param;
+                option.textContent = param;
+                paramSelect.appendChild(option);
+            });
+
+            if (params.length === 0) {
+                paramSelect.innerHTML =
+                    '<option value="">No parameters found</option>';
+
+                paramSelect.disabled = true;
+                paramInfo.textContent =
+                    "No parameters are configured for this device type.";
+                return;
+            }
+
+            paramSelect.disabled = false;
+            paramInfo.textContent =
+                `${params.length} parameter(s) available.`;
+        }
+
+        function resetParams() {
+            requestVersion++;
+            cachedParams = [];
+            cachedDeviceTypeId = null;
+            isLoadingParams = false;
+
+            paramSelect.innerHTML =
+                '<option value="">Select a Virtual Device first</option>';
+
+            paramSelect.disabled = true;
+
+            paramInfo.textContent =
+                "Parameters will be loaded according to the selected device type.";
+        }
+
+        // =====================================================
+        // LOAD SLAVES
+        // GET /rtu-command/slaveIds?virtualDeviceId=...
+        // =====================================================
+
+        async function loadSlaves() {
+            const virtualDeviceId = virtualDeviceSelect.value;
+
+            clearError();
+            resetSlaveFields();
+
+            if (!virtualDeviceId) {
+                return;
+            }
+
+            slaveSelect.innerHTML =
+                '<option value="">Loading...</option>';
+
+            try {
+                const url =
+                    `${API_BASE_URL}/rtu-command/slaveIds?virtualDeviceId=` +
+                    encodeURIComponent(virtualDeviceId);
+
+                const result = await apiRequest(url);
+
+                const mappings = Array.isArray(result)
+                    ? result.filter(item =>
+                        item &&
+                        item.slaveId !== undefined &&
+                        item.slaveId !== null &&
+                        item.rmuId !== undefined &&
+                        item.rmuId !== null &&
+                        String(item.rmuId).trim() !== ""
+                    )
+                    : [];
+
+                if (mappings.length > 0) {
+                    slaveSelect.style.display = "block";
+                    slaveInput.style.display = "none";
+
+                    slaveSelect.innerHTML =
+                        '<option value="">Select Slave</option>';
+
+                    mappings.forEach(mapping => {
+                        const option = document.createElement("option");
+
+                        option.value = String(mapping.slaveId);
+                        option.dataset.rmuId = String(mapping.rmuId);
+
+                        const duplicateCount = mappings.filter(
+                            item =>
+                                String(item.slaveId) ===
+                                String(mapping.slaveId)
+                        ).length;
+
+                        option.textContent = duplicateCount > 1
+                            ? `Slave ${mapping.slaveId} - RMU ${mapping.rmuId}`
+                            : `Slave ${mapping.slaveId}`;
+
+                        slaveSelect.appendChild(option);
+                    });
+
+                    slaveSelect.disabled = false;
+
+                    slaveSelect.onchange = () => {
+                        const selectedOption =
+                            slaveSelect.options[slaveSelect.selectedIndex];
+
+                        const rmuId =
+                            selectedOption?.dataset?.rmuId || "";
+
+                        setTelemetryRmu(rmuId);
+                    };
+
+                    if (mappings.length === 1) {
+                        slaveSelect.value = String(mappings[0].slaveId);
+                        setTelemetryRmu(String(mappings[0].rmuId));
+                    }
+
+                    return;
+                }
+
+                enableManualRtuSelection();
+
+            } catch (error) {
+                console.error("Load Slaves Error:", error);
+
+                enableManualRtuSelection();
+
+                showError(
+                    "Could not load telemetry mapping. " +
+                    "You can select an RMU and enter Slave ID manually."
+                );
+            }
+        }
+
+        // =====================================================
+        // SET RMU FROM TELEMETRY
+        // =====================================================
+
+        function setTelemetryRmu(rmuId) {
+            rmuInput.innerHTML =
+                '<option value="">Select RMU</option>';
+
+            if (rmuId) {
+                const option = document.createElement("option");
+
+                option.value = rmuId;
+                option.textContent = rmuId;
+                option.selected = true;
+
+                rmuInput.appendChild(option);
+            }
+
+            rmuInput.disabled = true;
+            rmuInput.classList.add("auto-filled");
+        }
+
+        // =====================================================
+        // MANUAL SLAVE + RMU FALLBACK
+        // =====================================================
+
+        function enableManualRtuSelection() {
+            slaveSelect.style.display = "none";
+            slaveSelect.disabled = true;
+
+            slaveInput.style.display = "block";
+            slaveInput.disabled = false;
+            slaveInput.value = "";
+
+            populateRmuOptions();
+
+            rmuInput.disabled = false;
+        }
+
+        // =====================================================
+        // POPULATE RMU OPTIONS
+        // =====================================================
+
+        function populateRmuOptions() {
+            rmuInput.innerHTML =
+                '<option value="">Select RMU</option>';
+
+            rmuInput.classList.remove("auto-filled");
+
+            const rmuDevices = virtualDevices.filter(vd =>
+                String(vd.deviceTypeId).toUpperCase() === "RMU" &&
+                vd.device?.serialNo
+            );
+
+            rmuDevices.forEach(rmu => {
+                const option = document.createElement("option");
+
+                option.value = rmu.device.serialNo;
+                option.textContent = rmu.device.serialNo;
+
+                rmuInput.appendChild(option);
+            });
+
+            console.log("Fallback RMU Devices:", rmuDevices);
+        }
+
+        // =====================================================
+        // READ / WRITE
+        // =====================================================
+
+        function handleTypeChange() {
+            const isWrite = typeSelect.value === "write";
+
+            valueRow.style.display = isWrite ? "flex" : "none";
+            valueInput.required = isWrite;
+
+            if (!isWrite) {
+                valueInput.value = "";
+            }
+        }
+
+        // =====================================================
+        // SEND RTU COMMAND
+        // =====================================================
+
+        async function sendCommand() {
+            if (isSending) {
+                return;
+            }
+
+            clearError();
+
+            const vd = getSelectedVirtualDevice();
+
+            const virtualDeviceId = virtualDeviceSelect.value;
+            const rmuDeviceId = rmuInput.value.trim();
+            const type = typeSelect.value;
+            const param = paramSelect.value;
+
+            // Resolve deviceModelId from the selected Virtual Device.
+            // Confirm this field against your actual /vds response.
+            const deviceModelId = vd?.device?.deviceModelId;
+
+            // Resolve Slave ID from dropdown or manual input.
+            const rawSlaveId =
+                slaveInput.style.display !== "none"
+                    ? slaveInput.value.trim()
+                    : slaveSelect.value;
+
+            const slaveId = rawSlaveId === ""
+                ? undefined
+                : Number(rawSlaveId);
+
+            // =================================================
+            // VALIDATION
+            // =================================================
+
+            if (!virtualDeviceId || !vd) {
+                showError("Please select Virtual Device.");
+                return;
+            }
+
+            if (
+                slaveId === undefined ||
+                !Number.isInteger(slaveId)
+            ) {
+                showError("Please enter/select a valid numeric Slave ID.");
+                return;
+            }
+
+            if (!rmuDeviceId) {
+                showError("Please select RMU ID.");
+                return;
+            }
+
+            if (!param) {
+                showError("Please select Parameter.");
+                return;
+            }
+
+            if (
+                deviceModelId === undefined ||
+                deviceModelId === null ||
+                String(deviceModelId).trim() === ""
+            ) {
+                showError(
+                    "deviceModelId is missing from the selected Virtual Device. " +
+                    "Check the /vds API response and update its mapping."
+                );
+                return;
+            }
+
+            let value;
+
+            if (type === "write") {
+                const rawValue = valueInput.value.trim();
+
+                if (rawValue === "") {
+                    showError("Please enter Value for Write command.");
+                    return;
+                }
+
+                value = Number(rawValue);
+
+                if (!Number.isFinite(value)) {
+                    showError("Write Value must be a valid number.");
+                    return;
+                }
+            }
+
+            // =================================================
+            // DTO REQUEST BODY
+            // =================================================
+
+            const payload = {
+                slaveId,
+                rmuDeviceId,
+                type,
+                param,
+                deviceModelId: String(deviceModelId),
+
+                ...(type === "write" ? { value } : {})
+            };
+
+            console.log("RTU Command Request Body:", payload);
+
+            // =================================================
+            // SEND REQUEST
+            // =================================================
+
+            isSending = true;
+
+            sendBtn.classList.add("disabled");
+            sendBtn.textContent = "Sending...";
+
+            responseBox.textContent = "Sending RTU command...";
+
+            try {
+                const result = await apiRequest(
+                    `${API_BASE_URL}/rtu-command/sendCommand`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYWNoaW4iLCJpYXQiOjE3Nzc0NDAyODksImV4cCI6MTc3NzUyNjY4OX0.t5Gb4ZeKXVvN3Aw9eyRE5jKPQtidUyRRanh2MgOl8YA'
+                        },
+
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                console.log("RTU Response:", result);
+
+                responseBox.textContent =
+                    typeof result === "string"
+                        ? result
+                        : JSON.stringify(result, null, 4);
+
+            } catch (error) {
+                console.error("Send RTU Command Error:", error);
+
+                responseBox.textContent = "Command failed.";
+
+                showError(
+                    "Failed to send command: " + error.message
+                );
+
+            } finally {
+                isSending = false;
+
+                sendBtn.classList.remove("disabled");
+                sendBtn.textContent = "Send RTU Command";
+            }
+        }
+
+        // =====================================================
+        // RESET SLAVE + RMU FIELDS
+        // =====================================================
+
+        function resetSlaveFields() {
+            slaveSelect.innerHTML =
+                '<option value="">Select Slave</option>';
+
+            slaveSelect.style.display = "block";
+            slaveSelect.disabled = true;
+            slaveSelect.onchange = null;
+
+            slaveInput.style.display = "none";
+            slaveInput.disabled = false;
+            slaveInput.value = "";
+
+            rmuInput.innerHTML =
+                '<option value="">Select RMU</option>';
+
+            rmuInput.disabled = true;
+            rmuInput.classList.remove("auto-filled");
+        }
+
+        // =====================================================
+        // ERROR HELPERS
+        // =====================================================
+
+        function showError(message) {
+            errorBox.textContent = message;
+        }
+
+        function clearError() {
+            errorBox.textContent = "";
+        }
+
+        // =====================================================
+        // INITIAL STATE
+        // =====================================================
+
+        handleTypeChange();
+
+    </script>
+
+</body>
+
+</html>

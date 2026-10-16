@@ -136,7 +136,7 @@ export class VirtualDeviceService {
         device: {
           id: true,
           serialNo: true,
-          // deviceTypeId: true
+          deviceModelId: true
         }
       },
       // where: {

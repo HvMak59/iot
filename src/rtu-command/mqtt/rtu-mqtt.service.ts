@@ -390,7 +390,7 @@ export class RtuMqttService implements OnModuleInit {
                     ),
                 );
 
-            }, 10000);
+            }, 10000);  // if rmu doesnt reply then close request 
 
             this.pendingResponses.set(
                 msgId,
@@ -400,7 +400,6 @@ export class RtuMqttService implements OnModuleInit {
                     timeout,
                 },
             );
-
         });
     }
 

@@ -20,6 +20,6 @@ export class WhatsAppController {
         //     AlertStatus.CLOSED,
         //     []
         // );
-        return this.whatsAppService.sendMessage('', AlertStatus.closed, [])
+        return this.whatsAppService.sendMessageToWp('916353921545', '', '');
     }
 }

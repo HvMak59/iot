@@ -7,8 +7,11 @@ import { AlertStatus } from 'src/utils/enums';
 
 @Injectable()
 export class WhatsAppService {
-    private accessToken = 'EAF3dzlLhJ2cBRAwKy6cHNQIP2YqtgR5ujbyXe3hcAKJeqExlhgiR1ZBJmD2nOtaKVhy4eHYMjCk1bNSaaQZAqX4zoPAOWkYap77BbzsoiLDIks7yEMSxYQlQsWZAA2QTeKHGzhXFd5mZCCkFesanxFCmRuyV0TqnvAZCsIm5UxyOZBJTtqWdwAZA0XYmphwRAZDZD';
-    private phoneNumberId = '1045396935323347';
+    // private accessToken = 'EAF3dzlLhJ2cBRAwKy6cHNQIP2YqtgR5ujbyXe3hcAKJeqExlhgiR1ZBJmD2nOtaKVhy4eHYMjCk1bNSaaQZAqX4zoPAOWkYap77BbzsoiLDIks7yEMSxYQlQsWZAA2QTeKHGzhXFd5mZCCkFesanxFCmRuyV0TqnvAZCsIm5UxyOZBJTtqWdwAZA0XYmphwRAZDZD';
+    // private phoneNumberId = '1045396935323347';
+
+    private accessToken = 'EAAXHCHIlwyMBSoZCP69ZBoZA6fe44e8jxhQlfgUoA5nuittgXdGaeST3kFYr3UnZBt3WMLelygjnn0PXJxfoz26jQ8pW7FotBT9OvrSj2ncMR9DPjzRENPNXWZCNG6XUTVXh0k5GOkzNh9gKLLf4iOvjIr1ZBx4xSr9dGoqmD2l6nP9n7VZBXlrj6taMG6rrwZDZD';
+    private phoneNumberId = '1372905915906201';
 
     constructor(
         private httpService: HttpService,
@@ -33,7 +36,8 @@ export class WhatsAppService {
     }
 
     async sendMessage(to: string, status: AlertStatus, alerts: Alert[]) {
-        const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
+        // const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
+        const url = `https://graph.facebook.com/v25.0/${this.phoneNumberId}/messages`;
 
         // Convert alerts array -> string because WhatsApp template requires text instead of array
         const alertsText = this.buildAlertsText(alerts);
@@ -168,35 +172,43 @@ export class WhatsAppService {
         status: string,
     ) {
         console.log("in wp");
-        const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
+        // const url = `https://graph.facebook.com/v23.0/${this.phoneNumberId}/messages`;
+        const url = ` https://graph.facebook.com/v25.0/1372905915906201/messages`;
 
         const payload = {
             messaging_product: 'whatsapp',
             to: phoneNumber,
             type: 'template',
+            // messages: 'hello',
             template: {
-                name: 'alert_triggered',
+                name: 'hello_world',
                 language: {
                     code: 'en',
                 },
-                components: [
-                    {
-                        type: 'body',
-                        parameters: [
-                            {
-                                type: 'text',
-                                parameter_name: 'alerts',
-                                text: messages,
-                            },
-                            {
-                                type: 'text',
-                                parameter_name: 'status',
-                                text: status,
-                            },
-                        ],
-                    },
-                ],
-            },
+            }
+            // template: {
+            //     name: 'alert_triggered',
+            //     language: {
+            //         code: 'en',
+            //     },
+            //     components: [
+            //         {
+            //             type: 'body',
+            //             parameters: [
+            //                 {
+            //                     type: 'text',
+            //                     parameter_name: 'alerts',
+            //                     text: messages,
+            //                 },
+            //                 {
+            //                     type: 'text',
+            //                     parameter_name: 'status',
+            //                     text: status,
+            //                 },
+            //             ],
+            //         },
+            //     ],
+            // },
         };
 
         try {

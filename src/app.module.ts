@@ -54,9 +54,11 @@ import { ListenertModule } from './listeners/listeners.module';
 import { EmailModule } from './email/email.module';
 import { RtuCommandModule } from './rtu-command/rtu-command.module';
 import { TelemetryHeaderModule } from './telemetry-header/telemetry-header.module';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 // import { SmsModule } from './sms/sms.module';
-
-
+import * as tls from 'tls';
+import { DeviceModelParameterModule } from './device-model-parameters/device-model-parameter.module';
 
 @Module({
   imports: [
@@ -67,11 +69,26 @@ import { TelemetryHeaderModule } from './telemetry-header/telemetry-header.modul
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get('DB_HOST', 'localhost'),
+        host: config.get('DB_HOST', ''),
         port: config.get('DB_PORT', 5432),
-        username: config.get('DB_USERNAME', 'postgres'),
-        password: config.get('DB_PASSWORD', 'hiten1234'),
-        database: config.get('DB_NAME', 'hermes'),
+        username: config.get('DB_USERNAME', ''),
+        password: config.get('DB_PASSWORD', ''),
+        database: config.get('DB_NAME', ''),
+
+        // ssl: {
+        //   ca: readFileSync(
+        //     join(process.cwd(), 'src/certs', 'ca-cert.pem'),
+        //     'utf8',
+        //   ),
+        //   checkServerIdentity: (host: string, cert: any) => {
+        //     console.log('Server cert subject:', cert.subject);
+        //     console.log('Server cert SAN:', cert.subjectaltname);
+
+        //     return undefined;
+        //   },
+        //   rejectUnauthorized: true,
+        // },
+
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
         // synchronize: true, // for my db use this 
@@ -81,6 +98,51 @@ import { TelemetryHeaderModule } from './telemetry-header/telemetry-header.modul
       }),
       inject: [ConfigService],
     }),
+
+    // TypeOrmModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: (config: ConfigService) => {
+    //     // TEMP DEBUG: delete after use (prod password!)
+    //     console.log(
+    //       'config',
+    //       JSON.stringify({
+    //         host: config.get('DB_HOST'),
+    //         port: config.get('DB_PORT'),
+    //         username: config.get('DB_USERNAME'),
+    //         database: config.get('DB_NAME'),
+    //         password: config.get('DB_PASSWORD'),
+    //         pwLen: config.get('DB_PASSWORD')?.length,
+    //       }),
+    //     );
+
+    //     return {
+    //       type: 'postgres',
+    //       host: config.get('DB_HOST', ''),
+    //       port: config.get('DB_PORT', 5432),
+    //       username: config.get('DB_USERNAME', ''),
+    //       password: config.get('DB_PASSWORD', ''),
+    //       database: config.get('DB_NAME', ''),
+
+    //       // ssl: {
+    //       //   ca: readFileSync(
+    //       //     join(process.cwd(), 'src/certs', 'ca-cert.pem'),
+    //       //     'utf8',
+    //       //   ),
+    //       //   checkServerIdentity: (host: string, cert: any) => {
+    //       //     console.log('Server cert subject:', cert.subject);
+    //       //     console.log('Server cert SAN:', cert.subjectaltname);
+    //       //     return undefined;
+    //       //   },
+    //       //   rejectUnauthorized: true,
+    //       // },
+
+    //       autoLoadEntities: true,
+    //       synchronize: false,
+    //       migrationsRun: false,
+    //     };
+    //   },
+    //   inject: [ConfigService],
+    // }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -142,7 +204,10 @@ import { TelemetryHeaderModule } from './telemetry-header/telemetry-header.modul
     ListenertModule,
     EmailModule,
     RtuCommandModule,
-    TelemetryHeaderModule
+    TelemetryHeaderModule,
+
+
+    DeviceModelParameterModule
   ],
   // providers: [
   //   {
@@ -1363,7 +1428,7 @@ export class AppModule { }
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/TestRMU1/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // B-84 =        mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/HT2W250201/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // ram prakash = mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/2025040069/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
-// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/I202610001/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/2026100014/Cmd/Sub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/Rtv/I202610001/Cmd/Pub -u hermes -P "4iHuC+=NL6R*t7=YU6Ew"
 // mosquitto_sub -h hermesmqtt.com -t HrmsIOT/NwDrHuRtvSlrV2/info -u hermes -P "4iHuC+=NL6R*t7=YU6Ew" | jq -c "select(.device_id == \"I202610001\")"
 
@@ -1380,8 +1445,72 @@ export class AppModule { }
 // N-881134115712841
 
 
-// remove class level variables from telemtrycapture service(do like adaptors)
-// 
+// remove class level variables from telemtrycapture service(do like adaptors) 
+
+
+
+// [debug] [2026-10-10 14:32:14.154] [AssetService] findNotificationContacts : Find notification contacts for asset : compressor
+// {
+//   phoneNumbers: [ '916353921545' ],
+//   emailAddresses: [ 'hiten.makwana7698@gmail.com' ]
+// }
+// in wp
+// wp sent successfully
+// WP RESPONSE: {
+//   "messaging_product": "whatsapp",
+//   "contacts": [
+//     {
+//       "input": "916353921545",
+//       "wa_id": "916353921545"
+//     }
+//   ],
+//   "messages": [
+//     {
+//       "id": "wamid.HBgMOTE2MzUzOTIxNTQ1FQIAERgSNTA5NkRDMENGODU2Q0U5OTA4AA==",
+//       "message_status": "accepted"
+//     }
+//   ]
+// }
+// WP STATUS: 200
+
+
+
+
+// Whatsapp 
+// +1(555) 651 - 1883
+// Phone Number ID:
+// 1372905915906201
+// WhatsApp Business account ID:
+// 1066987769571381
+
+
+
+
+// need to make generic read write 
+// (ex. user wants to turn on/off vfd so we have to give this functionlit in ui)
+// need to workout backend design
+
+
+
+// Chrome settings 
+// Continue running background apps when Google Chrome is closed
+
+
+
+
+// 2655 
+// Server cert subject: [Object: null prototype] { CN: 'MySQL-Server' }
+// Server cert SAN: undefined
+
+
+// pan s : KTNPM5510B
+
+
+
+
+// postgres://hermes:Hermes2000%40414243@e2e-94-36.ssdcloudindia.net:5432/prodHermesIOT1
+// psql "host=e2e-94-36.ssdcloudindia.net port=5432 dbname=prodHermesIOT1 user=hermes sslmode=require"
+// psql "host=localhost port=5432 dbname=iot user=postgres sslmode=require"
 
 
 

@@ -63,6 +63,18 @@ export class DeviceTypeMetricsAttributeService {
     }
   }
 
+
+  async getParams(deviceTypeId: string) {
+    const r = await this.repo.find({
+      where: { deviceTypeId },
+      select: {
+        metricsAttributeId: true
+      }
+    });
+    console.log("params", r);
+    return r;
+  }
+
   // findAll(
   //   searchCriteria: FindDeviceTypeMetricsAttributeDto,
   //   relationsRequired: boolean = false,

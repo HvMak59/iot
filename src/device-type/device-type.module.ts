@@ -8,5 +8,6 @@ import { DeviceType } from './entities/device-type.entity';
   imports: [TypeOrmModule.forFeature([DeviceType])],
   controllers: [DeviceTypeController],
   providers: [DeviceTypeService],
+  exports: [DeviceTypeService],
 })
-export class DeviceTypeModule {}
+export class DeviceTypeModule { }

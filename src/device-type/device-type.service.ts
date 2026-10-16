@@ -41,6 +41,9 @@ export class DeviceTypeService {
     }
   }
 
+
+
+
   // findAll(
   //   searchCriteria: FindDeviceTypeDto,
   //   relationsRequired: boolean = false,

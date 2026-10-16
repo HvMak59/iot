@@ -7,11 +7,15 @@ import { CurrentTelemetryPayloadModule } from 'src/current-telemetry-payload/cur
 import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
 import { RtuCommandGateway } from './websocket-gateway/rtu-command.gateway';
 import { SseModule } from 'src/sse/sse.module';
+import { DeviceTypeMetricsAttributeModule } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.module';
+import { DeviceModelParameterModule } from 'src/device-model-parameters/device-model-parameter.module';
 
 @Module({
     imports: [
         CurrentTelemetryPayloadModule,
         VirtualDeviceModule,
+        DeviceTypeMetricsAttributeModule,
+        DeviceModelParameterModule,
 
         SseModule
     ],

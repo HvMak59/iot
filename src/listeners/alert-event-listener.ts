@@ -887,7 +887,7 @@ export class AlertEventsListener {
 						? 'closed'
 						: 'created';
 
-					return `Alert ${alert.message} ${status} on asset: ${alert.assetId}`;
+					return `${alert.message} alert is ${status} on asset: ${alert.assetId}`;
 
 				})
 				.join('\n');

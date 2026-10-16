@@ -3,6 +3,8 @@ export class sendRtuCommandDto {
     rmuDeviceId: string;
     type: string;
     param: string;
-    addr: number;
+    // addr: number;
     value?: number | undefined;
+
+    deviceModelId: string;
 }
