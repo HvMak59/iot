@@ -247,7 +247,7 @@
                 </select>
 
                 <div class="info" id="paramInfo">
-                    Parameters will be loaded according to the selected device type.
+                    Parameters will be loaded according to the selected device model.
                 </div>
             </div>
         </div>
@@ -278,12 +278,9 @@
 
         const API_BASE_URL = "http://localhost:3002";
 
-        // Do not hardcode a real JWT in a publicly accessible HTML file.
-        // If authentication is required, retrieve the token from your
-        // application's existing secure authentication flow.
-        function getAuthHeaders() {
-            return {};
-        }
+        // Returns register params (metricsAttributeId) from device_model_register
+        // for a given deviceModelId. Change if your route is different.
+        const PARAMS_PATH = "/rtu-command/params";
 
         // =====================================================
         // STATE
@@ -292,11 +289,13 @@
         let virtualDevices = [];
         let assetsLoaded = false;
         let isSending = false;
-        let requestVersion = 0;
+        let paramsRequestVersion = 0;
 
         // =====================================================
         // DOM ELEMENTS
         // =====================================================
+
+        // const tokenInput = document.getElementById("token");
 
         const assetIdInput = document.getElementById("assetId");
         const loadVdBtn = document.getElementById("loadVdBtn");
@@ -318,20 +317,44 @@
         const errorBox = document.getElementById("error");
 
         // =====================================================
+        // AUTH
+        // =====================================================
+
+        // tokenInput.value = sessionStorage.getItem("rtuTesterToken") || "";
+
+        // tokenInput.addEventListener("input", () => {
+        //     sessionStorage.setItem("rtuTesterToken", tokenInput.value.trim());
+        // });
+
+        // function getAuthHeaders() {
+        //     // const token = tokenInput.value.trim();
+        //     // return token ? { Authorization: `Bearer ${token}` } : {};
+
+        //     return { Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYWNoaW4iLCJpYXQiOjE3Nzc0NDAyODksImV4cCI6MTc3NzUyNjY4OX0.t5Gb4ZeKXVvN3Aw9eyRE5jKPQtidUyRRanh2MgOl8YA` }
+        // }
+
+        // =====================================================
         // API HELPER
         // =====================================================
 
         async function apiRequest(url, options = {}) {
-            const headers = {
-                ...getAuthHeaders(),
-                ...(options.headers || {})
-            };
+            // const headers = {
+            //     ...getAuthHeaders(),
+            //     ...(options.headers || {})
+            // };
+
+            // const response = await fetch(url, {
+            //     ...options,
+            //     headers
+            // });
 
             const response = await fetch(url, {
                 ...options,
-                headers
+                headers: {
+                    authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYWNoaW4iLCJpYXQiOjE3Nzc0NDAyODksImV4cCI6MTc3NzUyNjY4OX0.t5Gb4ZeKXVvN3Aw9eyRE5jKPQtidUyRRanh2MgOl8YA`,
+                    ...(options.headers || {})
+                }
             });
-
             const text = await response.text();
 
             let data = null;
@@ -362,31 +385,32 @@
         }
 
         // =====================================================
+        // UTILS
+        // =====================================================
+
+        function hasValue(v) {
+            return v !== undefined && v !== null && String(v).trim() !== "";
+        }
+
+        // =====================================================
         // EVENT LISTENERS
         // =====================================================
 
-        assetIdInput.addEventListener("focus", async () => {
-            if (!assetsLoaded) {
-                await loadAssets();
-            }
-        });
+        assetIdInput.addEventListener("focus", loadAssetsOnce);
+        assetIdInput.addEventListener("click", loadAssetsOnce);
 
-        // Also load when the asset dropdown is opened by mouse.
-        assetIdInput.addEventListener("click", async () => {
+        async function loadAssetsOnce() {
             if (!assetsLoaded) {
                 await loadAssets();
             }
-        });
+        }
 
         loadVdBtn.addEventListener("click", loadVirtualDevices);
 
-        // virtualDeviceSelect.addEventListener("change", async () => {
-        //     await loadSlaves();
-        //     await loadParams();
-        // });
-
         virtualDeviceSelect.addEventListener("change", async () => {
+            clearError();
             resetParams();
+
             await Promise.all([
                 loadSlaves(),
                 loadParams()
@@ -486,6 +510,7 @@
                     encodeURIComponent(assetId);
 
                 const result = await apiRequest(url);
+                console.log('vds', result);
 
                 if (!Array.isArray(result) || result.length === 0) {
                     virtualDeviceSelect.innerHTML =
@@ -545,14 +570,112 @@
         }
 
         // =====================================================
-        // LOAD PARAMETERS BY DEVICE TYPE
-        // GET /rtu-command/params?deviceTypeId=...
+        // LOAD PARAMETERS (from device_model_register)
+        // GET /rtu-command/params?deviceModelId=...
         // =====================================================
 
+        function extractParamName(item) {
+            if (typeof item === "string") {
+                return item;
+            }
 
-        let cachedParams = [];
-        let cachedDeviceTypeId = null;
-        let isLoadingParams = false;
+            return item?.metricsAttributeId || null;
+        }
+
+        // async function loadParams() {
+        //     const vd = getSelectedVirtualDevice();
+
+        //     if (!vd) {
+        //         resetParams();
+        //         return;
+        //     }
+
+        //     const deviceModelId = vd.device?.deviceModelId;
+        //     const deviceTypeId = vd.deviceTypeId;
+
+        //     if (!hasValue(deviceModelId)) {
+        //         paramSelect.innerHTML =
+        //             '<option value="">Missing device model</option>';
+        //         paramSelect.disabled = true;
+        //         paramInfo.textContent =
+        //             "Selected virtual device has no device.deviceModelId.";
+        //         return;
+        //     }
+
+        //     const version = ++paramsRequestVersion;
+
+        //     paramSelect.disabled = true;
+        //     paramSelect.innerHTML =
+        //         '<option value="">Loading parameters...</option>';
+        //     paramInfo.textContent =
+        //         `Loading parameters for ${deviceModelId}...`;
+
+        //     try {
+        //         const url =
+        //             `${API_BASE_URL}${PARAMS_PATH}?deviceModelId=` +
+        //             encodeURIComponent(deviceModelId);
+
+        //         const result = await apiRequest(url);
+
+        //         // Ignore stale responses if the selection changed meanwhile
+        //         if (version !== paramsRequestVersion) {
+        //             return;
+        //         }
+
+        //         console.log("Parameters API response:", result);
+
+        //         const list = Array.isArray(result)
+        //             ? result
+        //             : Array.isArray(result?.data)
+        //                 ? result.data
+        //                 : [];
+
+        //         const parameterNames = [...new Set(
+        //             list
+        //                 .map(extractParamName)
+        //                 .filter(name =>
+        //                     typeof name === "string" && name.trim() !== ""
+        //                 )
+        //         )];
+
+        //         if (parameterNames.length === 0) {
+        //             paramSelect.innerHTML =
+        //                 '<option value="">No parameters found</option>';
+        //             paramSelect.disabled = true;
+        //             paramInfo.textContent =
+        //                 `No registers configured for ${deviceModelId}.`;
+        //             return;
+        //         }
+
+        //         paramSelect.innerHTML =
+        //             '<option value="">Select Parameter</option>';
+
+        //         parameterNames.forEach(name => {
+        //             const option = document.createElement("option");
+        //             option.value = name;
+        //             option.textContent = name;
+        //             paramSelect.appendChild(option);
+        //         });
+
+        //         paramSelect.disabled = false;
+        //         paramInfo.textContent =
+        //             `${parameterNames.length} parameter(s) available.`;
+
+        //     } catch (error) {
+        //         if (version !== paramsRequestVersion) {
+        //             return;
+        //         }
+
+        //         console.error("Failed to load parameters:", error);
+
+        //         paramSelect.innerHTML =
+        //             '<option value="">Failed to load parameters</option>';
+        //         paramSelect.disabled = true;
+        //         paramInfo.textContent = "Unable to load parameters.";
+
+        //         showError(`Failed to load parameters: ${error.message}`);
+        //     }
+        // }
 
         async function loadParams() {
             const vd = getSelectedVirtualDevice();
@@ -562,66 +685,70 @@
                 return;
             }
 
-            // The endpoint expects deviceTypeId, e.g. "Inverter"
+            const deviceModelId = vd.device?.deviceModelId;
             const deviceTypeId = vd.deviceTypeId;
 
-            if (!deviceTypeId) {
+            // console.log("deviceTypeId", deviceTypeId);
+            if (!hasValue(deviceModelId)) {
                 paramSelect.innerHTML =
-                    '<option value="">Missing device type</option>';
+                    '<option value="">Missing device model</option>';
                 paramSelect.disabled = true;
-                paramInfo.textContent = "Selected virtual device has no deviceTypeId.";
+                paramInfo.textContent =
+                    "Selected virtual device has no device.deviceModelId.";
                 return;
             }
+
+            const version = ++paramsRequestVersion;
 
             paramSelect.disabled = true;
             paramSelect.innerHTML =
                 '<option value="">Loading parameters...</option>';
-            paramInfo.textContent = `Loading parameters for ${deviceTypeId}...`;
+            paramInfo.textContent =
+                `Loading parameters for ${deviceModelId}...`;
 
             try {
-                const url =
-                    `${API_BASE_URL}/rtu-command/params?deviceTypeId=${encodeURIComponent(deviceTypeId)}`;
+                const query = new URLSearchParams({ deviceModelId });
 
-                console.log("Fetching parameters:", url);
+                if (hasValue(deviceTypeId)) {
+                    query.append("deviceTypeId", deviceTypeId);
+                }
+
+                const url = `${API_BASE_URL}${PARAMS_PATH}?${query.toString()}`;
 
                 const result = await apiRequest(url);
 
-                // Check the actual response format.
+                // Ignore stale responses if the selection changed meanwhile
+                if (version !== paramsRequestVersion) {
+                    return;
+                }
+
                 console.log("Parameters API response:", result);
 
-                const params = Array.isArray(result)
+                const list = Array.isArray(result)
                     ? result
                     : Array.isArray(result?.data)
                         ? result.data
                         : [];
 
-                const parameterNames = params
-                    .map(item => {
-                        if (typeof item === "string") {
-                            return item;
-                        }
-
-                        return item?.metricsAttributeId;
-                    })
-                    .filter(name =>
-                        typeof name === "string" && name.trim() !== ""
-                    );
-
-                paramSelect.innerHTML = "";
+                const parameterNames = [...new Set(
+                    list
+                        .map(extractParamName)
+                        .filter(name =>
+                            typeof name === "string" && name.trim() !== ""
+                        )
+                )];
 
                 if (parameterNames.length === 0) {
                     paramSelect.innerHTML =
                         '<option value="">No parameters found</option>';
                     paramSelect.disabled = true;
                     paramInfo.textContent =
-                        "The API returned no usable parameter names.";
+                        `No registers configured for ${deviceModelId}.`;
                     return;
                 }
 
-                const placeholder = document.createElement("option");
-                placeholder.value = "";
-                placeholder.textContent = "Select Parameter";
-                paramSelect.appendChild(placeholder);
+                paramSelect.innerHTML =
+                    '<option value="">Select Parameter</option>';
 
                 parameterNames.forEach(name => {
                     const option = document.createElement("option");
@@ -635,6 +762,10 @@
                     `${parameterNames.length} parameter(s) available.`;
 
             } catch (error) {
+                if (version !== paramsRequestVersion) {
+                    return;
+                }
+
                 console.error("Failed to load parameters:", error);
 
                 paramSelect.innerHTML =
@@ -645,140 +776,8 @@
                 showError(`Failed to load parameters: ${error.message}`);
             }
         }
-
-        // async function loadParams(forceRefresh = false) {
-        //     const version = ++requestVersion;
-        //     const vd = getSelectedVirtualDevice();
-
-        //     if (!vd) {
-        //         resetParams();
-        //         return;
-        //     }
-
-        //     const deviceTypeId = vd.deviceTypeId;
-
-        //     if (
-        //         deviceTypeId === undefined ||
-        //         deviceTypeId === null ||
-        //         String(deviceTypeId).trim() === ""
-        //     ) {
-        //         resetParams();
-        //         paramInfo.textContent =
-        //             "The selected Virtual Device has no deviceTypeId.";
-        //         showError("Cannot load parameters: deviceTypeId is missing.");
-        //         return;
-        //     }
-
-        //     // Reuse parameters already fetched for this device type.
-        //     if (
-        //         !forceRefresh &&
-        //         cachedDeviceTypeId === String(deviceTypeId) &&
-        //         cachedParams.length > 0
-        //     ) {
-        //         displayParams(cachedParams);
-        //         return;
-        //     }
-
-        //     if (isLoadingParams) {
-        //         return;
-        //     }
-
-        //     isLoadingParams = true;
-        //     paramSelect.disabled = true;
-        //     paramSelect.innerHTML =
-        //         '<option value="">Loading parameters...</option>';
-
-        //     paramInfo.textContent =
-        //         `Loading parameters for device type ${deviceTypeId}...`;
-
-        //     try {
-        //         const url =
-        //             `${API_BASE_URL}/rtu-command/params?deviceTypeId=` +
-        //             encodeURIComponent(deviceTypeId);
-
-        //         const result = await apiRequest(url);
-
-        //         // Ignore stale responses if the selected device changed.
-        //         if (
-        //             version !== requestVersion ||
-        //             virtualDeviceSelect.value !== String(vd.id)
-        //         ) {
-        //             return;
-        //         }
-
-        //         const params = Array.isArray(result)
-        //             ? result
-        //             : result && Array.isArray(result.data)
-        //                 ? result.data
-        //                 : [];
-
-        //         cachedParams = params
-        //             .map(item =>
-        //                 typeof item === "string" || typeof item === "number"
-        //                     ? String(item)
-        //                     : item?.metricsAttributeId
-        //             )
-        //             .filter(value =>
-        //                 value !== undefined &&
-        //                 value !== null &&
-        //                 String(value).trim() !== ""
-        //             )
-        //             .map(String);
-
-        //         cachedDeviceTypeId = String(deviceTypeId);
-
-        //         displayParams(cachedParams);
-
-        //     } catch (error) {
-        //         if (version !== requestVersion) {
-        //             return;
-        //         }
-
-        //         console.error("Load Parameters Error:", error);
-
-        //         paramSelect.innerHTML =
-        //             '<option value="">Failed to load parameters</option>';
-
-        //         paramInfo.textContent = "Unable to load parameters.";
-
-        //         showError("Failed to load parameters: " + error.message);
-
-        //     } finally {
-        //         isLoadingParams = false;
-        //     }
-        // }
-
-        function displayParams(params) {
-            paramSelect.innerHTML =
-                '<option value="">Select Parameter</option>';
-
-            params.forEach(param => {
-                const option = document.createElement("option");
-                option.value = param;
-                option.textContent = param;
-                paramSelect.appendChild(option);
-            });
-
-            if (params.length === 0) {
-                paramSelect.innerHTML =
-                    '<option value="">No parameters found</option>';
-
-                paramSelect.disabled = true;
-                paramInfo.textContent =
-                    "No parameters are configured for this device type.";
-                return;
-            }
-
-            paramSelect.disabled = false;
-            paramInfo.textContent =
-                `${params.length} parameter(s) available.`;
-        }
-
         function resetParams() {
-            requestVersion++;
-            cachedParams = [];
-            cachedDeviceTypeId = null;
-            isLoadingParams = false;
+            paramsRequestVersion++;
 
             paramSelect.innerHTML =
                 '<option value="">Select a Virtual Device first</option>';
@@ -786,7 +785,7 @@
             paramSelect.disabled = true;
 
             paramInfo.textContent =
-                "Parameters will be loaded according to the selected device type.";
+                "Parameters will be loaded according to the selected device model.";
         }
 
         // =====================================================
@@ -797,7 +796,6 @@
         async function loadSlaves() {
             const virtualDeviceId = virtualDeviceSelect.value;
 
-            clearError();
             resetSlaveFields();
 
             if (!virtualDeviceId) {
@@ -817,11 +815,8 @@
                 const mappings = Array.isArray(result)
                     ? result.filter(item =>
                         item &&
-                        item.slaveId !== undefined &&
-                        item.slaveId !== null &&
-                        item.rmuId !== undefined &&
-                        item.rmuId !== null &&
-                        String(item.rmuId).trim() !== ""
+                        hasValue(item.slaveId) &&
+                        hasValue(item.rmuId)
                     )
                     : [];
 
@@ -857,10 +852,7 @@
                         const selectedOption =
                             slaveSelect.options[slaveSelect.selectedIndex];
 
-                        const rmuId =
-                            selectedOption?.dataset?.rmuId || "";
-
-                        setTelemetryRmu(rmuId);
+                        setTelemetryRmu(selectedOption?.dataset?.rmuId || "");
                     };
 
                     if (mappings.length === 1) {
@@ -924,10 +916,6 @@
             rmuInput.disabled = false;
         }
 
-        // =====================================================
-        // POPULATE RMU OPTIONS
-        // =====================================================
-
         function populateRmuOptions() {
             rmuInput.innerHTML =
                 '<option value="">Select RMU</option>';
@@ -968,6 +956,16 @@
 
         // =====================================================
         // SEND RTU COMMAND
+        // POST /rtu-command/sendCommand
+        //
+        // sendRtuCommandDto {
+        //   slaveId?: number;
+        //   rmuDeviceId: string;
+        //   type: string;
+        //   param: string;
+        //   value?: number;
+        //   deviceModelId: string;
+        // }
         // =====================================================
 
         async function sendCommand() {
@@ -984,11 +982,9 @@
             const type = typeSelect.value;
             const param = paramSelect.value;
 
-            // Resolve deviceModelId from the selected Virtual Device.
-            // Confirm this field against your actual /vds response.
+            // From VD response: device.deviceModelId
             const deviceModelId = vd?.device?.deviceModelId;
 
-            // Resolve Slave ID from dropdown or manual input.
             const rawSlaveId =
                 slaveInput.style.display !== "none"
                     ? slaveInput.value.trim()
@@ -998,19 +994,14 @@
                 ? undefined
                 : Number(rawSlaveId);
 
-            // =================================================
-            // VALIDATION
-            // =================================================
+            // ---------------- VALIDATION ----------------
 
             if (!virtualDeviceId || !vd) {
                 showError("Please select Virtual Device.");
                 return;
             }
 
-            if (
-                slaveId === undefined ||
-                !Number.isInteger(slaveId)
-            ) {
+            if (slaveId === undefined || !Number.isInteger(slaveId)) {
                 showError("Please enter/select a valid numeric Slave ID.");
                 return;
             }
@@ -1025,14 +1016,10 @@
                 return;
             }
 
-            if (
-                deviceModelId === undefined ||
-                deviceModelId === null ||
-                String(deviceModelId).trim() === ""
-            ) {
+            if (!hasValue(deviceModelId)) {
                 showError(
-                    "deviceModelId is missing from the selected Virtual Device. " +
-                    "Check the /vds API response and update its mapping."
+                    "deviceModelId is missing from the selected Virtual Device " +
+                    "(expected vd.device.deviceModelId)."
                 );
                 return;
             }
@@ -1055,9 +1042,7 @@
                 }
             }
 
-            // =================================================
-            // DTO REQUEST BODY
-            // =================================================
+            // ---------------- PAYLOAD ----------------
 
             const payload = {
                 slaveId,
@@ -1065,15 +1050,12 @@
                 type,
                 param,
                 deviceModelId: String(deviceModelId),
-
                 ...(type === "write" ? { value } : {})
             };
 
             console.log("RTU Command Request Body:", payload);
 
-            // =================================================
-            // SEND REQUEST
-            // =================================================
+            // ---------------- SEND ----------------
 
             isSending = true;
 
@@ -1088,10 +1070,8 @@
                     {
                         method: "POST",
                         headers: {
-                            "Content-Type": "application/json",
-                            'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYWNoaW4iLCJpYXQiOjE3Nzc0NDAyODksImV4cCI6MTc3NzUyNjY4OX0.t5Gb4ZeKXVvN3Aw9eyRE5jKPQtidUyRRanh2MgOl8YA'
+                            "Content-Type": "application/json"
                         },
-
                         body: JSON.stringify(payload)
                     }
                 );
@@ -1108,9 +1088,7 @@
 
                 responseBox.textContent = "Command failed.";
 
-                showError(
-                    "Failed to send command: " + error.message
-                );
+                showError("Failed to send command: " + error.message);
 
             } finally {
                 isSending = false;

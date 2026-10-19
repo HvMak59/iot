@@ -21,7 +21,7 @@ import { KEY_SEPARATOR } from 'src/app_config/constants';
 import { AlertMasterIdentifier } from 'src/alert-master-identifier/entities/alert-master-identifier.entity';
 import { MetricsAttributeAdaptor } from 'src/metrics-attribute-adaptor/entities/metrics-attribute-adaptor.entity';
 import { DeviceModelMetricsAttributeFormula } from 'src/device-model-metrics-attribute-formula/entities/device-model-metrics-attribute-formula.entity';
-import { DeviceModelParameter } from 'src/device-model-parameters/entities/device-model-parameter.entity';
+import { DeviceModelRegister } from 'src/device-model-parameters/entities/device-model-register.entity';
 // import { DeviceModelState } from '../../device-model-state/entities/device-model-state.entity';
 // import { DeviceModelAttribute } from '../../device-model-attribute/entities/device-model-attribute.entity';
 // import { DeviceModelMetricsAttributeFormula } from '../../device-model-metrics-attribute-formula/entities/device-model-metrics-attribute-formula.entity';
@@ -83,10 +83,10 @@ export class DeviceModel {
 
 
   @OneToMany(
-    () => DeviceModelParameter,
+    () => DeviceModelRegister,
     (deviceModelParameter) => deviceModelParameter.deviceModel,
   )
-  deviceModelParameters: DeviceModelParameter[];
+  deviceModelParameters: DeviceModelRegister[];
 
   /* @Column({ nullable: true })
   origDeviceManufacturerId?: string;

@@ -58,7 +58,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 // import { SmsModule } from './sms/sms.module';
 import * as tls from 'tls';
-import { DeviceModelParameterModule } from './device-model-parameters/device-model-parameter.module';
+import { DeviceModelRegisterModule } from './device-model-parameters/device-model-register.module';
 
 @Module({
   imports: [
@@ -91,8 +91,8 @@ import { DeviceModelParameterModule } from './device-model-parameters/device-mod
 
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
-        // synchronize: true, // for my db use this 
-        synchronize: false, // to connect with sir database use these 2 
+        synchronize: true, // for my db use this 
+        // synchronize: false, // to connect with sir database use these 2 
         migrationsRun: false,
         // logging: true
       }),
@@ -207,7 +207,7 @@ import { DeviceModelParameterModule } from './device-model-parameters/device-mod
     TelemetryHeaderModule,
 
 
-    DeviceModelParameterModule
+    DeviceModelRegisterModule
   ],
   // providers: [
   //   {
@@ -1511,6 +1511,19 @@ export class AppModule { }
 // postgres://hermes:Hermes2000%40414243@e2e-94-36.ssdcloudindia.net:5432/prodHermesIOT1
 // psql "host=e2e-94-36.ssdcloudindia.net port=5432 dbname=prodHermesIOT1 user=hermes sslmode=require"
 // psql "host=localhost port=5432 dbname=iot user=postgres sslmode=require"
+
+
+
+// VFD :
+// 0 -> vfd command through start/stop
+// 1 -> manual switch through start/stop
+// 2 -> rmu command through start/stop
+
+
+
+
+// @Column({ type: 'varchar', nullable: true })
+// deletedBy?: string | null;
 
 
 

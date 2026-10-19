@@ -21,7 +21,8 @@ import { RtuCommandType } from 'src/utils/enums';
 import { sendRtuCommandDto } from './dto/send-rtu-command.dto';
 import { DeviceTypeService } from 'src/device-type/device-type.service';
 import { DeviceTypeMetricsAttributeService } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.service';
-import { DeviceModelParameterService } from 'src/device-model-parameters/device-model-parameter.service';
+import { DeviceModelRegisterService } from 'src/device-model-parameters/device-model-register.service';
+import { FindDeviceModelRegisterDto } from 'src/device-model-parameters/dto/find-device-model-dto';
 
 @Injectable()
 export class RtuCommandService {
@@ -30,65 +31,10 @@ export class RtuCommandService {
         private readonly virtualDeviceService: VirtualDeviceService,
         private readonly currentTelemetryPayloadService: CurrentTelemetryPayloadService,
         private readonly deviceTypeMetricsAttributeService: DeviceTypeMetricsAttributeService,
-        private readonly deviceModelParameterService: DeviceModelParameterService,
+        private readonly deviceModelRegisterService: DeviceModelRegisterService,
     ) { }
 
     private readonly logger = winstonRtuCommunicationLogger(RtuCommandService.name);
-
-    // read(dto: ReadRtuCommandDto) {
-    read(command: RtuReadCommand, rmuDeviceId: string) {
-        const fnName = this.read.name;
-        const input = `Input: ReadRtuCommandDto: ${JSON.stringify(command)}`;
-
-        this.logger.debug(fnName + KEY_SEPARATOR + input);
-
-        // const command: RtuReadCommand = {
-        //     slaveId: Number(dto.slaveId!),
-        //     msgId: this.generateMsgId(),
-        //     timestamp: this.generateTimestamp(),
-        //     type: RTU_COMMAND_TYPE_READ,
-        //     addr: dto.addr,
-        //     param: dto.param,
-        //     dataType: RTU_DATA_TYPE,
-        //     valueType: RTU_VALUE_TYPE,
-        //     // valueType: 'InputRegister',
-        //     multiplier: RTU_MULTIPLIER,
-        //     fieldSize: RTU_FIELD_SIZE,
-        // };
-
-        this.logger.debug(`${fnName}: Calling publishCommand service`);
-
-        return this.publishCommand(
-            rmuDeviceId,
-            command
-        );
-    }
-
-    write(dto: WriteRtuCommandDto) {
-        const fnName = this.write.name;
-        const input = `Input: WriteRtuCommandDto: ${JSON.stringify(dto)}`;
-
-        this.logger.debug(fnName + KEY_SEPARATOR + input);
-
-        const command: RtuWriteCommand = {
-            slaveId: Number(dto.slaveId!),
-            msgId: this.generateMsgId(),
-            timestamp: this.generateTimestamp(),
-            type: RTU_COMMAND_TYPE_WRITE,
-            addr: dto.addr,
-            param: dto.param,
-            value: dto.value * 10,
-            dataType: RTU_DATA_TYPE,
-            valueType: 'Single',
-            // valueType: RTU_VALUE_TYPE,
-        };
-
-        this.logger.debug(`${fnName}: Calling publishCommand service`);
-        return this.publishCommand(
-            dto.rmuDeviceId!,
-            command,
-        );
-    }
 
     // const a = 'this is correct'
     // private async publishCommand(
@@ -230,13 +176,15 @@ export class RtuCommandService {
         return this.currentTelemetryPayloadService.findAllSlavesForVd(virtualDeviceId);
     }
 
-    getParams(deviceTypeId: string) {
+    // getParams(deviceTypeId: string) {
+    getParams(deviceModelId: string, deviceTypeId: string) {
         const fnName = this.getParams.name;
-        const input = `Input: DeviceTypeId: ${deviceTypeId}`;
+        const input = `Input: DeviceModelId: ${deviceModelId}`;
 
         this.logger.debug(fnName + KEY_SEPARATOR + input);
         this.logger.debug('Calling getParams service from deviceType');
-        return this.deviceTypeMetricsAttributeService.getParams(deviceTypeId);
+        return this.deviceModelRegisterService.findParamsByModel(deviceModelId, deviceTypeId);
+        // return this.deviceTypeMetricsAttributeService.getParams(deviceTypeId);
     }
 
     async sendRtuCommand(dto: sendRtuCommandDto) {
@@ -245,8 +193,12 @@ export class RtuCommandService {
 
         this.logger.debug(fnName + KEY_SEPARATOR + input);
 
-        console.log(dto.deviceModelId, dto.param);
-        const parameterDetails = await this.deviceModelParameterService.findParamDetails(dto.deviceModelId, dto.param);
+        const searchCriteria: FindDeviceModelRegisterDto = {
+            deviceModelId: dto.deviceModelId,
+            metricsAttributeId: dto.param
+        }
+        // const parameterDetails = await this.deviceModelRegisterService.findOne(dto.deviceModelId, dto.param);
+        const parameterDetails = await this.deviceModelRegisterService.findOne(searchCriteria);
         console.log("details", parameterDetails);
 
         if (dto.type == RtuCommandType.read) {
@@ -262,9 +214,9 @@ export class RtuCommandService {
                 slaveId: Number(dto.slaveId!),
                 msgId: this.generateMsgId(),
                 timestamp: this.generateTimestamp(),
-                type: RTU_COMMAND_TYPE_READ,
-                addr: Number(parameterDetails?.registerAddress),
+                type: dto.type,
                 param: dto.param,
+                addr: Number(parameterDetails?.registerAddress),
                 dataType: parameterDetails!.registerDataType,
                 valueType: parameterDetails!.registerValueType,
                 multiplier: parameterDetails!.registerMultiplier,
@@ -278,17 +230,89 @@ export class RtuCommandService {
             return this.read(command, dto.rmuDeviceId);
         }
         if (dto.type == RtuCommandType.write) {
-            const writeDto: WriteRtuCommandDto = {
-                rmuDeviceId: dto.rmuDeviceId,
+
+            const command: RtuWriteCommand = {
                 slaveId: Number(dto.slaveId!),
+                msgId: this.generateMsgId(),
+                timestamp: this.generateTimestamp(),
+                type: dto.type,
                 param: dto.param,
-                // addr: Number(dto.addr),
                 addr: Number(parameterDetails?.registerAddress),
-                value: Number(dto.value),
+                dataType: parameterDetails!.registerDataType,
+                multiplier: parameterDetails!.registerMultiplier,
+                fieldSize: parameterDetails!.registerFieldSize,
+                valueType: 'Single',
+                value: Number(dto.value)
+                // valueType: RTU_VALUE_TYPE,
             };
+            // const writeDto: WriteRtuCommandDto = {
+            //     rmuDeviceId: dto.rmuDeviceId,
+            //     slaveId: Number(dto.slaveId!),
+            //     param: dto.param,
+            //     // addr: Number(dto.addr),
+            //     addr: Number(parameterDetails?.registerAddress),
+            //     value: Number(dto.value),
+            // };
 
             this.logger.debug('Calling write service');
-            return this.write(writeDto);
+            // return this.write(command, dto.rmuDeviceId);
+            // return this.write(writeDto);
         }
+    }
+
+    // read(dto: ReadRtuCommandDto) {
+    read(command: RtuReadCommand, rmuDeviceId: string) {
+        const fnName = this.read.name;
+        const input = `Input: ReadRtuCommandDto: ${JSON.stringify(command)}`;
+
+        this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+        // const command: RtuReadCommand = {
+        //     slaveId: Number(dto.slaveId!),
+        //     msgId: this.generateMsgId(),
+        //     timestamp: this.generateTimestamp(),
+        //     type: RTU_COMMAND_TYPE_READ,
+        //     addr: dto.addr,
+        //     param: dto.param,
+        //     dataType: RTU_DATA_TYPE,
+        //     valueType: RTU_VALUE_TYPE,
+        //     // valueType: 'InputRegister',
+        //     multiplier: RTU_MULTIPLIER,
+        //     fieldSize: RTU_FIELD_SIZE,
+        // };
+
+        this.logger.debug(`${fnName}: Calling publishCommand service`);
+
+        return this.publishCommand(
+            rmuDeviceId,
+            command
+        );
+    }
+
+    // write(dto: WriteRtuCommandDto) {
+    write(command: WriteRtuCommandDto, rmuDeviceId: string) {
+        const fnName = this.write.name;
+        const input = `Input: WriteRtuCommandDto: ${JSON.stringify(command)}`;
+
+        this.logger.debug(fnName + KEY_SEPARATOR + input);
+
+        // const command: RtuWriteCommand = {
+        //     slaveId: Number(dto.slaveId!),
+        //     msgId: this.generateMsgId(),
+        //     timestamp: this.generateTimestamp(),
+        //     type: RTU_COMMAND_TYPE_WRITE,
+        //     addr: dto.addr,
+        //     param: dto.param,
+        //     value: dto.value * 10,
+        //     dataType: RTU_DATA_TYPE,
+        //     valueType: 'Single',
+        //     // valueType: RTU_VALUE_TYPE,
+        // };
+
+        this.logger.debug(`${fnName}: Calling publishCommand service`);
+        // return this.publishCommand(
+        //     rmuDeviceId,
+        //     command,
+        // );
     }
 }

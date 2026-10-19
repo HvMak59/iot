@@ -71,7 +71,7 @@ export class DeviceTypeMetricsAttributeService {
         metricsAttributeId: true
       }
     });
-    console.log("params", r);
+    // console.log("params", r);
     return r;
   }
 

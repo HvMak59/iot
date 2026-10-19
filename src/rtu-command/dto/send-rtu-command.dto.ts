@@ -5,6 +5,5 @@ export class sendRtuCommandDto {
     param: string;
     // addr: number;
     value?: number | undefined;
-
     deviceModelId: string;
 }

@@ -20,7 +20,9 @@ export interface RtuWriteCommand {
     param: string;
     value: number;
     dataType: string;
+    multiplier: number;
     valueType: string;
+    fieldSize: number;
 }
 
 export type RtuCommand = RtuReadCommand | RtuWriteCommand;

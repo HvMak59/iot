@@ -45,9 +45,9 @@ export class RtuCommandController {
         this.logger.debug(fnName + KEY_SEPARATOR + input);
 
         if (userId) {
-            return this.rtuCommandService.write(
-                dto,
-            );
+            // return this.rtuCommandService.write(
+            //     dto,
+            // );
         }
         else {
             this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
@@ -79,30 +79,42 @@ export class RtuCommandController {
         return this.rtuCommandService.getSlaveIds(virtualDeviceId);
     }
 
-    @Get('params')
-    getParams(
-        @Query('deviceTypeId') deviceTypeId: string
-    ) {
-        const fnName = this.getParams.name;
-        const input = `Input: DeviceTypeId: ${deviceTypeId}`;
+    // @Get('params')
+    // getParams(
+    //     @Query('deviceTypeId') deviceTypeId: string
+    // ) {
+    //     const fnName = this.getParams.name;
+    //     const input = `Input: DeviceTypeId: ${deviceTypeId}`;
 
-        this.logger.debug(fnName + KEY_SEPARATOR + input);
-        this.logger.debug('Calling getParams service');
-        return this.rtuCommandService.getParams(deviceTypeId);
+    //     this.logger.debug(fnName + KEY_SEPARATOR + input);
+    //     this.logger.debug('Calling getParams service');
+    //     return this.rtuCommandService.getParams(deviceTypeId);
+    // }
+
+    @Get('params')
+    findParams(
+        @Query('deviceModelId') deviceModelId: string,
+        @Query('deviceTypeId') deviceTypeId: string,
+    ) {
+        console.log(deviceModelId);
+        console.log(deviceTypeId);
+        return this.rtuCommandService.getParams(deviceModelId, deviceTypeId);
     }
+
 
     @Post('sendCommand')
     sendCommand(
         @UserId() userId: string,
-        @Body() body: sendRtuCommandDto
+        @Body() sendRtuCommandDto: sendRtuCommandDto
     ) {
         const fnName = this.sendCommand.name;
-        const input = `Send Command: ${JSON.stringify(body)}`;
+        // 
+        const input = `Send Command: ${JSON.stringify(sendRtuCommandDto)}`;
 
         this.logger.debug(`${fnName}: Received request to send RTU command with input: ${input}`);
         if (userId) {
             this.logger.debug('Calling sendRtuCommand service');
-            return this.rtuCommandService.sendRtuCommand(body);
+            return this.rtuCommandService.sendRtuCommand(sendRtuCommandDto);
         } else {
             this.logger.error(fnName + KEY_SEPARATOR + USER_NOT_IN_REQUEST_HEADER);
             throw new Error(USER_NOT_IN_REQUEST_HEADER);

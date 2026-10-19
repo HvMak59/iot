@@ -90,5 +90,12 @@
     "relations": [
       "eventInstances"
     ]
+  },
+  "deviceModelRegister": {
+    "serviceName": "deviceModelRegister",
+    "relations": [
+      "deviceModel",
+      "metricsAttribute"
+    ]
   }
 }
