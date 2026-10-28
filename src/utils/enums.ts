@@ -149,8 +149,8 @@ export enum RtuCommandType {
 
 export enum RegisterAccess {
     read = 'read',
-    wrtie = 'write',
-    read_write = 'read_Write',
+    write = 'write',
+    read_write = 'read_write',
 }
 
 export enum RegisterValueType {

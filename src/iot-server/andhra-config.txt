@@ -1,0 +1,11 @@
+vprzrTemp2 = 40401
+vprzrTemp1 = 40403
+pmpTmp     = 40405
+lngLvl1    = 40643
+lngPrs1    = 40447
+lngLvl2    = 40645
+lngPrs2    = 40495
+dlvryPrs   = 40511
+dlvryFlwRt = 40527
+stts       = 40391
+dtctr      = 40392

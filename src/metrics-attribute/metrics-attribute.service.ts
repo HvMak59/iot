@@ -53,6 +53,11 @@ export class MetricsAttributeService {
     }
   }
 
+
+  async createBulk(createBulk: CreateMetricsAttributeDto[]) {
+    const dtos = this.repo.create(createBulk);
+    return await this.repo.save(dtos);
+  }
   async update(
     id: string,
     updateMetricsAttributeDto: UpdateMetricsAttributeDto,

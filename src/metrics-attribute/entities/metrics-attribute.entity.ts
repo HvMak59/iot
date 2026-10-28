@@ -25,7 +25,7 @@ import { MetricsFrequency } from 'src/common';
 import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-source/entities/asset-current-performance-source.entity';
 import { AssetTypeCurrentPerformanceSource } from 'src/asset-type-current-performance-source/entities/asset-type-current-performance-source.entity';
-import { DeviceModelRegister } from 'src/device-model-parameters/entities/device-model-register.entity';
+import { DeviceModelRegister } from 'src/device-model-register/entities/device-model-register.entity';
 // import { DeviceModelAttribute } from '../../device-model-attribute/entities/device-model-attribute.entity';
 // import { MetricsAttributeFormula } from '../../metrics-attribute-formula/entities/metrics-attribute-formula.entity';
 // import { MetricsAttributeAggregation } from '../../metrics-attribute-aggregation/entities/metrics-attribute-aggregation.entity';

@@ -19,7 +19,7 @@ import { MetricsFrequency } from 'src/common';
 export interface TelemetryDisplayProperty {
   //measureGroupName: string;
   metricsAttributeId: string;
-  frequency: MetricsFrequency;
+  frequency: MetricsFrequency | undefined;
   unit?: string;
   displayOrder?: number;
   displayName: string;

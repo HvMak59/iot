@@ -192,28 +192,28 @@ export class VirtualDevice {
     eventInstances: EventInstance;
 
 
-    @Column({
-        default: false,
-    })
-    needsAggregation: boolean;
+    // @Column({
+    //     default: false,
+    // })
+    // // needsAggregation: boolean;
 
-    @Column({
-        default: false,
-    })
-    aggregationStatus: aggregationStatus;
-
-
+    // @Column({
+    //     default: false,
+    // })
+    // // aggregationStatus: // aggregationStatus;
 
 
 
 
-    @Column({
-        nullable: true,
-    })
-    lastAggregationAt?: Date;
 
-    @Column({ nullable: true })
-    displayNumber: Number;
+
+    // @Column({
+    //     nullable: true,
+    // })
+    // lastAggregationAt?: Date;
+
+    // @Column({ nullable: true })
+    // displayNumber: Number;
 
     @BeforeInsert()
     @BeforeUpdate()

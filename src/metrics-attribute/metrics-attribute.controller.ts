@@ -54,6 +54,12 @@ export class MetricsAttributeController {
     }
   }
 
+  @Post('bulk')
+  createBulk(@Body() createBulk: CreateMetricsAttributeDto[]) {
+    console.log(JSON.stringify(createBulk));
+    return this.metricsAttributeService.createBulk(createBulk);
+  }
+
   @Get('many')
   async findAll(@Query() searchCriteria: FindMetricsAttributeDto) {
     return await this.metricsAttributeService.findAll(searchCriteria);

@@ -1056,11 +1056,18 @@ export class TelemetryPayloadService {
 
 
 
-  findForATimePeriodInAsc(searchCriteria: FindTelemetryPayloadForAPeriod) {
+  async findForATimePeriodInAsc(searchCriteria: FindTelemetryPayloadForAPeriod) {
     const fnName = this.findForATimePeriodInAsc.name;
 
     const startTime = convertInputToDate(searchCriteria.startTime);
     const endTime = convertInputToDate(searchCriteria.endTime);
+
+    // const metricsAttributeIds = searchCriteria.metricsAttributeId.split(',')
+
+    // const metricsAttributeIds = searchCriteria.metricsAttributeId
+    //   .split(',')
+    //   .map((id) => id.trim())
+    //   .filter(Boolean);
 
     /* const startTime =
       typeof searchCriteria.startTime == 'string'
@@ -1078,19 +1085,25 @@ export class TelemetryPayloadService {
     return this.repo.find({
       where: {
         assetId: searchCriteria.assetId,
-        virtualDeviceId: searchCriteria.virtualDeviceId ?? IsNull(),
+        // virtualDeviceId: searchCriteria.virtualDeviceId ?? IsNull(),
+        ...(searchCriteria.virtualDeviceId
+          ? { virtualDeviceId: searchCriteria.virtualDeviceId }
+          : {}),
         metric: {
           metricsAttributeId: searchCriteria.metricsAttributeId,
+          // metricsAttributeId: In(metricsAttributeIds),
           txnCapturePeriod: Between<Date>(startTime, endTime),
         },
       },
-      relations: this.eagerRelations,
+      // relations: this.eagerRelations,
+      relations: { virtualDevice: true },
       order: {
         metric: {
           txnCaptureTime: 'ASC',
         },
-      },
+      }
     });
+
     /* return this.repo.find({
       where: {
         assetId: searchCriteria.assetId,
@@ -1112,6 +1125,43 @@ export class TelemetryPayloadService {
     }); */
   }
 
+
+
+
+
+  // findForATimePeriodInAsc(searchCriteria: FindTelemetryPayloadForAPeriod) {
+  //   const fnName = this.findForATimePeriodInAsc.name;
+
+  //   const startTime = convertInputToDate(searchCriteria.startTime);
+  //   const endTime = convertInputToDate(searchCriteria.endTime);
+
+  //   const metricsAttributeIds = searchCriteria.metricsAttributeId
+  //     .split(',')
+  //     .map((id) => id.trim())
+  //     .filter(Boolean);
+
+  //   this.logger.debug(
+  //     `${fnName} : search criteria : ${JSON.stringify(searchCriteria)}`,
+  //   );
+
+  //   return this.repo.find({
+  //     where: {
+  //       assetId: searchCriteria.assetId,
+  //       virtualDeviceId: searchCriteria.virtualDeviceId ?? IsNull(),
+  //       metric: {
+  //         // metricsAttributeId: searchCriteria.metricsAttributeId,
+  //         metricsAttributeId: In(metricsAttributeIds),
+  //         txnCapturePeriod: Between<Date>(startTime, endTime),
+  //       },
+  //     },
+  //     relations: this.eagerRelations,
+  //     order: {
+  //       metric: {
+  //         txnCaptureTime: 'ASC',
+  //       },
+  //     },
+  //   });
+  // }
 
 
 

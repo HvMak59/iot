@@ -94,11 +94,8 @@ export class RtuCommandController {
     @Get('params')
     findParams(
         @Query('deviceModelId') deviceModelId: string,
-        @Query('deviceTypeId') deviceTypeId: string,
     ) {
-        console.log(deviceModelId);
-        console.log(deviceTypeId);
-        return this.rtuCommandService.getParams(deviceModelId, deviceTypeId);
+        return this.rtuCommandService.getParams(deviceModelId);
     }
 
 
@@ -108,7 +105,7 @@ export class RtuCommandController {
         @Body() sendRtuCommandDto: sendRtuCommandDto
     ) {
         const fnName = this.sendCommand.name;
-        // 
+
         const input = `Send Command: ${JSON.stringify(sendRtuCommandDto)}`;
 
         this.logger.debug(`${fnName}: Received request to send RTU command with input: ${input}`);

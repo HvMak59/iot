@@ -53,7 +53,6 @@ import { AssetCurrentPerformanceSource } from 'src/asset-current-performance-sou
 import { FindMetricDto } from 'src/metrics/dto/find-metric.dto';
 import { DeviceTypeMetricsAttribute } from 'src/device-type-metrics-attribute/entities/device-type-metrics-attribute.entity';
 import { DeviceTypeMetricsAttributeService } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.service';
-import { TelemetryPayloadsRepo } from 'src/telemetry-payload/entities/telemetry-payload_repo.entity';
 import { CurrentTelemetryPayloadsRepo } from 'src/current-telemetry-payload/entities/current-telemetry-payloads.entity';
 import { TelemetryPayloadDto } from './dto/telemetry-payload-dto.dto';
 import { FindAssetPerformanceTelemetry } from './dto/find-asset-performance-telemetry';
@@ -68,7 +67,13 @@ import { TelemetryPayloadV3DTO } from './dto/telemetry-payload-v3.dto';
 import { FindCurrentTelemetryDto } from 'src/current-telemetry-payload/dto/find-current-telemetry.dto';
 import { FindTelemetryPayloadDto } from 'src/telemetry-payload/dto/find-telemetry-payload.dto';
 import { CacheMappingService } from 'src/cache-maps/cache-maps.service';
+import { TelemetryPayload2Dto } from './dto/telemetry-payload2-dto.dto';
+import { TelemetryPayloadsRepo } from 'src/telemetry-payload/entities/telemetry-payload-repo.entity';
 // import { CurrentOpenAlertService } from 'current-open-alert/current-open-alert.service';
+
+// import { TelemetryPayloadsRepo } from 'src/telemetry-payload/entities/telemetry-payload_repo.entity';
+
+
 // import { DEVICE_MODEL_WITH_ALERTS_URL, KEY_SEPARATOR } from 'src/app_config/constants';
 // import { AlertService } from 'alert/alert.service';
 // import { FindAlertDto } from 'alert/dto/find-alert.dto';
@@ -185,7 +190,8 @@ export class IotServerService {
         DEVICE_MODEL_WITH_ALERTS_URL,
         this.baseURL,
       );
-      // console.log("Searchobject", searchObject);
+      console.log(deviceModelWithAlertsUrl.href);
+      console.log("Searchobject", searchObject);
       const deviceModelAlertResp = await firstValueFrom(
         this.httpService.get<DeviceModel[]>(deviceModelWithAlertsUrl.href, {
           params: searchObject,
@@ -2934,10 +2940,10 @@ export class IotServerService {
       //   assetCurrPerfSrcByKey,
       //   dTMAsByKey,
       // );
-      return new TelemetryPayloadsRepo(tPLs).getCTPLDTOV3({
-        aCPSByKey: assetCurrPerfSrcByKey,
-        dTMAsByKey,
-      });
+      // return new TelemetryPayloadsRepo(tPLs).getCTPLDTOV3({
+      //   aCPSByKey: assetCurrPerfSrcByKey,
+      //   dTMAsByKey,
+      // });
     }
     else {
       this.logger.debug(
@@ -3164,9 +3170,9 @@ export class IotServerService {
           endOfDate(inputDate).valueOf(),
         );
 
-      return new TelemetryPayloadsRepo(tPLs).getCTPLDTOV3({
-        dTMAsByKey,
-      });
+      // return new TelemetryPayloadsRepo(tPLs).getCTPLDTOV3({
+      //   dTMAsByKey,
+      // });
     }
     else {
       this.logger.debug(
@@ -3290,7 +3296,7 @@ export class IotServerService {
         this.logger.debug(`${fnName} : No telemetry payload records found`);
         return [];
       }
-      return new TelemetryPayloadsRepo(telemetryPayloads).getCTPLDTOV3({});
+      // return new TelemetryPayloadsRepo(telemetryPayloads).getCTPLDTOV3({});
     } catch (error) {
       const errMsg = getTryCatchErrorStr(error);
       this.logger.error(`${fnName} : ${errMsg}`);
@@ -3350,6 +3356,7 @@ export class IotServerService {
   //     Object.values(cTPLsByTime).flat(),
   //   ).getCTPLDTOV3(assetCurrPerfSrcByKey, dTMAsByKey);
   // }
+
 
 
 
@@ -3422,6 +3429,103 @@ export class IotServerService {
   }
 
 
+  async getAssetPerformanceTelemetryV2(
+    searchCriteria: FindAssetPerformanceTelemetry,
+  ) {
+    const fnName = this.getAssetPerformanceTelemetryV2.name;
+    //try {
+    this.logger.debug(`${fnName} : Start`);
+    this.logger.debug(`${fnName} : ${JSON.stringify(searchCriteria)}`);
+
+    const findTelemetryPayload =
+      FindTelemetryPayloadForAPeriod.createFromFindAssetPerformanceTelemetry(
+        searchCriteria,
+      );
+    let telemetryPayloads = [];
+    telemetryPayloads =
+      await this.telemetryPayloadService.findForATimePeriodInAsc(
+        findTelemetryPayload,
+      );
+    this.logger.debug(
+      `${fnName} : No of rcvdTelemetryPayloads : ${telemetryPayloads.length}`,
+    );
+    const telemetryPayloadsRepo = new TelemetryPayloadsRepo(telemetryPayloads);
+    const telemetryDevicesWithMetrics = telemetryPayloadsRepo.telemetryDevicesWithMetrics();
+
+    let telemetryDisplayProperty: TelemetryDisplayProperty = {
+      displayName: searchCriteria.metricsAttributeId!,
+      metricsAttributeId: searchCriteria.metricsAttributeId!,
+      frequency:
+        searchCriteria.frequency ??
+        (_.isEmpty(telemetryPayloads)
+          ? undefined
+          : telemetryPayloads[0].metric.frequency) ??
+        undefined,
+      unit: _.isEmpty(telemetryPayloads)
+        ? undefined
+        : telemetryPayloads[0].metric.unit,
+    };
+
+    const telemetryPayload2Dto = new TelemetryPayload2Dto(
+      telemetryDisplayProperty,
+      telemetryDevicesWithMetrics!,
+    );
+    return telemetryPayload2Dto;
+  }
+
+
+  async getAssetPerformanceTelemetryV2_1(
+    searchCriteria: FindAssetPerformanceTelemetry,
+  ) {
+    const fnName = this.getAssetPerformanceTelemetryV2.name;
+    this.logger.debug(`${fnName} : Start`);
+    this.logger.debug(`${fnName} : ${JSON.stringify(searchCriteria)}`);
+
+    const findTelemetryPayload = FindTelemetryPayloadForAPeriod.createFromFindAssetPerformanceTelemetry(
+      searchCriteria,
+    );
+
+    const telemetryPayloads =
+      await this.telemetryPayloadService.findForATimePeriodInAsc(
+        findTelemetryPayload,
+      );
+    console.log("after fetch");
+    this.logger.debug(
+      `${fnName} : No of rcvdTelemetryPayloads : ${telemetryPayloads.length}`,
+    );
+
+    // group rows by metric
+    const payloadsByMetric = _.groupBy(
+      telemetryPayloads,
+      (tp) => tp.metric.metricsAttributeId,
+    );
+
+    const metricsAttributeIds = (searchCriteria.metricsAttributeId ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+
+
+    return metricsAttributeIds.map((metricId) => {
+      const payloads = payloadsByMetric[metricId] ?? [];
+
+      const telemetryPayloadsRepo = new TelemetryPayloadsRepo(payloads);
+      const telemetryDevicesWithMetrics = telemetryPayloadsRepo.telemetryDevicesWithMetrics() ?? [];
+
+      const telemetryDisplayProperty: TelemetryDisplayProperty = {
+        displayName: metricId,
+        metricsAttributeId: metricId,
+        frequency: searchCriteria.frequency ?? payloads[0]?.metric.frequency,
+        unit: payloads[0]?.metric.unit,
+      };
+
+      return new TelemetryPayload2Dto(
+        telemetryDisplayProperty,
+        telemetryDevicesWithMetrics,
+      );
+    });
+  }
+
   // my 
   async getAssetPerformanceTelemetryy(
     searchCriteria: FindAssetPerformanceTelemetry,
@@ -3475,10 +3579,10 @@ export class IotServerService {
         );
     }
 
-    return new TelemetryPayloadsRepo(telemetryPayloads).getCTPLDTOV3({
-      aCPSByKey,
-      dTMAsByKey,
-    });
+    // return new TelemetryPayloadsRepo(telemetryPayloads).getCTPLDTOV3({
+    //   aCPSByKey,
+    //   dTMAsByKey,
+    // });
   }
 
 

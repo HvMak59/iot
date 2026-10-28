@@ -180,35 +180,35 @@ export class WhatsAppService {
             to: phoneNumber,
             type: 'template',
             // messages: 'hello',
-            template: {
-                name: 'hello_world',
-                language: {
-                    code: 'en',
-                },
-            }
             // template: {
-            //     name: 'alert_triggered',
+            //     name: 'hello_world',
             //     language: {
             //         code: 'en',
             //     },
-            //     components: [
-            //         {
-            //             type: 'body',
-            //             parameters: [
-            //                 {
-            //                     type: 'text',
-            //                     parameter_name: 'alerts',
-            //                     text: messages,
-            //                 },
-            //                 {
-            //                     type: 'text',
-            //                     parameter_name: 'status',
-            //                     text: status,
-            //                 },
-            //             ],
-            //         },
-            //     ],
-            // },
+            // }
+            template: {
+                name: 'alert_triggered',
+                language: {
+                    code: 'en',
+                },
+                components: [
+                    {
+                        type: 'body',
+                        parameters: [
+                            {
+                                type: 'text',
+                                parameter_name: 'alerts',
+                                text: messages,
+                            },
+                            {
+                                type: 'text',
+                                parameter_name: 'status',
+                                text: status,
+                            },
+                        ],
+                    },
+                ],
+            },
         };
 
         try {
@@ -232,6 +232,52 @@ export class WhatsAppService {
                 'Error sending WhatsApp message:',
                 error.response?.data || error.message,
             );
+
+            throw error;
+        }
+    }
+
+
+
+    async sendAlertTemplate(phoneNumber: string, alertText: string) {
+        const url = `https://graph.facebook.com/v25.0/${this.phoneNumberId}/messages`;
+
+        const payload = {
+            messaging_product: 'whatsapp',
+            to: phoneNumber,
+            type: 'template',
+            template: {
+                name: 'alert_triggered',
+                language: { code: 'en' },
+                components: [
+                    {
+                        type: 'body',
+                        parameters: [
+                            {
+                                type: 'text',
+                                parameter_name: 'alerts', // must match {{alerts}} in template
+                                // text: alertText,
+                                text: 'this is first alert',
+                            },
+                        ],
+                    },
+                ],
+            },
+        };
+
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post(url, payload, {
+                    headers: {
+                        Authorization: `Bearer ${this.accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            );
+
+            console.log(`WA sent: ${JSON.stringify(response.data)}`);
+            return response.data;
+        } catch (error: any) {
 
             throw error;
         }

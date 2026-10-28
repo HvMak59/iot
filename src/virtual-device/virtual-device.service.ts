@@ -33,7 +33,7 @@ import { ATTACH_DEVICE_URL, DETACH_DEVICE_URL, DEVICE_URL, DUPLICATE_RECORD, KEY
 import { getTokenString, throwErrIfSrvcRespFailure } from 'src/utils/others';
 import { VirtualDeviceGroup } from 'src/virtual-device-group/entities/virtual-device-group.entity';
 import { Response } from 'express';
-import { aggregationStatus, Relations } from 'src/utils/enums';
+// import { aggregationStatus, Relations } from 'src/utils/enums';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { winstonServerLogger } from 'src/app_config/serverWinston.config';
 import { MetricsAttributeAggregationService } from 'src/metrics-attribute-aggregation/metrics-attribute-aggregation.service';
@@ -573,7 +573,7 @@ export class VirtualDeviceService {
 
 
   // async findParentsNeedingAggregation() {
-  //   return this.repo.find({ where: { needsAggregation: true } });
+  //   return this.repo.find({ where: { // needsAggregation: true } });
   // }
 
   // Atomic claim via repo.update with a compound where — succeeds only if the
@@ -581,14 +581,14 @@ export class VirtualDeviceService {
   // lost updates (telemetry arriving mid-run) and double-processing.
   // async claimForAggregation(parentVirtualDeviceId: string) {
   //   const result = await this.repo.update(
-  //     { id: parentVirtualDeviceId, needsAggregation: true },
-  //     { needsAggregation: false },
+  //     { id: parentVirtualDeviceId, // needsAggregation: true },
+  //     { // needsAggregation: false },
   //   );
   //   return (result.affected ?? 0) > 0;
   // }
 
   // async markNeedsAggregation(parentVirtualDeviceId: string) {
-  //   await this.repo.update({ id: parentVirtualDeviceId }, { needsAggregation: true });
+  //   await this.repo.update({ id: parentVirtualDeviceId }, { // needsAggregation: true });
   // }
 
   // async getChildren(parentVirtualDeviceId: string) {
@@ -673,7 +673,7 @@ export class VirtualDeviceService {
 
     const parents = await this.repo.find({
       where: {
-        needsAggregation: true,
+        // needsAggregation: true,
       },
     });
 
@@ -717,10 +717,10 @@ export class VirtualDeviceService {
     const result = await this.repo.update(
       {
         id: parentVirtualDeviceId,
-        needsAggregation: true,
+        // needsAggregation: true,
       },
       {
-        needsAggregation: false,
+        // needsAggregation: false,
       },
     );
 
@@ -743,7 +743,7 @@ export class VirtualDeviceService {
         id: parentVirtualDeviceId,
       },
       {
-        needsAggregation: false,
+        // needsAggregation: false,
       },
     );
   }
@@ -764,7 +764,7 @@ export class VirtualDeviceService {
         id: parentVirtualDeviceId,
       },
       {
-        needsAggregation: true,
+        // needsAggregation: true,
       },
     );
 
@@ -1505,7 +1505,7 @@ export class VirtualDeviceService {
   async findPendingParents(): Promise<VirtualDevice[]> {
     return this.repo.find({
       where: {
-        needsAggregation: true,
+        // needsAggregation: true,
         // aggregationInProgress: false,
       },
     });
@@ -1641,11 +1641,11 @@ export class VirtualDeviceService {
     await this.repo.update(
       {
         id: In(parentIds),
-        needsAggregation: false
+        // needsAggregation: false
       },
       {
-        needsAggregation: true,
-        aggregationStatus: aggregationStatus.pending
+        // needsAggregation: true,
+        // aggregationStatus: // aggregationStatus.pending
       },
     );
   }
@@ -1665,8 +1665,8 @@ export class VirtualDeviceService {
   findVirtualDeviceNeedsAggregation() {
     return this.repo.find({
       where: {
-        needsAggregation: true,
-        aggregationStatus: aggregationStatus.pending,
+        // needsAggregation: true,
+        // aggregationStatus: // aggregationStatus.pending,
       },
       select: {
         id: true,
@@ -1751,11 +1751,11 @@ export class VirtualDeviceService {
     return this.repo.update(
       {
         id: virtualDeviceId,
-        needsAggregation: true,
-        aggregationStatus: aggregationStatus.pending,
+        // needsAggregation: true,
+        // aggregationStatus: // aggregationStatus.pending,
       },
       {
-        aggregationStatus: aggregationStatus.processing,
+        // aggregationStatus: // aggregationStatus.processing,
       },
     );
   }
@@ -1768,8 +1768,8 @@ export class VirtualDeviceService {
         id: virtualDeviceId,
       },
       {
-        needsAggregation: true,
-        aggregationStatus: aggregationStatus.pending,
+        // needsAggregation: true,
+        // aggregationStatus: // aggregationStatus.pending,
       },
     );
   }
@@ -1782,8 +1782,8 @@ export class VirtualDeviceService {
         id: virtualDeviceId,
       },
       {
-        needsAggregation: false,
-        aggregationStatus: aggregationStatus.completed,
+        // needsAggregation: false,
+        // aggregationStatus: // aggregationStatus.completed,
       },
     );
   }
@@ -1855,9 +1855,9 @@ export class VirtualDeviceService {
         id: In(parentIds),
       },
       {
-        needsAggregation: false,
+        // needsAggregation: false,
         // aggregationInProgress: false,
-        lastAggregationAt: new Date(),
+        // lastAggregationAt: new Date(),
       },
     );
   }
@@ -2047,7 +2047,7 @@ export class VirtualDeviceService {
   //     const repo = manager.getRepository(VirtualDevice);
 
   //     const pendingDevices = await repo.find({
-  //       where: { needsAggregation: true },
+  //       where: { // needsAggregation: true },
   //       order: { id: 'ASC' },
   //       take: batchSize,
   //       lock: { mode: 'pessimistic_write', onLocked: 'skip_locked' },
@@ -2057,7 +2057,7 @@ export class VirtualDeviceService {
 
   //     await repo.update(
   //       { id: In(pendingDevices.map((vd) => vd.id)) },
-  //       { needsAggregation: false },
+  //       { // needsAggregation: false },
   //     );
 
   //     return pendingDevices;
@@ -2068,7 +2068,7 @@ export class VirtualDeviceService {
   // private async restoreAggregationPendingFlag(virtualDeviceId: string): Promise<void> {
   //   await this.repo.update(
   //     { id: virtualDeviceId },
-  //     { needsAggregation: true },
+  //     { // needsAggregation: true },
   //   );
   // }
 
@@ -2087,7 +2087,7 @@ export class VirtualDeviceService {
   //   });
 
   //   if (childDevice?.parent?.id) {
-  //     await repo.update({ id: childDevice.parent.id }, { needsAggregation: true });
+  //     await repo.update({ id: childDevice.parent.id }, { // needsAggregation: true });
   //   }
   // }
 

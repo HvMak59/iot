@@ -145,20 +145,20 @@ export class DeviceModelController {
     return await this.deviceModelService.findAlertsFromMultipleIDs(searchObj);
   }
 
-  // @Patch()
-  // async update(
-  //   @Query('id') id: string,
-  //   @UserId() userId: string,
-  //   @Body() updateDeviceModelDto: UpdateDeviceModelDto,
-  // ) {
-  //   const fnName = 'update()';
-  //   const input = `Input : Id : ${id} , updateDeviceModelDto : ${JSON.stringify(
-  //     updateDeviceModelDto,
-  //   )}`;
-  //   this.logger.debug(fnName + KEY_SEPARATOR + input);
-  //   updateDeviceModelDto.updatedBy = userId;
-  //   return await this.deviceModelService.update(id, updateDeviceModelDto);
-  // }
+  @Patch()
+  async update(
+    @Query('id') id: string,
+    // @UserId() userId: string,
+    @Body() updateDeviceModelDto: UpdateDeviceModelDto,
+  ) {
+    const fnName = 'update()';
+    const input = `Input : Id : ${id} , updateDeviceModelDto : ${JSON.stringify(
+      updateDeviceModelDto,
+    )}`;
+    this.logger.debug(fnName + KEY_SEPARATOR + input);
+    // updateDeviceModelDto.updatedBy = userId;
+    return await this.deviceModelService.update(id, updateDeviceModelDto);
+  }
 
   // @Patch('restore/:id')
   // restore(@Param('id') id: string) {

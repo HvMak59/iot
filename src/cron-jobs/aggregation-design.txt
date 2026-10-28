@@ -7,7 +7,7 @@ Save CurrentTelemetryPayload
 Find Root Parent
         │
         |
-needsAggregation = true
+// needsAggregation = true
     
 
 
@@ -17,7 +17,7 @@ Every 5 Minutes (Cron)
 
         │
         |
-Load Parents (needsAggregation=true)
+Load Parents (// needsAggregation=true)
         │
         |
 Load ALL Children 
@@ -44,7 +44,7 @@ For Each Parent
 Bulk Save Parent Telemetry
         │
         |
-needsAggregation = false
+// needsAggregation = false
 lastAggregationAt = now
 
 

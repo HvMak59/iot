@@ -28,18 +28,13 @@ export class DeviceModelRegisterService {
         })
     }
 
-    async findParamsByModel(deviceModelId: string, deviceTypeId: string) {
+    async findParamsByModel(deviceModelId: string) {
         return this.repo.find({
             where: {
-                deviceModel: {
-                    id: deviceModelId,
-                    deviceTypeId
-                }
+                deviceModelId
             },
-            select: { metricsAttributeId: true },
+            // select: { metricsAttributeId: true },
         });
-        //  
-        // return rows.map(r => r.metricsAttributeId);
     }
 
     create(createDeviceModelRegisterDto: CreateDeviceModelRegisterDto) {

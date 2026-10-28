@@ -897,12 +897,17 @@ export class AlertEventsListener {
 
 				try {
 
-					await this.whatsAppService.sendMessageToWp(
+					// await this.whatsAppService.sendMessageToWp(
+					// 	phoneNumber,
+					// 	whatsappMessage,
+					// 		alerts.some((alert) => !alert.closeDateTime)
+					// 			? 'created'
+					// 			: 'closed',
+					// );
+
+					await this.whatsAppService.sendAlertTemplate(
 						phoneNumber,
-						whatsappMessage,
-						alerts.some((alert) => !alert.closeDateTime)
-							? 'created'
-							: 'closed',
+						whatsappMessage
 					);
 
 				} catch (error) {

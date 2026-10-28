@@ -20,6 +20,8 @@ export class WhatsAppController {
         //     AlertStatus.CLOSED,
         //     []
         // );
-        return this.whatsAppService.sendMessageToWp('916353921545', '', '');
+        // return this.whatsAppService.sendMessageToWp('916353921545', '', '');
+        return this.whatsAppService.sendAlertTemplate('916353921545', '');
+        // return this.whatsAppService.sendAlertTemplate('917698779298', '');
     }
 }

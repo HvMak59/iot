@@ -8,7 +8,7 @@ import { VirtualDeviceModule } from 'src/virtual-device/virtual.device.module';
 import { RtuCommandGateway } from './websocket-gateway/rtu-command.gateway';
 import { SseModule } from 'src/sse/sse.module';
 import { DeviceTypeMetricsAttributeModule } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.module';
-import { DeviceModelRegisterModule } from 'src/device-model-parameters/device-model-register.module';
+import { DeviceModelRegisterModule } from 'src/device-model-register/device-model-register.module';
 
 @Module({
     imports: [

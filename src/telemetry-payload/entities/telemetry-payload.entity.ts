@@ -16,16 +16,6 @@ import { Metric } from 'src/metrics/entities/metric.entity';
 import { Asset } from 'src/asset/entities/asset.entity';
 import { Device } from 'src/device/entities/device.entity';
 
-// @Entity()
-// @Index(
-//   [
-//     'assetId',
-//     'virtualDeviceId',
-//     'metric.metricsAttributeId',
-//     'metric.txnCapturePeriod',
-//   ],
-//   { unique: true },
-// )
 @Entity()
 @Index(
   [
@@ -34,15 +24,25 @@ import { Device } from 'src/device/entities/device.entity';
     'metric.metricsAttributeId',
     'metric.txnCapturePeriod',
   ],
-  {
-    //unique: true,
-    where: `"virtualDeviceId" IS NOT NULL`,
-  },
+  { unique: true },
 )
-@Index(['assetId', 'metric.metricsAttributeId', 'metric.txnCapturePeriod'], {
-  //unique: true,
-  where: `"virtualDeviceId" IS NULL`,
-})
+// @Entity()
+// @Index(
+//   [
+//     'assetId',
+//     'virtualDeviceId',
+//     'metric.metricsAttributeId',
+//     'metric.txnCapturePeriod',
+//   ],
+//   {
+//     //unique: true,
+//     where: `"virtualDeviceId" IS NOT NULL`,
+//   },
+// )
+// @Index(['assetId', 'metric.metricsAttributeId', 'metric.txnCapturePeriod'], {
+//unique: true,
+//   where: `"virtualDeviceId" IS NULL`,
+// })
 /* @Unique([
   'virtualDeviceId',
   'metric.metricsAttributeId',

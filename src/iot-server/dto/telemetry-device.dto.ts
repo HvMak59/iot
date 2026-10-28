@@ -15,6 +15,7 @@ export class TelemetryDevice extends PartialType(Device) {
   id?: string;
   name?: string;
   displayNumber: number;
+  displayOrder: number
 
   constructor(telemetryDevice: Partial<TelemetryDevice>) {
     super();

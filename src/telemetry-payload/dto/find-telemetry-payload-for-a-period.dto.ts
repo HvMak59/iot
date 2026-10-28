@@ -40,6 +40,7 @@ export class FindTelemetryPayloadForAPeriod extends PartialType(
         ? findAssetPerformanceTelemetry.isDeviceGroup
         : undefined, */
       metricsAttributeId: findAssetPerformanceTelemetry.metricsAttributeId,
+      // metricsAttributeId: findAssetPerformanceTelemetry.csvMetricsAttributeIds,
     });
     newObj.updateTimeRange(
       findAssetPerformanceTelemetry.startTime,

@@ -9,6 +9,7 @@ export class FindAssetPerformanceTelemetry {
   virtualDeviceId?: string;
   //label?: string;
   metricsAttributeId?: string;
+  // csvMetricsAttributeIds?: string;
   startTime: string;
   endTime: string;
   frequency?: MetricsFrequency;

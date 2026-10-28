@@ -76,6 +76,28 @@ export class IotServerController {
     }
   }
 
+  @Get('asset-performance-telemetry-v2')
+  //@UseInterceptors(TelemetryPayloadTransformer)
+  async getAssetPerformanceTelemetryV2(
+    @Query() searchCriteria: FindAssetPerformanceTelemetry,
+  ) {
+    const fnName = 'getAssetPerformanceTelemetry()';
+    const input = `Input : ${JSON.stringify(searchCriteria)}`;
+    try {
+      this.logger.debug(`${fnName} : Start`);
+      this.logger.debug(`${fnName} : ${input}`);
+      return await this.iotServerService.getAssetPerformanceTelemetryV2_1(
+        searchCriteria,
+      );
+    } catch (error) {
+      const errMsg = getTryCatchErrorStr(error);
+      this.logger.error(`${fnName} : ${errMsg}`);
+      throw new HttpException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      this.logger.debug(`${fnName} : End`);
+    }
+  }
+
   @Get('devices-performance-telemetry')
   getPerformanceTelemetry(
     @Query() searchCriteria: FindDevicesPerformanceTelemetryDto,

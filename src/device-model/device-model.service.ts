@@ -55,6 +55,36 @@ export class DeviceModelService {
     }
   }
 
+  async update(id: string, updateDeviceModelDto: UpdateDeviceModelDto) {
+    const fnName = 'update()';
+    if (updateDeviceModelDto.id == null) {
+      this.logger.debug(
+        `${fnName} : DeviceModel Id not found in UpdateDeviceModelDto`,
+      );
+      updateDeviceModelDto.id = id;
+    } else if (updateDeviceModelDto.id != id) {
+      const errMsg = `DeviceModel Id : ${id} and Update DeviceModel object Id : ${updateDeviceModelDto.id} do not match`;
+      this.logger.error(`${fnName} : ${errMsg}`);
+      throw new Error(errMsg);
+    }
+    const mergedDeviceModel = await this.repo.preload(updateDeviceModelDto);
+    this.logger.debug(
+      `${fnName} : Merged DeviceModel is : ${JSON.stringify(
+        mergedDeviceModel,
+      )}`,
+    );
+    if (mergedDeviceModel == null) {
+      this.logger.error(
+        `${fnName} : ${NO_RECORD} : Devicemodel Id : ${id} not found`,
+      );
+      throw new Error(`${NO_RECORD} : Devicemodel Id : ${id} not found`);
+    } else {
+      const r = await this.repo.save(mergedDeviceModel);
+      console.log("saved");
+      return r;
+    }
+  }
+
   findAll(
     searchCriteria: FindDeviceModelDto,
     relationsRequired: boolean = false,

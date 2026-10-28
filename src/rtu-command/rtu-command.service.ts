@@ -21,8 +21,8 @@ import { RtuCommandType } from 'src/utils/enums';
 import { sendRtuCommandDto } from './dto/send-rtu-command.dto';
 import { DeviceTypeService } from 'src/device-type/device-type.service';
 import { DeviceTypeMetricsAttributeService } from 'src/device-type-metrics-attribute/device-type-metrics-attribute.service';
-import { DeviceModelRegisterService } from 'src/device-model-parameters/device-model-register.service';
-import { FindDeviceModelRegisterDto } from 'src/device-model-parameters/dto/find-device-model-dto';
+import { DeviceModelRegisterService } from 'src/device-model-register/device-model-register.service';
+import { FindDeviceModelRegisterDto } from 'src/device-model-register/dto/find-device-model-dto';
 
 @Injectable()
 export class RtuCommandService {
@@ -176,15 +176,13 @@ export class RtuCommandService {
         return this.currentTelemetryPayloadService.findAllSlavesForVd(virtualDeviceId);
     }
 
-    // getParams(deviceTypeId: string) {
-    getParams(deviceModelId: string, deviceTypeId: string) {
+    getParams(deviceModelId: string) {
         const fnName = this.getParams.name;
         const input = `Input: DeviceModelId: ${deviceModelId}`;
 
         this.logger.debug(fnName + KEY_SEPARATOR + input);
-        this.logger.debug('Calling getParams service from deviceType');
-        return this.deviceModelRegisterService.findParamsByModel(deviceModelId, deviceTypeId);
-        // return this.deviceTypeMetricsAttributeService.getParams(deviceTypeId);
+        this.logger.debug('Calling findParamsByModel service');
+        return this.deviceModelRegisterService.findParamsByModel(deviceModelId);
     }
 
     async sendRtuCommand(dto: sendRtuCommandDto) {

@@ -58,7 +58,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 // import { SmsModule } from './sms/sms.module';
 import * as tls from 'tls';
-import { DeviceModelRegisterModule } from './device-model-parameters/device-model-register.module';
+import { DeviceModelRegisterModule } from './device-model-register/device-model-register.module';
 
 @Module({
   imports: [
@@ -80,21 +80,21 @@ import { DeviceModelRegisterModule } from './device-model-parameters/device-mode
         //     join(process.cwd(), 'src/certs', 'ca-cert.pem'),
         //     'utf8',
         //   ),
-        //   checkServerIdentity: (host: string, cert: any) => {
-        //     console.log('Server cert subject:', cert.subject);
-        //     console.log('Server cert SAN:', cert.subjectaltname);
+        // checkServerIdentity: (host: string, cert: any) => {
+        //   console.log('Server cert subject:', cert.subject);
+        //   console.log('Server cert SAN:', cert.subjectaltname);
 
-        //     return undefined;
-        //   },
+        //   return undefined;
+        // },
         //   rejectUnauthorized: true,
         // },
 
         autoLoadEntities: true,
         // synchronize: config.get('NODE_ENV') !== 'production',
-        synchronize: true, // for my db use this 
-        // synchronize: false, // to connect with sir database use these 2 
+        // synchronize: true, // for my db use this 
+        synchronize: false, // to connect with sir database use these 2 
         migrationsRun: false,
-        // logging: true
+        // logging: ['query']
       }),
       inject: [ConfigService],
     }),
@@ -1524,6 +1524,43 @@ export class AppModule { }
 
 // @Column({ type: 'varchar', nullable: true })
 // deletedBy?: string | null;
+
+
+
+// RRB: A226285885581
+
+// load balancer :
+// Amazon elb, google could LookupsBase, microsoft azure lb 
+
+
+
+// ask karnatak plc slave id to ketan beerensgas....
+
+
+
+// Karnatak : 
+
+// mosquitto_sub -h hermesmqtt.com -t test1234 -u hermes -P 4iHuC+=NL6R*t7=YU6Ew
+// mosquitto_sub -h hermesmqtt.com -t HrmsIOT/LNGStrg/RtBn1/Kar1/inf -u hermes -P 4iHuC+=NL6R*t7=YU6Ew
+
+// {"device_type":"lng1","device_name":"burak","device_id":"I202610001","date":"23/10/2026",
+// "time":"15:53:27","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
+// "software_ver":"SM-1.03.D20_4G","signal_strength":"4","valid":false,"data":{"slave_id":"1",
+// "vprzrTemp2":0,"vprzrTemp1":0,"pmpTmp":0,"lngLvl1":0,"lngPrs1":0,"lngLvl2":0,"lngPrs2":0,"stts":0,
+// "dtctr":0}}
+
+// {"device_type":"flwmtr","device_name":"burak","device_id":"I202610001","date":"23/10/2026",
+// "time":"15:53:27","time_zone":"Asia/Kolkata","latitude":"0","longitude":"0",
+// "software_ver":"SM-1.03.D20_4G","signal_strength":"4","valid":false,"data":{"slave_id":"2","temp":0,
+// "snsrV":0,"vlcty":0,"flwrt":0,"ttlHndrd":0,"ttlRmndr":0,"al":0,"unit":0,"testBits":0}}
+
+
+// choice number : 
+// rhtzkclf
+
+
+// couriar rmu to karnatak...detials are in email 
+// check sim card also in rmu
 
 
 

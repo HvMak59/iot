@@ -1,0 +1,127 @@
+1) find-asset-performance-telemetry : 
+
+  // metricsAttributeId?: string;    -> remove this 
+  csvMetricsAttributeIds?: string;   -> add this 
+
+
+
+
+
+
+
+
+2) Iot-server-service 
+ 
+ async getAssetPerformanceTelemetryV2_1(
+    searchCriteria: FindAssetPerformanceTelemetry,
+  ) {
+    const fnName = this.getAssetPerformanceTelemetryV2.name;
+    this.logger.debug(`${fnName} : Start`);
+    this.logger.debug(`${fnName} : ${JSON.stringify(searchCriteria)}`);
+
+    const findTelemetryPayload =
+      FindTelemetryPayloadForAPeriod.createFromFindAssetPerformanceTelemetry(
+        searchCriteria,
+      );
+
+    const telemetryPayloads =
+      await this.telemetryPayloadService.findForATimePeriodInAsc(
+        findTelemetryPayload,
+      );
+
+    this.logger.debug(
+      `${fnName} : No of rcvdTelemetryPayloads : ${telemetryPayloads.length}`,
+    );
+
+    // group rows by metric
+    const payloadsByMetric = _.groupBy(
+      telemetryPayloads,
+      (tp) => tp.metric.metricsAttributeId,
+    );
+
+
+    const metricsAttributeIds = (searchCriteria.csvMetricsAttributeIds ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+
+
+    return metricsAttributeIds.map((metricId) => {
+      const payloads = payloadsByMetric[metricId] ?? [];
+
+      const telemetryPayloadsRepo = new TelemetryPayloadsRepo(payloads);
+      const telemetryDevicesWithMetrics = telemetryPayloadsRepo.telemetryDevicesWithMetrics() ?? [];
+
+      const telemetryDisplayProperty: TelemetryDisplayProperty = {
+        displayName: metricId,
+        metricsAttributeId: metricId,
+        frequency: searchCriteria.frequency ?? payloads[0]?.metric.frequency,
+        unit: payloads[0]?.metric.unit,
+      };
+
+      return new TelemetryPayload2Dto(
+        telemetryDisplayProperty,
+        telemetryDevicesWithMetrics,
+      );
+    });
+  }
+
+
+
+
+
+
+
+
+3)
+
+Telemtry-Payload-Service :
+
+
+ findForATimePeriodInAsc(searchCriteria: FindTelemetryPayloadForAPeriod) {
+    const fnName = this.findForATimePeriodInAsc.name;
+
+    const startTime = convertInputToDate(searchCriteria.startTime);
+    const endTime = convertInputToDate(searchCriteria.endTime);
+
+    const metricsAttributeIds = searchCriteria.metricsAttributeId
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+
+    this.logger.debug(
+      `${fnName} : search criteria : ${JSON.stringify(searchCriteria)}`,
+    );
+
+    return this.repo.find({
+      where: {
+        assetId: searchCriteria.assetId,
+        virtualDeviceId: searchCriteria.virtualDeviceId ?? IsNull(),
+        metric: {
+          metricsAttributeId: In(metricsAttributeIds),
+          txnCapturePeriod: Between<Date>(startTime, endTime),
+        },
+      },
+      relations: this.eagerRelations,
+      order: {
+        metric: {
+          txnCaptureTime: 'ASC',
+        },
+      },
+    });
+  }
+
+
+
+
+
+
+
+
+4)
+Find-telemtry-payload-for-a-period.dto.ts 
+
+in createFromFindAssetPerformanceTelemetry()  this method 
+
+change this line 
+metricsAttributeId: findAssetPerformanceTelemetry.csvMetricsAttributeIds,  
